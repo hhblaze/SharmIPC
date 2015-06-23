@@ -104,9 +104,13 @@ namespace tiesky.com.SharmIpc
                 resp.callBack = callBack;
                 df[msgId] = resp;
                 if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
+                {
+                    df.TryRemove(msgId, out resp);
                     callBack(new Tuple<bool, byte[]>(false, null));
+                    return new Tuple<bool, byte[]>(false, null);
+                }
 
-                return new Tuple<bool, byte[]>(false, null);
+                return new Tuple<bool, byte[]>(true, null);
             }
 
             resp.mre = new ManualResetEvent(false);
