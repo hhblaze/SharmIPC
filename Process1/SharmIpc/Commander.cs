@@ -179,6 +179,8 @@ namespace tiesky.com.SharmIpc
                         {
                             rc.IsRespOk = false;
                             rc.mre.Set();
+                            rc.mre.Dispose();
+                            rc.mre = null;
                         }
                     }
                     
