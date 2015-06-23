@@ -207,7 +207,7 @@ namespace tiesky.com.SharmIpc
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public unsafe bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg)
+        public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg)
         {
             //lock (lock_q)
             //{
@@ -242,41 +242,6 @@ namespace tiesky.com.SharmIpc
 
                         pMsg = new byte[bufferLenS + protocolLen];
 
-                        ////Writing protocol header
-                        //fixed (byte* btz = pMsg)
-                        //{
-                        //    btz[0] = (byte)msgType;
-
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(msgId))
-                        //    {
-                        //        btz[1] = btz1[0];
-                        //        btz[2] = btz1[1];
-                        //        btz[3] = btz1[2];
-                        //        btz[4] = btz1[3];
-                        //        btz[5] = btz1[4];
-                        //        btz[6] = btz1[5];
-                        //        btz[7] = btz1[6];
-                        //        btz[8] = btz1[7];
-                        //    }
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(bufferLenS))
-                        //    {
-                        //        btz[9] = btz1[0];
-                        //        btz[10] = btz1[1];
-                        //        btz[11] = btz1[2];
-                        //        btz[12] = btz1[3];                                
-                        //    }
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(currentChunk))
-                        //    {
-                        //        btz[13] = btz1[0];
-                        //        btz[14] = btz1[1];                               
-                        //    }
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(totalChunks))
-                        //    {
-                        //        btz[15] = btz1[0];
-                        //        btz[16] = btz1[1];
-                        //    }
-                        //}
-
                         //Writing protocol header
                         Buffer.BlockCopy(new byte[] { (byte)msgType }, 0, pMsg, 0, 1);    //MsgType (1 for standard message)
                         Buffer.BlockCopy(BitConverter.GetBytes(msgId), 0, pMsg, 1, 8);  //msgId_Sending
@@ -296,46 +261,6 @@ namespace tiesky.com.SharmIpc
                     else
                     {
                         pMsg = new byte[left + protocolLen];
-
-                        ////Writing protocol header
-                        //fixed (byte* btz = pMsg, srcA = msg)
-                        //{
-                        //    btz[0] = (byte)msgType;
-
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(msgId))
-                        //    {
-                        //        btz[1] = btz1[0];
-                        //        btz[2] = btz1[1];
-                        //        btz[3] = btz1[2];
-                        //        btz[4] = btz1[3];
-                        //        btz[5] = btz1[4];
-                        //        btz[6] = btz1[5];
-                        //        btz[7] = btz1[6];
-                        //        btz[8] = btz1[7];
-                        //    }
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(left))
-                        //    {
-                        //        btz[9] = btz1[0];
-                        //        btz[10] = btz1[1];
-                        //        btz[11] = btz1[2];
-                        //        btz[12] = btz1[3];
-                        //    }
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(currentChunk))
-                        //    {
-                        //        btz[13] = btz1[0];
-                        //        btz[14] = btz1[1];
-                        //    }
-                        //    fixed (byte* btz1 = BitConverter.GetBytes(totalChunks))
-                        //    {
-                        //        btz[15] = btz1[0];
-                        //        btz[16] = btz1[1];
-                        //    }
-
-                        //    //Writing payload
-                        //    for (int xj = 0; xj <= left; xj++)
-                        //        btz[xj + protocolLen] = srcA[xj + i];
-                        //}
-
 
                         //Writing protocol header
                         Buffer.BlockCopy(new byte[] { (byte)msgType }, 0, pMsg, 0, 1);    //MsgType (1 for standard message)
