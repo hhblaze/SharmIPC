@@ -4,7 +4,7 @@
 
 Inter-process communication (IPC engine) for .NET / MONO, based on memory-mapped files
 <br>Written on C#
-<br>Fast and light weight
+<br>Fast and lightweight
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
 
 =====================
