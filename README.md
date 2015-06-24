@@ -70,6 +70,14 @@ void MakeRemoteRequestWithoutResponse()
 *Benchmarks:*
 ```txt
 [512 bytes package in both directions]
-Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 20MB/s.
-Remote async calls without response (a la send and forget), full-duplex, with the speed of 80MB/s.
+Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 20 MB/s.
+Remote async calls without response (a la send and forget), full-duplex, with the speed of 80 MB/s.
+
+[10000 bytes package in both directions]
+Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 320 MB/s.
+Remote async calls without response (a la send and forget), full-duplex, with the speed of 700 MB/s.
+
+[1 byte package in both directions]
+Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 40000 call/s.
+Remote async calls without response (a la send and forget), full-duplex, with the speed of 120000 calls/s.
 ```
