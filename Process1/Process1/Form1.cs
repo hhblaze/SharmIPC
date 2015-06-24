@@ -83,7 +83,7 @@ namespace MemoryMappedFile
                     ((decimal)sw.ElapsedMilliseconds * 1000000m)
                     , 2), sw.ElapsedMilliseconds
                     );
-            Console.WriteLine(sw.ElapsedMilliseconds);
+           // Console.WriteLine(sw.ElapsedMilliseconds);
 
         }
 
