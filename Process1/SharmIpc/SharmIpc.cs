@@ -6,23 +6,40 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using tiesky.com.SharmIpcInternals;
 
-namespace tiesky.com.SharmIpc
+namespace tiesky.com
 {
-    public class Commander:IDisposable
+    /// <summary>
+    /// Inter-process communication handler. IPC for .NET
+    /// https://github.com/hhblaze/SharmIPC or http://sharmipc.tiesky.com
+    /// </summary>
+    public class SharmIpc:IDisposable
     {
         Func<byte[], Tuple<bool, byte[]>> remoteCallHandler = null;
-
         SharedMemory sm = null;
+        ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
+        
+        class ResponseCrate
+        {
+            /// <summary>
+            /// Not SLIM version must be used (it works faster for longer delay which RPCs are)
+            /// </summary>
+            public ManualResetEvent mre = null;
+            public byte[] res = null;
+            public Action<Tuple<bool, byte[]>> callBack = null;
+            public bool IsRespOk = true;
+        }
+
 
         /// <summary>
-        /// 
+        /// SharmIpc constructor
         /// </summary>
-        /// <param name="uniqueHandlerName">must be unique among OS (can be PID of the process + other identification)</param>
-        /// <param name="dataArrived">callback where </param>
-        /// <param name="bufferCapacity">As bigger buffer as faster it sends bigger data blocks. default value is 50000</param>
-        /// <param name="maxQueueSizeInBytes">If remote partner doesn't answer messages start to accumulate in memory until given treshold, then send will return error</param>
-        public Commander(string uniqueHandlerName, Func<byte[], Tuple<bool,byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        /// <param name="uniqueHandlerName">Must be unique in OS scope (can be PID [ID of the process] + other identifications)</param>
+        /// <param name="remoteCallHandler">Response routine for the remote partner requests</param>
+        /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
+        /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
+        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
         {
             if (remoteCallHandler == null)
                 throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
@@ -31,17 +48,14 @@ namespace tiesky.com.SharmIpc
             sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
         }
         
-        class ResponseCrate
-        {
-            public ManualResetEvent mre = null;
-            public byte[] res = null;
-            public Action<Tuple<bool, byte[]>> callBack = null;
-            public bool IsRespOk = true;
-        }
-
-        ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
         
-
+        
+        /// <summary>
+        /// Any incoming data from remote partner is accumulated here
+        /// </summary>
+        /// <param name="msgType"></param>
+        /// <param name="msgId"></param>
+        /// <param name="bt"></param>
         void InternalDataArrived(eMsgType msgType, ulong msgId, byte[] bt)
         {   
             ResponseCrate rsp = null;
@@ -92,12 +106,11 @@ namespace tiesky.com.SharmIpc
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="remoteMethodName"></param>
-        /// <param name="args"></param>
-        /// <param name="callBack">if specified then result will be returned into callBack</param>
+        /// <param name="args">payload which must be send to remote partner</param>
+        /// <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
         /// <param name="timeoutMs">Default 30 sec</param>
         /// <returns></returns>
-        public Tuple<bool, byte[]> RpcCall(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
+        public Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
         {
        
             ulong msgId = sm.GetMessageId();
@@ -150,11 +163,11 @@ namespace tiesky.com.SharmIpc
 
 
         /// <summary>
-        /// Non RPC call
+        /// Just sends payload to remote partner without awaiting response from it.
         /// </summary>
-        /// <param name="args"></param>
+        /// <param name="args">payload</param>
         /// <returns>if Message was accepted for sending</returns>
-        public bool Call(byte[] args)
+        public bool RemoteRequestWithoutResponse(byte[] args)
         {            
             ulong msgId = sm.GetMessageId();
             return sm.SendMessage(eMsgType.Request, msgId, args);

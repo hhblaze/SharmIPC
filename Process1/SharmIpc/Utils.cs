@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace tiesky.com.SharmNet
+namespace tiesky.com.SharmIpc
 {
     internal static class BytesProcessing
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.IO.MemoryMappedFiles;
 
-namespace tiesky.com.SharmIpc
+namespace tiesky.com.SharmIpcInternals
 {
     internal enum eInstanceType
     {
@@ -58,8 +58,8 @@ namespace tiesky.com.SharmIpc
             if (String.IsNullOrEmpty(uniqueHandlerName) || uniqueHandlerName.Length > 200)
                 throw new Exception("tiesky.com.SharmIpc: uniqueHandlerName can't be empty or more then 200 symbols");
 
-            if (bufferCapacity < 100)
-                bufferCapacity = 100;
+            if (bufferCapacity < 256)
+                bufferCapacity = 256;
 
             if (bufferCapacity > 1000000)    //max 1MB
                 bufferCapacity = 1000000;
@@ -92,7 +92,7 @@ namespace tiesky.com.SharmIpc
                 instanceType = eInstanceType.Master;
             }
 
-            Console.WriteLine(instanceType + " of " + uniqueHandlerName);
+            Console.WriteLine("tiesky.com.SharmIpc: " + instanceType + " of " + uniqueHandlerName);
 
             rwh = new ReaderWriterHandler(this, dataArrived);          
         }

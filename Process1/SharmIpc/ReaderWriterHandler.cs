@@ -7,7 +7,7 @@ using System.Threading;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 
-namespace tiesky.com.SharmIpc
+namespace tiesky.com.SharmIpcInternals
 {
     internal class ReaderWriterHandler:IDisposable
     {
@@ -30,8 +30,6 @@ namespace tiesky.com.SharmIpc
         bool inSend = false;
         int bufferLenS = 0;
 
-        bool disposed = false;
-
         /// <summary>
         /// MsgId of the sender and payload
         /// </summary>
@@ -40,9 +38,7 @@ namespace tiesky.com.SharmIpc
 
         public void Dispose()
         {
-            disposed = true;
-            //mreSmthToSend.Set();
-
+  
             try
             {
                 if (ewh_Writer_ReadyToRead != null)
@@ -154,7 +150,7 @@ namespace tiesky.com.SharmIpc
 
         void InitWriter()
         {
-            string prefix = sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Master ? "1" : "2";
+            string prefix = sm.instanceType == tiesky.com.SharmIpcInternals.eInstanceType.Master ? "1" : "2";
 
             if (ewh_Writer_ReadyToRead == null)
             {
@@ -189,12 +185,16 @@ namespace tiesky.com.SharmIpc
          * 4bytes - payload length (int)
          * 2bytes - currentChunk
          * 2bytes - totalChunks  //ChunksLeft (ushort) (if there is only 1 chunk, then chunks left will be 0. if there are 2 chunks: first will be 1 then will be 0)
-         * for MsgType Response 
+         * 8bytes - responseMsgId
          * payload
          */
 
         int totalBytesInQUeue = 0;
 
+        /// <summary>
+        /// To get new Id this function must be used
+        /// </summary>
+        /// <returns></returns>
         public ulong GetMessageId()
         {
             lock (lock_q)
@@ -204,18 +204,12 @@ namespace tiesky.com.SharmIpc
         }
 
         /// <summary>
-        /// Returns internal msgId
+        /// Returns false if buffer threshold is reached
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
         public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId=0)
         {
-            //lock (lock_q)
-            //{
-            //    q.Enqueue(msg);
-            //}
-
-            //ulong retMsgId = 0;            
 
             if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
                 return false;
@@ -231,10 +225,6 @@ namespace tiesky.com.SharmIpc
                 
                 ushort totalChunks = msg == null ? (ushort)1 : Convert.ToUInt16(Math.Ceiling((double)msg.Length / (double)bufferLenS));
                 ushort currentChunk = 1;
-
-                //msgId_Sending++;
-                //retMsgId = msgId_Sending;
-                //byte[] xbt = null;
 
                 while (true)
                 {
@@ -297,7 +287,7 @@ namespace tiesky.com.SharmIpc
         //ManualResetEventSlim mreSmthToSend = new ManualResetEventSlim(false);
         //ManualResetEvent mreSmthToSend = new ManualResetEvent(false);
 
-        /*SendProcedure1
+        /*SendProcedure1 - slower alternative. Starting from .NET4 ThreadPool is quite optimized
         void SendProcedure1()
         {
             Task.Run(() =>
@@ -497,7 +487,7 @@ namespace tiesky.com.SharmIpc
         /// </summary>
         void InitReader()
         {
-            string prefix = sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Slave ? "1" : "2";
+            string prefix = sm.instanceType == eInstanceType.Slave ? "1" : "2";
 
             if (ewh_Reader_ReadyToRead == null)
             {
