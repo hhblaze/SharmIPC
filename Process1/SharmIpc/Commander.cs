@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace tiesky.com.SharmIpc
 {
     public class Commander:IDisposable
-    {        
-        Action<ulong, byte[]> dataArrived = null;
+    {
+        Func<byte[], Tuple<bool, byte[]>> remoteCallHandler = null;
 
         SharedMemory sm = null;
 
@@ -22,10 +22,13 @@ namespace tiesky.com.SharmIpc
         /// <param name="dataArrived">callback where </param>
         /// <param name="bufferCapacity">As bigger buffer as faster it sends bigger data blocks. default value is 50000</param>
         /// <param name="maxQueueSizeInBytes">If remote partner doesn't answer messages start to accumulate in memory until given treshold, then send will return error</param>
-        public Commander(string uniqueHandlerName, Action<ulong, byte[]> dataArrived, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        public Commander(string uniqueHandlerName, Func<byte[], Tuple<bool,byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
         {
-           this.dataArrived = dataArrived;
-           sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
+            if (remoteCallHandler == null)
+                throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
+
+            this.remoteCallHandler = remoteCallHandler;
+            sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
         }
 
 
@@ -48,22 +51,26 @@ namespace tiesky.com.SharmIpc
             switch (msgType)
             {
                 case eMsgType.Request:
-                    //Do nothing
+
+                    Task.Run(() =>
+                    {
+                        this.remoteCallHandler(bt);
+                    });   
+
                     break;
                 case eMsgType.RpcRequest:
-
-                    //!!!!!!!!!!!!!!!!Call SM Implementer GetSMImplementer
-                    sm.SendMessage(eMsgType.RpcResponse, sm.GetMessageId(), BitConverter.GetBytes(msgId));
+                                        
+                    Task.Run(() =>
+                    {
+                        var res = this.remoteCallHandler(bt);
+                        sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);                                                
+                    });                    
 
                     break;
-
-                case eMsgType.ErrorInRpcAnswer:
+                case eMsgType.ErrorInRpc:
                 case eMsgType.RpcResponse:
-
-                    //Answer to caller
-                    ulong rMsgId = BitConverter.ToUInt64(bt,0);
-
-                    if (df.TryGetValue(rMsgId, out rsp))
+                                        
+                    if (df.TryGetValue(msgId, out rsp))
                     {
                         rsp.res = bt;
                         rsp.IsRespOk = msgType == eMsgType.RpcResponse;
@@ -74,7 +81,7 @@ namespace tiesky.com.SharmIpc
                         }
                         else
                         {
-                            df.TryRemove(rMsgId, out rsp);
+                            df.TryRemove(msgId, out rsp);
                             rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
                         }
                     }

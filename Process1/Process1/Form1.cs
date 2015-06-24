@@ -38,12 +38,18 @@ namespace MemoryMappedFile
         tiesky.com.SharmIpc.Commander sm = null;
         //tiesky.com.SharmNet.SharedMemory sm = new tiesky.com.SharmNet.SharedMemory("Mitch");
 
-        int cntarrived = 0;
-        int len = 0;
-        void DataArrived(ulong msgId, byte[] bt)
+        //int cntarrived = 0;
+        //int len = 0;
+        //void DataArrived(ulong msgId, byte[] bt)
+        //{
+        //    cntarrived++;
+        //    len += bt.Length;
+        //}
+
+        Tuple<bool,byte[]> RemoteCall(byte[] data)
         {
-            cntarrived++;
-            len += bt.Length;
+            Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
+            return new Tuple<bool, byte[]>(true, new byte[] { 5, 6, 7 });            
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -51,7 +57,7 @@ namespace MemoryMappedFile
 
            
             if(sm == null)
-                sm = new tiesky.com.SharmIpc.Commander("Mitch");
+                sm = new tiesky.com.SharmIpc.Commander("Mitch", this.RemoteCall);
                         
 
             return;
@@ -366,6 +372,9 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            var res1 = sm.RpcCall(new byte[99]);
+            return;
+
             //using (var context = NetMQContext.Create())
             //using (var client = context.CreateRequestSocket())
             //{
@@ -395,7 +404,8 @@ namespace MemoryMappedFile
             {
                // var res = sm.RpcCall(new byte[512], (par) => { });
                 //var res = sm.RpcCall(null);
-                sm.Call(new byte[512]);
+                var res = sm.RpcCall(new byte[512]);
+                //sm.Call(new byte[512]);
                 //sm.CallAndWaitAnswer("test", new byte[100000], 10 * 1000);
             }
             sw.Stop();

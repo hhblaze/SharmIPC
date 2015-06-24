@@ -39,20 +39,27 @@ namespace mmf2client
         tiesky.com.SharmIpc.Commander sm = null;
         //tiesky.com.SharmNet.SharedMemory sm = new tiesky.com.SharmNet.SharedMemory("Mitch");
 
-        int cntarrived = 0;
-        int len = 0;
-        void DataArrived(ulong msgId, byte[] bt)
+        //int cntarrived = 0;
+        //int len = 0;
+        //void DataArrived(ulong msgId, byte[] bt)
+        //{
+        //    cntarrived++;
+        //    len += bt.Length;
+        //}
+
+        Tuple<bool, byte[]> RemoteCall(byte[] data)
         {
-            cntarrived++;
-            len += bt.Length;
+            Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
+            return new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17 });
         }
+
 
 
         private void button1_Click(object sender, EventArgs e)
         {
 
             if (sm == null)
-                sm = new tiesky.com.SharmIpc.Commander("Mitch", this.DataArrived, 100000);
+                sm = new tiesky.com.SharmIpc.Commander("Mitch", this.RemoteCall);
 
             return;
             //Writer Pattern With SystemSignals
@@ -443,7 +450,9 @@ namespace mmf2client
         private void button2_Click(object sender, EventArgs e)
         {
 
-            var res = sm.RpcCall(null);
+            //var res = sm.RpcCall(null);
+            var res = sm.RpcCall(new byte[17]);
+            //var res = sm.Call(new byte[324]);
             return;
 
             using (var context = NetMQContext.Create())

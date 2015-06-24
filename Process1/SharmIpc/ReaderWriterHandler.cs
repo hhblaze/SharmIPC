@@ -163,13 +163,13 @@ namespace tiesky.com.SharmIpc
                 ewh_Writer_ReadyToWrite.Set();
             }
 
-            if (sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Master)
-            {
-                Console.WriteLine("My writer handlers:");
-                Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
-                Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
-                Console.WriteLine("-------");
-            }
+            //if (sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Master)
+            //{
+            //    Console.WriteLine("My writer handlers:");
+            //    Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
+            //    Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
+            //    Console.WriteLine("-------");
+            //}
 
 
             if (Writer_mmf == null)
@@ -179,7 +179,7 @@ namespace tiesky.com.SharmIpc
             }
         }
 
-        const int protocolLen = 17;
+        const int protocolLen = 25;
         ulong msgId_Sending = 0;
 
         /*Protocol
@@ -189,6 +189,7 @@ namespace tiesky.com.SharmIpc
          * 4bytes - payload length (int)
          * 2bytes - currentChunk
          * 2bytes - totalChunks  //ChunksLeft (ushort) (if there is only 1 chunk, then chunks left will be 0. if there are 2 chunks: first will be 1 then will be 0)
+         * for MsgType Response 
          * payload
          */
 
@@ -207,14 +208,14 @@ namespace tiesky.com.SharmIpc
         /// </summary>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg)
+        public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId=0)
         {
             //lock (lock_q)
             //{
             //    q.Enqueue(msg);
             //}
 
-            //ulong retMsgId = 0;
+            //ulong retMsgId = 0;            
 
             if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
                 return false;
@@ -248,6 +249,8 @@ namespace tiesky.com.SharmIpc
                         Buffer.BlockCopy(BitConverter.GetBytes(bufferLenS), 0, pMsg, 9, 4);  //payload len
                         Buffer.BlockCopy(BitConverter.GetBytes(currentChunk), 0, pMsg, 13, 2);  //current chunk
                         Buffer.BlockCopy(BitConverter.GetBytes(totalChunks), 0, pMsg, 15, 2);  //total chunks
+                        Buffer.BlockCopy(BitConverter.GetBytes(responseMsgId), 0, pMsg, 17, 8);  //total chunks
+
 
                         //Writing payload
                         if(msg != null)
@@ -268,6 +271,7 @@ namespace tiesky.com.SharmIpc
                         Buffer.BlockCopy(BitConverter.GetBytes(left), 0, pMsg, 9, 4);  //payload len
                         Buffer.BlockCopy(BitConverter.GetBytes(currentChunk), 0, pMsg, 13, 2);  //current chunk
                         Buffer.BlockCopy(BitConverter.GetBytes(totalChunks), 0, pMsg, 15, 2);  //total chunks
+                        Buffer.BlockCopy(BitConverter.GetBytes(responseMsgId), 0, pMsg, 17, 8);  //total chunks
 
                         //Writing payload
                         if (msg != null)
@@ -503,13 +507,13 @@ namespace tiesky.com.SharmIpc
                 ewh_Reader_ReadyToWrite.Set();
             }
 
-            if (sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Slave)
-            {
-                Console.WriteLine("My reader handlers:");
-                Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
-                Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
-                Console.WriteLine("-------");
-            }
+            //if (sm.instanceType == tiesky.com.SharmIpc.eInstanceType.Slave)
+            //{
+            //    Console.WriteLine("My reader handlers:");
+            //    Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
+            //    Console.WriteLine(sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
+            //    Console.WriteLine("-------");
+            //}
 
 
             if (Reader_mmf == null)
@@ -526,6 +530,7 @@ namespace tiesky.com.SharmIpc
                 ushort iTotChunk = 0;
                 ulong iMsgId = 0;
                 int iPayLoadLen = 0;
+                ulong iResponseMsgId = 0;
 
                 eMsgType msgType = eMsgType.RpcRequest;
 
@@ -542,10 +547,12 @@ namespace tiesky.com.SharmIpc
                     //Parsing header
                     switch (msgType)
                     {
-                        case eMsgType.ErrorInRpcAnswer:
+                        case eMsgType.ErrorInRpc:
 
                             iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
-                            DataArrived(msgType, BitConverter.ToUInt64(ReadBytes(protocolLen, iPayLoadLen),0), null);
+                            iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
+
+                            DataArrived(msgType, iResponseMsgId, null);
                             break;
                         
                         case eMsgType.RpcResponse:
@@ -555,7 +562,8 @@ namespace tiesky.com.SharmIpc
                             iMsgId = BitConverter.ToUInt64(hdr, 1); //+8
                             iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
                             iCurChunk = BitConverter.ToUInt16(hdr, 13); //+2
-                            iTotChunk = BitConverter.ToUInt16(hdr, 15); //+2                            
+                            iTotChunk = BitConverter.ToUInt16(hdr, 15); //+2     
+                            iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
                             if (iCurChunk == 1)
                             {
@@ -568,10 +576,10 @@ namespace tiesky.com.SharmIpc
                                 switch (msgType)
                                 {
                                     case eMsgType.RpcRequest:
-                                        this.SendMessage(eMsgType.ErrorInRpcAnswer, this.GetMessageId(), BitConverter.GetBytes(iMsgId));
+                                        this.SendMessage(eMsgType.ErrorInRpc, this.GetMessageId(), null, iMsgId);
                                         break;
                                     case eMsgType.RpcResponse:
-                                        DataArrived(eMsgType.ErrorInRpcAnswer, BitConverter.ToUInt64(ReadBytes(protocolLen, iPayLoadLen), 0), null);                                        
+                                        DataArrived(eMsgType.ErrorInRpc, iResponseMsgId, null);                                        
                                         break;
                                 }                              
                                 break; 
@@ -580,13 +588,13 @@ namespace tiesky.com.SharmIpc
                             if (iTotChunk == iCurChunk)
                             {
                                 if (chunksCollected == null)
-                                    DataArrived(msgType, iMsgId, iPayLoadLen == 0 ? null : ReadBytes(protocolLen, iPayLoadLen));
+                                    DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? null : ReadBytes(protocolLen, iPayLoadLen));
                                 else
                                 {
                                     ret = new byte[iPayLoadLen + chunksCollected.Length];
                                     Buffer.BlockCopy(chunksCollected, 0, ret, 0, chunksCollected.Length);
                                     Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
-                                    DataArrived(msgType, iMsgId, ret);
+                                    DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
                                 }
                                 chunksCollected = null;
                                 currentChunk = 0;

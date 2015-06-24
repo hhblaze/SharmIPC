@@ -19,7 +19,7 @@ namespace tiesky.com.SharmIpc
     {
         RpcRequest=1,        
         RpcResponse=2,
-        ErrorInRpcAnswer=3,     
+        ErrorInRpc=3,     
         Request = 4
     }
 
@@ -92,7 +92,7 @@ namespace tiesky.com.SharmIpc
                 instanceType = eInstanceType.Master;
             }
 
-            Console.WriteLine(instanceType);
+            Console.WriteLine(instanceType + " of " + uniqueHandlerName);
 
             rwh = new ReaderWriterHandler(this, dataArrived);          
         }
@@ -129,9 +129,9 @@ namespace tiesky.com.SharmIpc
             return this.rwh.GetMessageId();
         }
 
-        public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg)     
+        public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId = 0)     
         {
-            return this.rwh.SendMessage(msgType, msgId, msg);
+            return this.rwh.SendMessage(msgType, msgId, msg, responseMsgId);
         }
 
 
