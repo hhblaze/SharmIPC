@@ -36,12 +36,13 @@ Tuple<bool,byte[]> RemoteCall(byte[] data)
 
 void MakeRemoteRequestWithResponse()
 {
-	 //Making remote request (RPC). SYNC
+	 //Making remote request (a la RPC). SYNC
 	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
 	 //or async way
 	 //var res = sm.RemoteRequest(data, (par) => { },30000);
 	 
-	 //if !res.Item1 then our call was not put to the sending buffer, due to its threshold limitation
+	 //if !res.Item1 then our call was not put to the sending buffer, 
+	 //due to its threshold limitation
 	 //or remote partner answered with technical mistake
 	 //or timeout encountered
 	 if(res.Item1)
@@ -52,12 +53,12 @@ void MakeRemoteRequestWithResponse()
 
 void MakeRemoteRequestWithoutResponse()
 {
-	 //Making remote request (RPC)
+	 //Making remote request (a la send and forget)
 	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
 	 
 	 if(!res.Item1)
 	 {
-	 		//Our request was not cached for sending, we can do something
+	 	//Our request was not cached for sending, we can do something
 	 }
 }
 
