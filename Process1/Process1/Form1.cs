@@ -46,9 +46,30 @@ namespace MemoryMappedFile
         //    len += bt.Length;
         //}
 
+        int z = 0;
+
+        System.Diagnostics.Stopwatch swNonBlockingCall = new System.Diagnostics.Stopwatch();
+        
+
         Tuple<bool,byte[]> RemoteCall(byte[] data)
         {
-            Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
+            if (z == 0)
+                swNonBlockingCall.Start();
+            z++;
+
+            if (z == 10000)
+            {
+                swNonBlockingCall.Stop();                
+                
+                Console.WriteLine("Speed: {0} MB/s In ms {1}",
+                    Math.Round((decimal)data.Length * (decimal)z * (decimal)1000 /
+                    ((decimal)swNonBlockingCall.ElapsedMilliseconds * 1000000m)
+                    ,2), swNonBlockingCall.ElapsedMilliseconds
+                    );
+                z = 0;
+                swNonBlockingCall.Reset();
+            }
+            //Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
             return new Tuple<bool, byte[]>(true, new byte[] { 5, 6, 7 });            
         }
 
@@ -372,8 +393,8 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
-            var res1 = sm.RpcCall(new byte[99]);
-            return;
+            //var res1 = sm.RpcCall(new byte[99]);
+            //return;
 
             //using (var context = NetMQContext.Create())
             //using (var client = context.CreateRequestSocket())

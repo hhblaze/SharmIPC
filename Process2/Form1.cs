@@ -49,7 +49,7 @@ namespace mmf2client
 
         Tuple<bool, byte[]> RemoteCall(byte[] data)
         {
-            Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
+            //Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
             return new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17 });
         }
 
@@ -450,53 +450,69 @@ namespace mmf2client
         private void button2_Click(object sender, EventArgs e)
         {
 
-            //var res = sm.RpcCall(null);
-            var res = sm.RpcCall(new byte[17]);
-            //var res = sm.Call(new byte[324]);
-            return;
-
-            using (var context = NetMQContext.Create())
-            using (var server = context.CreateResponseSocket())
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            for (int i = 0; i < 10000; i++)
             {
-                server.Bind("tcp://*:5555");
-
-                while (true)
-                {
-                    //client.Send("H");                    
-                    server.Receive();
-                    server.Send(new byte[8]);
-                }
-
+                // var res = sm.RpcCall(new byte[512], (par) => { });
+                //var res = sm.RpcCall(null);
+                //var res = sm.RpcCall(new byte[512]);
+                sm.Call(new byte[512]);
+                //sm.CallAndWaitAnswer("test", new byte[100000], 10 * 1000);
             }
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedMilliseconds);
+
+
+
+
+        //    //var res = sm.RpcCall(null);
+        //    var res = sm.RpcCall(new byte[17]);
+        //    //var res = sm.Call(new byte[324]);
+        //    return;
+
+        //    using (var context = NetMQContext.Create())
+        //    using (var server = context.CreateResponseSocket())
+        //    {
+        //        server.Bind("tcp://*:5555");
+
+        //        while (true)
+        //        {
+        //            //client.Send("H");                    
+        //            server.Receive();
+        //            server.Send(new byte[8]);
+        //        }
+
+        //    }
 
           
-            return;
-            //sm.CallAndWaitAnswer("tree",new byte[12000],10*1000);
-            //sm.SendMessage(new byte[] { 17 });
-            //sm.TestSendMessage();
-            return;
+        //    return;
+        //    //sm.CallAndWaitAnswer("tree",new byte[12000],10*1000);
+        //    //sm.SendMessage(new byte[] { 17 });
+        //    //sm.TestSendMessage();
+        //    return;
 
-        ////////    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-        ////////    sw.Start();
-        ////////    for (int i = 1; i < 1000000; i++)
-        ////////    {
-        ////////        sm.SendMessage(new byte[] { (byte)i });
-        ////////    }
-        ////////    sw.Stop();
-        ////////    Console.WriteLine(sw.ElapsedMilliseconds);
-        ////////    return;
+        //////////    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        //////////    sw.Start();
+        //////////    for (int i = 1; i < 1000000; i++)
+        //////////    {
+        //////////        sm.SendMessage(new byte[] { (byte)i });
+        //////////    }
+        //////////    sw.Stop();
+        //////////    Console.WriteLine(sw.ElapsedMilliseconds);
+        //////////    return;
 
-            //byte b = 47;
-            //accessor.Write(5, b);
+        //    //byte b = 47;
+        //    //accessor.Write(5, b);
 
-            CoOrds coo = new CoOrds(12, 45);
-           // accessor.Write<CoOrds>(17, ref coo);
+        //    CoOrds coo = new CoOrds(12, 45);
+        //   // accessor.Write<CoOrds>(17, ref coo);
 
-           // accessor.WriteArray<byte>(50, new byte[] { 1, 2, 3, 4, 5, 6, 8 }, 0, 7);
+        //   // accessor.WriteArray<byte>(50, new byte[] { 1, 2, 3, 4, 5, 6, 8 }, 0, 7);
 
-            byte[] bt=new byte[]{34,54,23,123,4};
+        //    byte[] bt=new byte[]{34,54,23,123,4};
 
-            mmfStream.Write(bt, 0, bt.Count());
+        //    mmfStream.Write(bt, 0, bt.Count());
 
 
         }

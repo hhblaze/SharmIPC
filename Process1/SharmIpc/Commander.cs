@@ -30,9 +30,7 @@ namespace tiesky.com.SharmIpc
             this.remoteCallHandler = remoteCallHandler;
             sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
         }
-
-
-
+        
         class ResponseCrate
         {
             public ManualResetEvent mre = null;
