@@ -10,19 +10,19 @@ tiesky.com.SharmIpc sm = null;
 void Init()
 {
 	if(sm == null)
-  	sm = new tiesky.com.SharmIpc(
-  		"My unique name for interpocess com in the OS scope, must be the same for both processes"
-  		, this.RemoteCall
-  		);
-  		
-  		//there are also extra parameters in constructor with description
+	  	sm = new tiesky.com.SharmIpc(
+		  	"My unique name for interpocess com in the OS scope, must be the same for both processes"
+		  	, this.RemoteCall
+	  	);
+  	
+  	//there are also extra parameters in constructor with description
 }
 
 Tuple<bool,byte[]> RemoteCall(byte[] data)
 {
 		//This will be called async when remote partner makes any request
 		
-		//This is a response for remote partner
+		//This is a response to remote partner
 		return new Tuple<bool,byte[]>(true,new byte[] {1,2,3,4});	
 }
 
