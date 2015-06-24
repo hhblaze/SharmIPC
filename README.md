@@ -11,6 +11,8 @@ Inter-process communication (IPC engine) between 2 partners:
 <br>- a la RPC
 <br>- a la send and forget
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
+- <a href = 'https://github.com/hhblaze/SharmIPC/tree/master/Process1/SharmIpc/bin/Release/'  target='_blank'>Assemblies</a>
+- 
 
 =====================
 *Usage example:* 
