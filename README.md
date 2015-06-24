@@ -2,7 +2,8 @@
 =====================
 ![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.001-4BA2AD.svg)
 
-Inter-process communication (IPC engine) for .NET 4.5 / MONO, based on memory-mapped files
+Inter-process communication (IPC engine) between 2 partners
+<br>.NET 4.5 / MONO, based on memory-mapped files
 <br>Written on C#
 <br>Fast and lightweight
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
@@ -21,6 +22,8 @@ void Init()
 	  	sm = new tiesky.com.SharmIpc(
 		  	"My unique name for interpocess com in the OS scope, must be the same for both processes"
 		  	, this.RemoteCall
+		  	//optional send buffer capacity, must be the same for both partners
+		  	//optional total not send messages buffer capacity
 	  	);
   	
   	//there are also extra parameters in constructor with description
