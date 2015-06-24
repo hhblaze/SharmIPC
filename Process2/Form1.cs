@@ -46,16 +46,21 @@ namespace mmf2client
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            //var res = sm.RemoteRequest(new byte[546],
+            //    (par) =>
+            //    {
+            //        Console.WriteLine(par.Item1);
+            //    }
+            //    ,10000);
+            //return;
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             for (int i = 0; i < 10000; i++)
             {
-                // var res = sm.RpcCall(new byte[512], (par) => { });
-                //var res = sm.RpcCall(null);
-                //var res = sm.RpcCall(new byte[512]);
+                //sm.RemoteRequestWithoutResponse(new byte[1]);
                 sm.RemoteRequestWithoutResponse(new byte[512]);
-                //sm.CallAndWaitAnswer("test", new byte[100000], 10 * 1000);
+                //sm.RemoteRequestWithoutResponse(new byte[10000]);
             }
             sw.Stop();
             Console.WriteLine(sw.ElapsedMilliseconds);

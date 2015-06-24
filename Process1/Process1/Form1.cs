@@ -48,6 +48,12 @@ namespace MemoryMappedFile
             return new Tuple<bool, byte[]>(true, new byte[] { 5, 6, 7 });            
         }
 
+
+        Tuple<bool, byte[]> RemoteCallStandard(byte[] data)
+        {
+            return new Tuple<bool, byte[]>(true, new byte[] { 5, 6, 7 });
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             //Initializing SharmIpc with then name            
@@ -65,7 +71,19 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            //var res1 = sm.RemoteRequest(new byte[546],
+            //  (par) =>
+            //  {
+            //      Console.WriteLine(par.Item1);
+            //  }
+            //  , 10000);
+
+            //var res1 = sm.RemoteRequest(new byte[546],null, 10000);
+            //return;
+
+            //byte[] data = new byte[1];
             byte[] data = new byte[512];
+            //byte[] data = new byte[10000];
             int iter = 10000;
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
@@ -74,8 +92,9 @@ namespace MemoryMappedFile
             {
                 // var res = sm.RemoteRequest(new byte[512], (par) => { });
                 //var res = sm.RemoteRequest(null);
+                //var res = sm.RemoteRequest(data, (par) => { },30000);
+                //sm.RemoteRequestWithoutResponse(new byte[512]);      
                 var res = sm.RemoteRequest(data);
-                //sm.RemoteRequestWithoutResponse(new byte[512]);                
             }
             sw.Stop();
             Console.WriteLine("Speed: {0} MB/s, Finished in ms {1}",

@@ -405,10 +405,10 @@ namespace tiesky.com.SharmIpcInternals
                             totalBytesInQUeue -= toSend.Length;
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.fff") + "> Timeout of sending we must repeat operation");
-                    }
+                    //else
+                    //{
+                    //    Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.fff") + "> Timeout of sending we must repeat operation");
+                    //}
                 }
 
             });
