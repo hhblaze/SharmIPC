@@ -3,7 +3,7 @@
 ![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.002-4BA2AD.svg) 
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg)
 
-Inter-process communication (IPC engine) between 2 partners
+Inter-process communication (IPC engine) between 2 partners:
 <br>- .NET 4.5 / MONO, based on memory-mapped files
 <br>- Written on C#
 <br>- Fast and lightweight
