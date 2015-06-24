@@ -1,7 +1,7 @@
 **SharmIPC .NET**
 =====================
 ![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.002-4BA2AD.svg) 
-![Image of Build](https://img.shields.io/badge/License-BSD%203%20Free%20for%20all-FAA5F4.svg)
+![Image of Build](https://img.shields.io/badge/License-BSD%203%20Free%20for%20all-FC0574.svg)
 
 Inter-process communication (IPC engine) between 2 partners
 <br>.NET 4.5 / MONO, based on memory-mapped files
@@ -70,6 +70,8 @@ void MakeRemoteRequestWithoutResponse()
 =====================
 *Benchmarks:*
 ```txt
+[DLL size is 15 KB]
+
 [512 bytes package in both directions]
 Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 20 MB/s.
 Remote async calls without response (a la send and forget), full-duplex, with the speed of 80 MB/s.
