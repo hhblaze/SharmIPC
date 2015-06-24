@@ -1,6 +1,7 @@
 **SharmIPC .NET**
 =====================
-![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.002-4BA2AD.svg)
+![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.002-4BA2AD.svg) 
+![Image of Build](https://img.shields.io/badge/License-BSD%203%20Free%20for%20all-FF0000.svg)
 
 Inter-process communication (IPC engine) between 2 partners
 <br>.NET 4.5 / MONO, based on memory-mapped files
@@ -9,7 +10,7 @@ Inter-process communication (IPC engine) between 2 partners
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
 
 =====================
-*Usage example:*
+*Usage example:* 
 
 ```C#
 //Process 1 and Process2
