@@ -2,7 +2,7 @@
 =====================
 ![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.001-4BA2AD.svg)
 
-Inter-process communication (IPC engine) for .NET, based on memory-mapped file
+Inter-process communication (IPC engine) for .NET / MONO, based on memory-mapped file
 <br>Written on C#
 <br>Fast and light weight
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
