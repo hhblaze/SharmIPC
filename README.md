@@ -1,8 +1,11 @@
 **SharmIPC .NET**
 =====================
-![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.001-05DDFA.svg)
+![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20version%201.001-4BA2AD.svg)
 
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
+
+=====================
+*Usage example:*
 
 ```C#
 //Process 1 and Process2
