@@ -7,6 +7,9 @@ Inter-process communication (IPC engine) between 2 partners
 <br>.NET 4.5 / MONO, based on memory-mapped files
 <br>Written on C#
 <br>Fast and lightweight
+<br>Sync, Async calls
+<br>a la RPC
+<br>a la send and forget
 - <a href = 'https://www.nuget.org/packages/SharmIPC/'  target='_blank'>Grab it from NuGet</a>
 
 =====================
