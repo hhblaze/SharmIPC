@@ -1,20 +1,56 @@
-In progress
+**SharmIPC .NET**
+
+
 
 ```C#
-//In Process 1
-tiesky.com.SharmIpc.Commander sm = null;
+//Process 1 and Process2
 
-if(sm == null)
-                sm = new tiesky.com.SharmIpc.Commander("My unique name for interpocess com in the OS scope");
-				
-//Somewhere else 3 types of calls
-//RPC sync with an answer
-var res = sm.RpcCall(new byte[512]);	//Returned always Tuple where Item1 indicates that call was ok, optionally can be setup timeout
-//RPC call with callback (second parameter must be not null)
-var res = sm.RpcCall(new byte[512], (par) => { });		//In this case res.Item1 is also interesting if it's false there will be no answer
-//One direction call
-sm.Call(new byte[512]);
+tiesky.com.SharmIpc sm = null;
 
+void Init()
+{
+	if(sm == null)
+  	sm = new tiesky.com.SharmIpc(
+  		"My unique name for interpocess com in the OS scope, must be the same for both processes"
+  		, this.RemoteCall
+  		);
+  		
+  		//there are also extra parameters in constructor with description
+}
 
-//In process 2
+Tuple<bool,byte[]> RemoteCall(byte[] data)
+{
+		//This will be called async when remote partner makes any request
+		
+		//This is a response for remote partner
+		return new Tuple<bool,byte[]>(true,new byte[] {1,2,3,4});	
+}
+
+void MakeRemoteRequestWithResponse()
+{
+	 //Making remote request (RPC). SYNC
+	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
+	 //or async way
+	 //var res = sm.RemoteRequest(data, (par) => { },30000);
+	 
+	 //if !res.Item1 then our call was not put to the sending buffer, due to its threshold limitation
+	 //or remote partner answered with technical mistake
+	 //or timeout encountered
+	 if(res.Item1)
+	 {
+	 		//Analyzing response res.Item2
+	 }
+}
+
+void MakeRemoteRequestWithoutResponse()
+{
+	 //Making remote request (RPC)
+	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
+	 
+	 if(!res.Item1)
+	 {
+	 		//Our request was not cached for sending, we can do something
+	 }
+}
+
 ```
