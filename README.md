@@ -4,7 +4,7 @@
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg) 
 ![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)
 
-Inter-process communication (IPC engine) between 2 partners:
+Inter-process communication (IPC engine) between 2 partner processes of one OS:
 <br>- .NET 4.5 / MONO, based on memory-mapped files
 <br>- Written on C#
 <br>- Fast and lightweight
