@@ -1,6 +1,6 @@
 **SharmIPC .NET**
 =====================
-![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20v.%201.03-4BA2AD.svg) 
+![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20v01.03-4BA2AD.svg) 
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg) 
 ![Image of Build](https://img.shields.io/badge/Roadmap-completed-33CC33.svg)
 ![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)
@@ -76,7 +76,7 @@ void MakeRemoteRequestWithoutResponse()
 	 }
 }
 
-//----starting from v. 1.003 it's possible to answer on remote call in async way:
+//----starting from v1.03 it's possible to answer on remote call in async way:
 
 //After standard instantiation of SharmIPC 
 //sm = new tiesky.com.SharmIpc("MyUniqueNameForBothProcesses",this.RemoteCall);
