@@ -17,6 +17,12 @@ namespace tiesky.com
     public class SharmIpc:IDisposable
     {
         Func<byte[], Tuple<bool, byte[]>> remoteCallHandler = null;
+        /// <summary>
+        /// If we don't want to answer in sync way via remoteCallHandler
+        /// msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
+        /// </summary>
+        public Action<ulong,byte[]> AsyncRemoteCallHandler = null;
+
         SharedMemory sm = null;
         ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
         
@@ -47,8 +53,16 @@ namespace tiesky.com
             this.remoteCallHandler = remoteCallHandler;
             sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
         }
-        
-        
+
+        /// <summary>
+        /// In case if asyncRemoteCallHandler != null
+        /// </summary>
+        /// <param name="msgId"></param>
+        /// <param name="res"></param>
+        public void AsyncAnswerOnRemoteCall(ulong msgId, Tuple<bool, byte[]> res)
+        {
+            sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+        }
         
         /// <summary>
         /// Any incoming data from remote partner is accumulated here
@@ -74,8 +88,16 @@ namespace tiesky.com
                                         
                     Task.Run(() =>
                     {
-                        var res = this.remoteCallHandler(bt);
-                        sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);                                                
+                        if (AsyncRemoteCallHandler != null)
+                        {
+                            AsyncRemoteCallHandler(msgId, bt);
+                            //Answer must be supplied via asyncRemoteCallHandler
+                        }
+                        else
+                        {
+                            var res = this.remoteCallHandler(bt);
+                            sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+                        }
                     });                    
 
                     break;

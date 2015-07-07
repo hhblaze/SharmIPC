@@ -10,6 +10,12 @@
             https://github.com/hhblaze/SharmIPC or http://sharmipc.tiesky.com
             </summary>
         </member>
+        <member name="F:tiesky.com.SharmIpc.AsyncRemoteCallHandler">
+            <summary>
+            If we don't want to answer in sync way via remoteCallHandler
+            msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
+            </summary>
+        </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32)">
             <summary>
             SharmIpc constructor
@@ -18,6 +24,13 @@
             <param name="remoteCallHandler">Response routine for the remote partner requests</param>
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.AsyncAnswerOnRemoteCall(System.UInt64,System.Tuple{System.Boolean,System.Byte[]})">
+            <summary>
+            In case if asyncRemoteCallHandler != null
+            </summary>
+            <param name="msgId"></param>
+            <param name="res"></param>
         </member>
         <member name="M:tiesky.com.SharmIpc.InternalDataArrived(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[])">
             <summary>

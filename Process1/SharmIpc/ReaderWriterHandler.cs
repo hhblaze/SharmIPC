@@ -223,7 +223,7 @@ namespace tiesky.com.SharmIpcInternals
 
                 byte[] pMsg = null;
                 
-                ushort totalChunks = msg == null ? (ushort)1 : Convert.ToUInt16(Math.Ceiling((double)msg.Length / (double)bufferLenS));
+                ushort totalChunks = msg == null ? (ushort)1 : (msg.Length == 0) ? Convert.ToUInt16(1) : Convert.ToUInt16(Math.Ceiling((double)msg.Length / (double)bufferLenS));
                 ushort currentChunk = 1;
 
                 while (true)
@@ -243,7 +243,7 @@ namespace tiesky.com.SharmIpcInternals
 
 
                         //Writing payload
-                        if(msg != null)
+                        if(msg != null && msg.Length>0)
                             Buffer.BlockCopy(msg, i, pMsg, protocolLen, bufferLenS);
 
                         left -= bufferLenS;
@@ -258,13 +258,13 @@ namespace tiesky.com.SharmIpcInternals
                         //Writing protocol header
                         Buffer.BlockCopy(new byte[] { (byte)msgType }, 0, pMsg, 0, 1);    //MsgType (1 for standard message)
                         Buffer.BlockCopy(BitConverter.GetBytes(msgId), 0, pMsg, 1, 8);  //msgId_Sending
-                        Buffer.BlockCopy(BitConverter.GetBytes(left), 0, pMsg, 9, 4);  //payload len
+                        Buffer.BlockCopy(BitConverter.GetBytes((msg != null && msg.Length == 0) ? Int32.MaxValue : left), 0, pMsg, 9, 4);  //payload len
                         Buffer.BlockCopy(BitConverter.GetBytes(currentChunk), 0, pMsg, 13, 2);  //current chunk
                         Buffer.BlockCopy(BitConverter.GetBytes(totalChunks), 0, pMsg, 15, 2);  //total chunks
                         Buffer.BlockCopy(BitConverter.GetBytes(responseMsgId), 0, pMsg, 17, 8);  //total chunks
 
                         //Writing payload
-                        if (msg != null)
+                        if (msg != null && msg.Length > 0)
                             Buffer.BlockCopy(msg, i, pMsg, protocolLen, left);
 
                         q.Enqueue(pMsg);
@@ -549,8 +549,14 @@ namespace tiesky.com.SharmIpcInternals
                         case eMsgType.RpcRequest:
                         case eMsgType.Request:
 
+                            bool zeroByte = false;
                             iMsgId = BitConverter.ToUInt64(hdr, 1); //+8
                             iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
+                            if (iPayLoadLen == Int32.MaxValue)
+                            {
+                                zeroByte = true;
+                                iPayLoadLen = 0;
+                            }
                             iCurChunk = BitConverter.ToUInt16(hdr, 13); //+2
                             iTotChunk = BitConverter.ToUInt16(hdr, 15); //+2     
                             iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
@@ -578,7 +584,7 @@ namespace tiesky.com.SharmIpcInternals
                             if (iTotChunk == iCurChunk)
                             {
                                 if (chunksCollected == null)
-                                    DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? null : ReadBytes(protocolLen, iPayLoadLen));
+                                    DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(protocolLen, iPayLoadLen));
                                 else
                                 {
                                     ret = new byte[iPayLoadLen + chunksCollected.Length];

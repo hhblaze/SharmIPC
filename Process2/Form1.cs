@@ -46,6 +46,10 @@ namespace mmf2client
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            sm.RemoteRequestWithoutResponse(null);
+            //var res = sm.RemoteRequest(null);
+            return;
+
             //var res = sm.RemoteRequest(new byte[546],
             //    (par) =>
             //    {

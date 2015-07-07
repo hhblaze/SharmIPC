@@ -20,7 +20,15 @@ namespace MemoryMappedFile
         tiesky.com.SharmIpc sm = null;
         int z = 0;
         System.Diagnostics.Stopwatch swNonBlockingCall = new System.Diagnostics.Stopwatch();
-        
+
+
+        void AsyncRemoteCallHandler(ulong msgId, byte[] data)
+        {
+            Task.Run(() =>
+                {
+                    sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
+                });
+        }
         /// <summary>
         /// Test of non-blocking requests (are called when pressed Write from Process2)
         /// </summary>
@@ -28,6 +36,9 @@ namespace MemoryMappedFile
         /// <returns></returns>
         Tuple<bool,byte[]> RemoteCall(byte[] data)
         {
+            return new Tuple<bool, byte[]>(true, new byte[0]);   
+
+
             if (z == 0)
                 swNonBlockingCall.Start();
             z++;
@@ -57,8 +68,11 @@ namespace MemoryMappedFile
         private void button1_Click(object sender, EventArgs e)
         {
             //Initializing SharmIpc with then name            
-            if(sm == null)
+            if (sm == null)
+            {
                 sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall);
+                //sm.AsyncRemoteCallHandler = this.AsyncRemoteCallHandler;
+            }
                         
 
         }
