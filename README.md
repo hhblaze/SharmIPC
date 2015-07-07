@@ -78,8 +78,8 @@ void MakeRemoteRequestWithoutResponse()
 
 //----starting from v. 1.003 it's possible to answer on remote call in async way:
 
-//After standard instatiation of SharmIPC 
-//sm = new tiesky.com.SharmIpc("MyUniqueName",this.RemoteCall);
+//After standard instantiation of SharmIPC 
+//sm = new tiesky.com.SharmIpc("MyUniqueNameForBothProcesses",this.RemoteCall);
 //it's necessary to add:
 
 sm.AsyncRemoteCallHandler = this.AsyncRemoteCallHandler;
@@ -88,9 +88,13 @@ sm.AsyncRemoteCallHandler = this.AsyncRemoteCallHandler;
 
 void AsyncRemoteCallHandler(ulong msgId, byte[] data)
 {
+        //msgId must be returned back
+        //data is received from remote partner
         
+        //answer to remote partner:
            sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
-        /*
+        /* 
+       	//or in such way
             Task.Run(() =>
                 {
                     sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
