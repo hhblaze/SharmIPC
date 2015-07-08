@@ -35,9 +35,17 @@ void Init()
   	
   	//there are also extra parameters in constructor with description
   	
-  	//!!!For the graceful termination, in the end of your program, 
+  	
+}
+
+void Dispose()
+{
+	//!!!For the graceful termination, in the end of your program, 
   	//SharmIpc instance must be disposed
-  	//sm.Dispose();
+  	if(sm != null){
+  		sm.Dispose();
+  		sm=null;
+  	}
 }
 
 Tuple<bool,byte[]> RemoteCall(byte[] data)
