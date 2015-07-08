@@ -82,7 +82,7 @@ void MakeRemoteRequestWithoutResponse()
 //sm = new tiesky.com.SharmIpc("MyUniqueNameForBothProcesses",this.AsyncRemoteCallHandler);
 
 //where AsyncRemoteCallHandler will be used instead of RemoteCall and gives an ability to answer to 
-//the remote partne's request in async way
+//the remote partner's request in async way
 
 void AsyncRemoteCallHandler(ulong msgId, byte[] data)
 {
