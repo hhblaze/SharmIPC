@@ -67,11 +67,19 @@ namespace MemoryMappedFile
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //Initializing SharmIpc with then name            
+            //Initializing SharmIpc with then name     
+
+            if (sm != null)
+            {
+                sm.Dispose();
+                sm = null;
+            }
+
             if (sm == null)
             {
                 sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall);
-                //sm.AsyncRemoteCallHandler = this.AsyncRemoteCallHandler;
+                //or to get ability to answer to remote partner in async way
+                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
                         
 

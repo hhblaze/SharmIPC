@@ -43,7 +43,7 @@ namespace tiesky.com.SharmIpcInternals
             {
                 if (ewh_Writer_ReadyToRead != null)
                 {
-                    //ewh_ReadyToRead.Set();
+                    //ewh_Writer_ReadyToRead.Set();
                     ewh_Writer_ReadyToRead.Close();
                     ewh_Writer_ReadyToRead.Dispose();
                     ewh_Writer_ReadyToRead = null;
@@ -56,7 +56,7 @@ namespace tiesky.com.SharmIpcInternals
             {
                 if (ewh_Writer_ReadyToWrite != null)
                 {
-                    //ewh_ReadyToRead.Set();
+                    //ewh_Writer_ReadyToWrite.Set();
                     ewh_Writer_ReadyToWrite.Close();
                     ewh_Writer_ReadyToWrite.Dispose();
                     ewh_Writer_ReadyToWrite = null;
@@ -70,7 +70,7 @@ namespace tiesky.com.SharmIpcInternals
             {
                 if (ewh_Reader_ReadyToRead != null)
                 {
-                    //ewh_ReadyToRead.Set();
+                    //ewh_Reader_ReadyToRead.Set();
                     ewh_Reader_ReadyToRead.Close();
                     ewh_Reader_ReadyToRead.Dispose();
                     ewh_Reader_ReadyToRead = null;
@@ -83,7 +83,7 @@ namespace tiesky.com.SharmIpcInternals
             {
                 if (ewh_Reader_ReadyToWrite != null)
                 {
-                    //ewh_ReadyToRead.Set();
+                    //ewh_Reader_ReadyToWrite.Set();
                     ewh_Reader_ReadyToWrite.Close();
                     ewh_Reader_ReadyToWrite.Dispose();
                     ewh_Reader_ReadyToWrite = null;
@@ -524,106 +524,115 @@ namespace tiesky.com.SharmIpcInternals
 
                 eMsgType msgType = eMsgType.RpcRequest;
 
-                while (true)
+                try
                 {
-                    ewh_Reader_ReadyToRead.WaitOne();
-                    ewh_Reader_ReadyToRead.Reset();
-                    //Reading data from MMF
-
-                    //Reading header
-                    hdr = ReadBytes(0, protocolLen);
-                    msgType = (eMsgType)hdr[0];
-
-                    //Parsing header
-                    switch (msgType)
+                    while (true)
                     {
-                        case eMsgType.ErrorInRpc:
+                        ewh_Reader_ReadyToRead.WaitOne();
+                        if (ewh_Reader_ReadyToRead == null) //Special Dispose case
+                            return;
+                        ewh_Reader_ReadyToRead.Reset();
+                        //Reading data from MMF
 
-                            iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
-                            iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
+                        //Reading header
+                        hdr = ReadBytes(0, protocolLen);
+                        msgType = (eMsgType)hdr[0];
 
-                            DataArrived(msgType, iResponseMsgId, null);
-                            break;
-                        
-                        case eMsgType.RpcResponse:
-                        case eMsgType.RpcRequest:
-                        case eMsgType.Request:
+                        //Parsing header
+                        switch (msgType)
+                        {
+                            case eMsgType.ErrorInRpc:
 
-                            bool zeroByte = false;
-                            iMsgId = BitConverter.ToUInt64(hdr, 1); //+8
-                            iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
-                            if (iPayLoadLen == Int32.MaxValue)
-                            {
-                                zeroByte = true;
-                                iPayLoadLen = 0;
-                            }
-                            iCurChunk = BitConverter.ToUInt16(hdr, 13); //+2
-                            iTotChunk = BitConverter.ToUInt16(hdr, 15); //+2     
-                            iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
+                                iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
+                                iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
-                            if (iCurChunk == 1)
-                            {
-                                chunksCollected = null;                                
-                                MsgId_Received = iMsgId;
-                            }
-                            else if (iCurChunk != currentChunk + 1)
-                            {
-                                //Wrong income, sending special signal back, waiting for new MsgId   
-                                switch (msgType)
+                                DataArrived(msgType, iResponseMsgId, null);
+                                break;
+
+                            case eMsgType.RpcResponse:
+                            case eMsgType.RpcRequest:
+                            case eMsgType.Request:
+
+                                bool zeroByte = false;
+                                iMsgId = BitConverter.ToUInt64(hdr, 1); //+8
+                                iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
+                                if (iPayLoadLen == Int32.MaxValue)
                                 {
-                                    case eMsgType.RpcRequest:
-                                        this.SendMessage(eMsgType.ErrorInRpc, this.GetMessageId(), null, iMsgId);
-                                        break;
-                                    case eMsgType.RpcResponse:
-                                        DataArrived(eMsgType.ErrorInRpc, iResponseMsgId, null);                                        
-                                        break;
-                                }                              
-                                break; 
-                            }
+                                    zeroByte = true;
+                                    iPayLoadLen = 0;
+                                }
+                                iCurChunk = BitConverter.ToUInt16(hdr, 13); //+2
+                                iTotChunk = BitConverter.ToUInt16(hdr, 15); //+2     
+                                iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
-                            if (iTotChunk == iCurChunk)
-                            {
-                                if (chunksCollected == null)
-                                    DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(protocolLen, iPayLoadLen));
+                                if (iCurChunk == 1)
+                                {
+                                    chunksCollected = null;
+                                    MsgId_Received = iMsgId;
+                                }
+                                else if (iCurChunk != currentChunk + 1)
+                                {
+                                    //Wrong income, sending special signal back, waiting for new MsgId   
+                                    switch (msgType)
+                                    {
+                                        case eMsgType.RpcRequest:
+                                            this.SendMessage(eMsgType.ErrorInRpc, this.GetMessageId(), null, iMsgId);
+                                            break;
+                                        case eMsgType.RpcResponse:
+                                            DataArrived(eMsgType.ErrorInRpc, iResponseMsgId, null);
+                                            break;
+                                    }
+                                    break;
+                                }
+
+                                if (iTotChunk == iCurChunk)
+                                {
+                                    if (chunksCollected == null)
+                                        DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(protocolLen, iPayLoadLen));
+                                    else
+                                    {
+                                        ret = new byte[iPayLoadLen + chunksCollected.Length];
+                                        Buffer.BlockCopy(chunksCollected, 0, ret, 0, chunksCollected.Length);
+                                        Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
+                                        DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
+                                    }
+                                    chunksCollected = null;
+                                    currentChunk = 0;
+                                }
                                 else
                                 {
-                                    ret = new byte[iPayLoadLen + chunksCollected.Length];
-                                    Buffer.BlockCopy(chunksCollected, 0, ret, 0, chunksCollected.Length);
-                                    Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
-                                    DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
+                                    if (chunksCollected == null)
+                                    {
+                                        chunksCollected = ReadBytes(protocolLen, iPayLoadLen);
+                                    }
+                                    else
+                                    {
+
+                                        byte[] tmp = new byte[chunksCollected.Length + iPayLoadLen];
+                                        Buffer.BlockCopy(chunksCollected, 0, tmp, 0, chunksCollected.Length);
+                                        Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, tmp, chunksCollected.Length, iPayLoadLen);
+                                        chunksCollected = tmp;
+                                    }
+
+                                    currentChunk = iCurChunk;
                                 }
+                                break;
+                            default:
+                                //Unknown protocol type
                                 chunksCollected = null;
                                 currentChunk = 0;
-                            }
-                            else
-                            {
-                                if (chunksCollected == null)
-                                {
-                                    chunksCollected = ReadBytes(protocolLen, iPayLoadLen);
-                                }
-                                else
-                                {
+                                //Wrong income, doing nothing
+                                break;
+                        }
 
-                                    byte[] tmp = new byte[chunksCollected.Length + iPayLoadLen];
-                                    Buffer.BlockCopy(chunksCollected, 0, tmp, 0, chunksCollected.Length);
-                                    Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, tmp, chunksCollected.Length, iPayLoadLen);
-                                    chunksCollected = tmp;
-                                }
-
-                                currentChunk = iCurChunk;
-                            }      
-                            break;
-                        default:
-                            //Unknown protocol type
-                            chunksCollected = null;
-                            currentChunk = 0;                                    
-                            //Wrong income, doing nothing
-                            break;
+                        //Setting signal 
+                        ewh_Reader_ReadyToWrite.Set();
                     }
-
-                    //Setting signal 
-                    ewh_Reader_ReadyToWrite.Set();
                 }
+                catch
+                {}               
+
+
             });
         }
 

@@ -25,6 +25,15 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         </member>
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32)">
+            <summary>
+            SharmIpc constructor
+            </summary>
+            <param name="uniqueHandlerName">Must be unique in OS scope (can be PID [ID of the process] + other identifications)</param>
+            <param name="remoteCallHandler">Callback routine for the remote partner requests. AsyncAnswerOnRemoteCall must be used for answer</param>
+            <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
+            <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
+        </member>
         <member name="M:tiesky.com.SharmIpc.AsyncAnswerOnRemoteCall(System.UInt64,System.Tuple{System.Boolean,System.Byte[]})">
             <summary>
             In case if asyncRemoteCallHandler != null

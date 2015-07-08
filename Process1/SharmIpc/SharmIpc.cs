@@ -21,7 +21,7 @@ namespace tiesky.com
         /// If we don't want to answer in sync way via remoteCallHandler
         /// msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
         /// </summary>
-        public Action<ulong,byte[]> AsyncRemoteCallHandler = null;
+        Action<ulong,byte[]> AsyncRemoteCallHandler = null;
 
         SharedMemory sm = null;
         ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
@@ -51,6 +51,22 @@ namespace tiesky.com
                 throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
 
             this.remoteCallHandler = remoteCallHandler;
+            sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
+        }
+
+        /// <summary>
+        /// SharmIpc constructor
+        /// </summary>
+        /// <param name="uniqueHandlerName">Must be unique in OS scope (can be PID [ID of the process] + other identifications)</param>
+        /// <param name="remoteCallHandler">Callback routine for the remote partner requests. AsyncAnswerOnRemoteCall must be used for answer</param>
+        /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
+        /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
+        public SharmIpc(string uniqueHandlerName, Action<ulong, byte[]> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        {
+            if (remoteCallHandler == null)
+                throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
+
+            this.AsyncRemoteCallHandler = remoteCallHandler;
             sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
         }
 
@@ -91,7 +107,7 @@ namespace tiesky.com
                         if (AsyncRemoteCallHandler != null)
                         {
                             AsyncRemoteCallHandler(msgId, bt);
-                            //Answer must be supplied via asyncRemoteCallHandler
+                            //Answer must be supplied via AsyncAnswerOnRemoteCall
                         }
                         else
                         {
