@@ -120,6 +120,8 @@ Remote async calls without response (a la send and forget), full-duplex, with th
 [1 byte package in both directions]
 Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 40000 call/s.
 Remote async calls without response (a la send and forget), full-duplex, with the speed of 120000 calls/s.
+
+and if you need more speed, just add in both processes more SharmIPC instances
 ```
 
 hhblaze@gmail.com
