@@ -78,7 +78,7 @@ void MakeRemoteRequestWithoutResponse()
 
 //----starting from v1.04 it's possible to answer on remote call in async way:
 
-//After standard instantiation of SharmIPC 
+//New way of instantiation of SharmIPC 
 //sm = new tiesky.com.SharmIpc("MyUniqueNameForBothProcesses",this.AsyncRemoteCallHandler);
 
 //where AsyncRemoteCallHandler will be used instead of RemoteCall and gives an ability to answer to 
