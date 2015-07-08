@@ -29,11 +29,12 @@ void Init()
 	  	sm = new tiesky.com.SharmIpc(
 		  	"My unique name for interpocess com in the OS scope, must be the same for both processes"
 		  	, this.RemoteCall
+		  	//there are also extra parameters in constructor with description:
 		  	//optional send buffer capacity, must be the same for both partners
 		  	//optional total not send messages buffer capacity
 	  	);
   	
-  	//there are also extra parameters in constructor with description
+  
   	
   	
 }
