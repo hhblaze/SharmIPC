@@ -174,21 +174,24 @@ namespace tiesky.com
             df[msgId] = resp;          
 
             if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
-            {                
-                resp.mre.Dispose();
+            {
+                if (resp.mre != null)
+                    resp.mre.Dispose();
                 resp.mre = null;
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
             else if (!resp.mre.WaitOne(timeoutMs))
             {
-                resp.mre.Dispose();
+                if (resp.mre != null)
+                    resp.mre.Dispose();
                 resp.mre = null;
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
 
-            resp.mre.Dispose();
+            if (resp.mre != null)
+                resp.mre.Dispose();
             resp.mre = null;
 
             if (df.TryRemove(msgId, out resp))
