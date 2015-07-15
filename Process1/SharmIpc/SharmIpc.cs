@@ -96,7 +96,15 @@ namespace tiesky.com
 
                     Task.Run(() =>
                     {
-                        this.remoteCallHandler(bt);
+                        if (AsyncRemoteCallHandler != null)
+                        {
+                            AsyncRemoteCallHandler(msgId, bt);
+                            //Answer must be supplied via AsyncAnswerOnRemoteCall
+                        }
+                        else
+                        {
+                            this.remoteCallHandler(bt);
+                        }
                     });   
 
                     break;
