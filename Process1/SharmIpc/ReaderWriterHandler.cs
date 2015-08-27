@@ -212,7 +212,17 @@ namespace tiesky.com.SharmIpcInternals
         {
 
             if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
-                return false;
+            {
+                //Cleaning queue
+                lock (lock_q)
+                {
+                    totalBytesInQUeue = 0;
+                    q.Clear();
+                }
+                //Generating exception
+                throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
+                //return false;
+            }
 
             lock (lock_q)
             {
@@ -268,6 +278,7 @@ namespace tiesky.com.SharmIpcInternals
                             Buffer.BlockCopy(msg, i, pMsg, protocolLen, left);
 
                         q.Enqueue(pMsg);
+                        totalBytesInQUeue += pMsg.Length;
                         break;
                     }
 
@@ -622,7 +633,8 @@ namespace tiesky.com.SharmIpcInternals
                                 chunksCollected = null;
                                 currentChunk = 0;
                                 //Wrong income, doing nothing
-                                break;
+                                throw new Exception("tiesky.com.SharmIpc: Reading protocol contains errors");
+                                //break;
                         }
 
                         //Setting signal 

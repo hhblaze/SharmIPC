@@ -16,12 +16,26 @@
             msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
             </summary>
         </member>
+        <member name="F:tiesky.com.SharmIpc.ResponseCrate.mre">
+            <summary>
+            Not SLIM version must be used (it works faster for longer delay which RPCs are)
+            </summary>
+        </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32)">
             <summary>
             SharmIpc constructor
             </summary>
             <param name="uniqueHandlerName">Must be unique in OS scope (can be PID [ID of the process] + other identifications)</param>
             <param name="remoteCallHandler">Response routine for the remote partner requests</param>
+            <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
+            <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32)">
+            <summary>
+            SharmIpc constructor
+            </summary>
+            <param name="uniqueHandlerName">Must be unique in OS scope (can be PID [ID of the process] + other identifications)</param>
+            <param name="remoteCallHandler">Callback routine for the remote partner requests. AsyncAnswerOnRemoteCall must be used for answer</param>
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         </member>
@@ -59,11 +73,6 @@
         <member name="M:tiesky.com.SharmIpc.Dispose">
             <summary>
             
-            </summary>
-        </member>
-        <member name="F:tiesky.com.SharmIpc.ResponseCrate.mre">
-            <summary>
-            Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
         <member name="F:tiesky.com.SharmIpcInternals.ReaderWriterHandler.DataArrived">

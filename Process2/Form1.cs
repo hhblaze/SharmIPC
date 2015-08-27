@@ -25,17 +25,28 @@ namespace mmf2client
         Tuple<bool, byte[]> RemoteCall(byte[] data)
         {
             //Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
-            return new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17 });
+            //return new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17 });
+            return new Tuple<bool, byte[]>(true, new byte[] { 9 });
         }
 
+        void AsyncRemoteCallHandler(ulong msgId, byte[] data)
+        {
+            Task.Run(() =>
+            {
+                //sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17, 25 }));
+                sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9 }));
+            }
+            );
+        }
 
 
         private void button1_Click(object sender, EventArgs e)
         {
 
             if (sm == null)
-                sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall);
-         
+                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler);
+              sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall);
+
         }
 
 
@@ -46,8 +57,8 @@ namespace mmf2client
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
-            sm.RemoteRequestWithoutResponse(null);
-            //var res = sm.RemoteRequest(null);
+            //sm.RemoteRequestWithoutResponse(null);
+            var res = sm.RemoteRequest(new byte[] { 9 });
             return;
 
             //var res = sm.RemoteRequest(new byte[546],

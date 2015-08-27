@@ -36,7 +36,7 @@ namespace MemoryMappedFile
         /// <returns></returns>
         Tuple<bool,byte[]> RemoteCall(byte[] data)
         {
-            return new Tuple<bool, byte[]>(true, new byte[0]);   
+            return new Tuple<bool, byte[]>(true, new byte[10]);   
 
 
             if (z == 0)
@@ -93,6 +93,10 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            
+            //var res222 = sm.RemoteRequest(new byte[1700]);            
+            //return;
+
             //var res1 = sm.RemoteRequest(new byte[546],
             //  (par) =>
             //  {
@@ -103,10 +107,10 @@ namespace MemoryMappedFile
             //var res1 = sm.RemoteRequest(new byte[546],null, 10000);
             //return;
 
-            //byte[] data = new byte[1];
-            byte[] data = new byte[512];
+            byte[] data = new byte[1];
+            //byte[] data = new byte[512];
             //byte[] data = new byte[10000];
-            int iter = 10000;
+            int iter = 100000;
 
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
@@ -115,7 +119,8 @@ namespace MemoryMappedFile
                 // var res = sm.RemoteRequest(new byte[512], (par) => { });
                 //var res = sm.RemoteRequest(null);
                 //var res = sm.RemoteRequest(data, (par) => { },30000);
-                //sm.RemoteRequestWithoutResponse(new byte[512]);      
+                //sm.RemoteRequestWithoutResponse(new byte[512]);
+                //sm.RemoteRequestWithoutResponse(new byte[1]);
                 var res = sm.RemoteRequest(data);
             }
             sw.Stop();
