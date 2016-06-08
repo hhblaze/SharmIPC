@@ -109,10 +109,10 @@ namespace tiesky.com
 
                     break;
                 case eMsgType.RpcRequest:
-                                        
+
                     Task.Run(() =>
                     {
-                        if (AsyncRemoteCallHandler != null)
+                    if (AsyncRemoteCallHandler != null)
                         {
                             AsyncRemoteCallHandler(msgId, bt);
                             //Answer must be supplied via AsyncAnswerOnRemoteCall

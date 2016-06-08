@@ -226,7 +226,7 @@ namespace tiesky.com.SharmIpcInternals
 
             lock (lock_q)
             {
-
+                
                 //Splitting message
                 int i = 0;
                 int left = msg == null ? 0 : msg.Length;
@@ -370,8 +370,8 @@ namespace tiesky.com.SharmIpcInternals
                 inSend = true;
             }
 
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 lock (lock_q)
                 {
                     if (toSend == null)
@@ -422,7 +422,7 @@ namespace tiesky.com.SharmIpcInternals
                     //}
                 }
 
-            });
+            //});
 
         }//eom
         
