@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SharmIPC .NET")]
-[assembly: AssemblyDescription("Inter-process communication for .NET")]
+[assembly: AssemblyDescription("Inter-process communication IPC for .NET")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("tiesky.com")]
 [assembly: AssemblyProduct("SharmIPC .NET")]
@@ -32,5 +32,7 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7.2015.0827")]
-[assembly: AssemblyFileVersion("1.7.2015.0827")]
+[assembly: AssemblyVersion("1.8.2016.0609")]
+[assembly: AssemblyFileVersion("1.8.2016.0609")]
+
+//[assembly: AssemblyFileVersion("1.7.2015.0827")]
