@@ -93,9 +93,44 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            var dfr41 = sm.RemoteRequest(new byte[1700]);
+            return;
+            byte[] here = new byte[2500];
             
-            //var res222 = sm.RemoteRequest(new byte[1700]);            
-            //return;
+
+            Action<int> a1 = (id) =>
+            {
+
+                //Console.WriteLine("YAHOO " + id);
+                //DBreeze.Diagnostic.SpeedStatistic.StartCounter("a"+id);
+                int tt = 0;
+                for (int i = 0; i < 1000; i++)
+                {
+                   var xr = sm.RemoteRequest(new byte[1700]);
+                    tt += xr.Item2.Length;
+                }
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.ms") + "> DONE " + tt);
+                //DBreeze.Diagnostic.SpeedStatistic.PrintOut("a" + id);
+                //Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.ms") + "> DONE " + tt);
+            };
+
+            Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.ms") + "> START");
+            for (int j = 0; j < 40; j++)
+            {
+                //((Action)(() => { a1(); })).DoAsync();
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    // Console.WriteLine("Running " + j.ToString());
+                    a1(j);
+                });
+                //new System.Threading.Thread(() => { a1(); }).Start();
+            }
+
+            return;
+
+            var res222 = sm.RemoteRequest(new byte[1700]);
+            Console.WriteLine("Received " + res222.Item2.Length + " bytes");
+            return;
 
             //var res1 = sm.RemoteRequest(new byte[546],
             //  (par) =>
@@ -133,7 +168,9 @@ namespace MemoryMappedFile
 
         }
 
+        private void button3_Click(object sender, EventArgs e)
+        {
 
-                
+        }
     }
 }

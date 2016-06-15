@@ -1,6 +1,6 @@
 **SharmIPC .NET**
 =====================
-![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20v1.07-4BA2AD.svg) 
+![Image of Build](https://img.shields.io/badge/SharmIPC .NET-stable%20v1.09-4BA2AD.svg) 
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg) 
 ![Image of Build](https://img.shields.io/badge/Roadmap-completed-33CC33.svg)
 ![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)
@@ -130,5 +130,7 @@ Remote async calls without response (a la send and forget), full-duplex, with th
 
 and if you need more speed, just add in both processes more SharmIPC instances
 ```
+
+<a href = 'https://github.com/hhblaze/DBreeze'  target='_blank'>---- Check also our DBreeze database for .NET ----</a>
 
 hhblaze@gmail.com

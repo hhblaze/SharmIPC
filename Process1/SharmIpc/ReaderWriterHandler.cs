@@ -392,7 +392,8 @@ namespace tiesky.com.SharmIpcInternals
                 //here we got smth toSend
                 while(true)
                 {
-                    if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
+                //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
+                    if (ewh_Writer_ReadyToWrite.WaitOne())
                     {
                         ewh_Writer_ReadyToWrite.Reset();
                         //Writing into MMF      
