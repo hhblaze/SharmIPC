@@ -21,6 +21,11 @@
             Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
+        <member name="F:tiesky.com.SharmIpc.ResponseCrate.wasSet">
+            <summary>
+            becomes true when Set_MRE is called and prevents calling Wait
+            </summary>
+        </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32)">
             <summary>
             SharmIpc constructor

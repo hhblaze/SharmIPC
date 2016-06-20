@@ -31,10 +31,50 @@ namespace tiesky.com
             /// <summary>
             /// Not SLIM version must be used (it works faster for longer delay which RPCs are)
             /// </summary>
-            public ManualResetEvent mre = null;
+            private ManualResetEvent mre = null;
             public byte[] res = null;
             public Action<Tuple<bool, byte[]>> callBack = null;
-            public bool IsRespOk = true;
+            public bool IsRespOk = false;
+
+            public void Init_MRE()
+            {
+                mre = new ManualResetEvent(false);
+            }
+
+            /// <summary>
+            /// becomes true when Set_MRE is called and prevents calling Wait
+            /// </summary>
+            int wasSet = 0;
+
+            public void Set_MRE()
+            {
+                //Setting to 1 (telling that was signalled, and waiting not necessary anymore)
+                Interlocked.CompareExchange(ref wasSet, 1, 0);                
+                mre.Set();
+            }
+
+            public bool Wait_MRE(int ms)
+            {
+                //Checking, if waiting not necessary anymore - don't
+                int newVal = Interlocked.CompareExchange(ref wasSet, 1, 0);
+                if (newVal != 0)
+                    return true;    //Exiting without waiting
+
+                return mre.WaitOne(ms);
+            }
+
+            int IsDisposed = 0;
+            public void Dispose_MRE()
+            {
+                int newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
+                if (newVal == 0 && mre != null)
+                {
+                    Set_MRE();
+                    mre.Dispose();
+                    mre = null;
+                }
+            }
+          
         }
 
 
@@ -135,7 +175,8 @@ namespace tiesky.com
 
                         if (rsp.callBack == null)
                         {
-                            rsp.mre.Set();
+                            //rsp.mre.Set();
+                            rsp.Set_MRE();
                         }
                         else
                         {
@@ -177,30 +218,35 @@ namespace tiesky.com
                 return new Tuple<bool, byte[]>(true, null);
             }
 
-            resp.mre = new ManualResetEvent(false);
+            //resp.mre = new ManualResetEvent(false);
+            resp.Init_MRE();
 
             df[msgId] = resp;          
 
             if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
             {
-                if (resp.mre != null)
-                    resp.mre.Dispose();
-                resp.mre = null;
+                resp.Dispose_MRE();
+                //if (resp.mre != null)
+                //    resp.mre.Dispose();
+                //resp.mre = null;
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
-            else if (!resp.mre.WaitOne(timeoutMs))
+            //else if (!resp.mre.WaitOne(timeoutMs))
+            else if (!resp.Wait_MRE(timeoutMs))
             {
-                if (resp.mre != null)
-                    resp.mre.Dispose();
-                resp.mre = null;
+                //if (resp.mre != null)
+                //    resp.mre.Dispose();
+                //resp.mre = null;
+                resp.Dispose_MRE();
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
 
-            if (resp.mre != null)
-                resp.mre.Dispose();
-            resp.mre = null;
+            //if (resp.mre != null)
+            //    resp.mre.Dispose();
+            //resp.mre = null;
+            resp.Dispose_MRE();
 
             if (df.TryRemove(msgId, out resp))
             {
@@ -246,13 +292,14 @@ namespace tiesky.com
                 {
                     if (df.TryRemove(el.Key, out rc))
                     {
-                        if (rc.mre != null)
-                        {
-                            rc.IsRespOk = false;
-                            rc.mre.Set();
-                            rc.mre.Dispose();
-                            rc.mre = null;
-                        }
+                        rc.Dispose_MRE();
+                        //if (rc.mre != null)
+                        //{
+                        //    rc.IsRespOk = false;
+                        //    rc.mre.Set();
+                        //    rc.mre.Dispose();
+                        //    rc.mre = null;
+                        //}
                     }
                     
                 }
