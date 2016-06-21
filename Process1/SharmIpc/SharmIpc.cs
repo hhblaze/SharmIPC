@@ -270,7 +270,8 @@ namespace tiesky.com
                 {
                     if (df.TryRemove(el.Key, out rc))
                     {
-                        rc.Dispose_MRE();
+                        rc.IsRespOk = false;
+                        rc.Dispose_MRE();                        
                         //if (rc.mre != null)
                         //{
                         //    rc.IsRespOk = false;
