@@ -30,10 +30,10 @@ namespace tiesky.com.SharmIpcInternals
         bool inSend = false;
         int bufferLenS = 0;
 
-        /// <summary>
-        /// MsgId of the sender and payload
-        /// </summary>
-        Action<eMsgType, ulong, byte[]> DataArrived = null;
+        ///// <summary>
+        ///// MsgId of the sender and payload
+        ///// </summary>
+        //Action<eMsgType, ulong, byte[]> DataArrived = null;
         
 
         public void Dispose()
@@ -135,10 +135,10 @@ namespace tiesky.com.SharmIpcInternals
         }
 
 
-        public ReaderWriterHandler(SharedMemory sm, Action<eMsgType, ulong, byte[]> DataArrived)
+        public ReaderWriterHandler(SharedMemory sm)
         {
             this.sm = sm;
-            this.DataArrived = DataArrived;
+            //this.DataArrived = DataArrived;
             this.bufferLenS = Convert.ToInt32(sm.bufferCapacity) - protocolLen;
 
             this.InitWriter();
@@ -558,7 +558,7 @@ namespace tiesky.com.SharmIpcInternals
                                 iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
                                 iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
-                                DataArrived(msgType, iResponseMsgId, null);
+                                this.sm.SharmIPC.InternalDataArrived(msgType, iResponseMsgId, null);
                                 break;
 
                             case eMsgType.RpcResponse:
@@ -591,7 +591,7 @@ namespace tiesky.com.SharmIpcInternals
                                             this.SendMessage(eMsgType.ErrorInRpc, this.GetMessageId(), null, iMsgId);
                                             break;
                                         case eMsgType.RpcResponse:
-                                            DataArrived(eMsgType.ErrorInRpc, iResponseMsgId, null);
+                                            this.sm.SharmIPC.InternalDataArrived(eMsgType.ErrorInRpc, iResponseMsgId, null);
                                             break;
                                     }
                                     break;
@@ -600,13 +600,13 @@ namespace tiesky.com.SharmIpcInternals
                                 if (iTotChunk == iCurChunk)
                                 {
                                     if (chunksCollected == null)
-                                        DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(protocolLen, iPayLoadLen));
+                                        this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(protocolLen, iPayLoadLen));
                                     else
                                     {
                                         ret = new byte[iPayLoadLen + chunksCollected.Length];
                                         Buffer.BlockCopy(chunksCollected, 0, ret, 0, chunksCollected.Length);
                                         Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
-                                        DataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
+                                        this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
                                     }
                                     chunksCollected = null;
                                     currentChunk = 0;
@@ -642,8 +642,10 @@ namespace tiesky.com.SharmIpcInternals
                         ewh_Reader_ReadyToWrite.Set();
                     }
                 }
-                catch
-                {}               
+                catch(System.Exception ex)
+                {
+                    this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.InitReader LE", ex);
+                }               
 
 
             });

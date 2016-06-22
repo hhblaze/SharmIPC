@@ -55,6 +55,7 @@ namespace tiesky.com
           
         }
 
+      
 
         /// <summary>
         /// SharmIpc constructor
@@ -63,13 +64,15 @@ namespace tiesky.com
         /// <param name="remoteCallHandler">Response routine for the remote partner requests</param>
         /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
-        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
         {
             if (remoteCallHandler == null)
                 throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
 
             this.remoteCallHandler = remoteCallHandler;
-            sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
+            this.ExternalExceptionHandler = ExternalExceptionHandler;
+            sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
         }
 
         /// <summary>
@@ -79,13 +82,28 @@ namespace tiesky.com
         /// <param name="remoteCallHandler">Callback routine for the remote partner requests. AsyncAnswerOnRemoteCall must be used for answer</param>
         /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
-        public SharmIpc(string uniqueHandlerName, Action<ulong, byte[]> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+        public SharmIpc(string uniqueHandlerName, Action<ulong, byte[]> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
         {
             if (remoteCallHandler == null)
                 throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
 
             this.AsyncRemoteCallHandler = remoteCallHandler;
-            sm = new SharedMemory(uniqueHandlerName, this.InternalDataArrived, bufferCapacity, maxQueueSizeInBytes);
+            this.ExternalExceptionHandler = ExternalExceptionHandler;
+            sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
+        }
+
+
+        Action<string, System.Exception> ExternalExceptionHandler = null;
+
+        /// <summary>
+        /// Internal exception logger
+        /// </summary>
+        /// <param name="description"></param>
+        /// <param name="ex"></param>
+        internal void LogException(string description, System.Exception ex)
+        {
+            ExternalExceptionHandler?.Invoke(description, ex);
         }
 
         /// <summary>
@@ -104,7 +122,7 @@ namespace tiesky.com
         /// <param name="msgType"></param>
         /// <param name="msgId"></param>
         /// <param name="bt"></param>
-        void InternalDataArrived(eMsgType msgType, ulong msgId, byte[] bt)
+        internal void InternalDataArrived(eMsgType msgType, ulong msgId, byte[] bt)
         {   
             ResponseCrate rsp = null;
 
@@ -153,13 +171,17 @@ namespace tiesky.com
 
                         if (rsp.callBack == null)
                         {
-                            rsp.mre.Set();
+                            rsp.mre.Set();  //Signalling, to make waiting in parallel thread to proceed
                             //rsp.Set_MRE();
                         }
                         else
                         {
                             df.TryRemove(msgId, out rsp);
-                            rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
+                            //Calling callback in parallel thread, quicly to return to ReaderWriterhandler.Reader procedure
+                            Task.Run(() =>
+                            {
+                                rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
+                            });
                         }
                     }
              

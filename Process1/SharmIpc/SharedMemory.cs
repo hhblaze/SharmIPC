@@ -41,19 +41,20 @@ namespace tiesky.com.SharmIpcInternals
         internal eInstanceType instanceType = eInstanceType.Undefined;
 
         ReaderWriterHandler rwh = null;
-       
+        internal SharmIpc SharmIPC = null;
 
-        
         /// <summary>
         /// 
         /// </summary>
         /// <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
-        /// <param name="bufferCapacity"></param>
-        /// <param name="dataArrived">MsgId of the sender, payload</param>
-        public SharedMemory(string uniqueHandlerName, Action<eMsgType, ulong, byte[]> dataArrived, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        /// /// <param name="SharmIPC">SharmIPC instance</param>
+        /// <param name="bufferCapacity"></param>        
+        public SharedMemory(string uniqueHandlerName, SharmIpc SharmIPC, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
         {
-            if (dataArrived == null)
-                throw new Exception("tiesky.com.SharmIpc: dataArrived callback can't be empty");
+            this.SharmIPC = SharmIPC;
+
+            //if (dataArrived == null)
+            //    throw new Exception("tiesky.com.SharmIpc: dataArrived callback can't be empty");
 
             if (String.IsNullOrEmpty(uniqueHandlerName) || uniqueHandlerName.Length > 200)
                 throw new Exception("tiesky.com.SharmIpc: uniqueHandlerName can't be empty or more then 200 symbols");
@@ -94,7 +95,7 @@ namespace tiesky.com.SharmIpcInternals
 
             Console.WriteLine("tiesky.com.SharmIpc: " + instanceType + " of " + uniqueHandlerName);
 
-            rwh = new ReaderWriterHandler(this, dataArrived);          
+            rwh = new ReaderWriterHandler(this);          
         }
 
         /// <summary>
