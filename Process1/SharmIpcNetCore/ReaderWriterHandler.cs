@@ -44,7 +44,7 @@ namespace tiesky.com.SharmIpcInternals
                 if (ewh_Writer_ReadyToRead != null)
                 {
                     //ewh_Writer_ReadyToRead.Set();
-                    ewh_Writer_ReadyToRead.Close();
+                    //ewh_Writer_ReadyToRead.Close();
                     ewh_Writer_ReadyToRead.Dispose();
                     ewh_Writer_ReadyToRead = null;
                 }
@@ -57,7 +57,7 @@ namespace tiesky.com.SharmIpcInternals
                 if (ewh_Writer_ReadyToWrite != null)
                 {
                     //ewh_Writer_ReadyToWrite.Set();
-                    ewh_Writer_ReadyToWrite.Close();
+                    //ewh_Writer_ReadyToWrite.Close();
                     ewh_Writer_ReadyToWrite.Dispose();
                     ewh_Writer_ReadyToWrite = null;
                 }
@@ -71,7 +71,7 @@ namespace tiesky.com.SharmIpcInternals
                 if (ewh_Reader_ReadyToRead != null)
                 {
                     //ewh_Reader_ReadyToRead.Set();
-                    ewh_Reader_ReadyToRead.Close();
+                    //ewh_Reader_ReadyToRead.Close();
                     ewh_Reader_ReadyToRead.Dispose();
                     ewh_Reader_ReadyToRead = null;
                 }
@@ -84,7 +84,7 @@ namespace tiesky.com.SharmIpcInternals
                 if (ewh_Reader_ReadyToWrite != null)
                 {
                     //ewh_Reader_ReadyToWrite.Set();
-                    ewh_Reader_ReadyToWrite.Close();
+                    //ewh_Reader_ReadyToWrite.Close();
                     ewh_Reader_ReadyToWrite.Dispose();
                     ewh_Reader_ReadyToWrite = null;
                 }
