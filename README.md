@@ -77,7 +77,7 @@ void MakeRemoteRequestWithResponse()
 void MakeRemoteRequestWithoutResponse()
 {
 	 //Making remote request (a la send and forget)
-	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
+	 Tuple<bool,byte[]> res = sm.RemoteRequestWithoutResponse(new byte[512]);
 	 
 	 if(!res.Item1)
 	 {
