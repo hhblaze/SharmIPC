@@ -30,7 +30,7 @@ namespace tiesky.com.SharmIpcInternals
         //System.IO.MemoryMappedFiles.MemoryMappedViewAccessor accessor = null;
         //System.IO.MemoryMappedFiles.MemoryMappedFile mmf = null;
 
-        Mutex mt = null;
+        //Mutex mt = null;
 
         //EventWaitHandle ewh_ReadyToRead = null;
         //EventWaitHandle ewh_ReadyToWrite = null;
@@ -67,54 +67,18 @@ namespace tiesky.com.SharmIpcInternals
 
             this.uniqueHandlerName = uniqueHandlerName;
             this.bufferCapacity = bufferCapacity;
+                       
 
-            try
-            {
-                mt = new Mutex(true, uniqueHandlerName + "SharmNet_MasterMutex");
-
-                if (mt.WaitOne(500))
-                {
-                    instanceType = eInstanceType.Master;
-                }
-                else
-                {
-                    instanceType = eInstanceType.Slave;
-                    if (mt != null)
-                    {
-                        //mt.ReleaseMutex();
-                        mt.Close();
-                        mt.Dispose();
-                        mt = null;
-                    }
-                }              
-            }
-            catch (System.Threading.AbandonedMutexException)
-            {
-                instanceType = eInstanceType.Master;
-            }
+            rwh = new ReaderWriterHandler(this);
 
             Console.WriteLine("tiesky.com.SharmIpc: " + instanceType + " of " + uniqueHandlerName);
-
-            rwh = new ReaderWriterHandler(this);          
         }
 
         /// <summary>
         /// Disposing
         /// </summary>
         public void Dispose()
-        {
-            try
-            {
-                if (mt != null)
-                {
-                    mt.ReleaseMutex();
-                    mt.Close();
-                    mt.Dispose();
-                    mt = null;
-                }
-            }
-            catch{
-            }
+        {          
 
             if (rwh != null)
             {
