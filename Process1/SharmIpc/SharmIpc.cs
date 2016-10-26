@@ -33,8 +33,22 @@ namespace tiesky.com
             Disconnected
         }
 
-        public ePartnerState PartnerState = ePartnerState.Disconnected;
+        ePartnerState _partnerState = ePartnerState.Disconnected;
         public event Action<ePartnerState> OnPartnerState;
+        /// <summary>
+        /// State of the connected Partner
+        /// </summary>
+        public ePartnerState PartnerState
+        {
+            get
+            {
+                return _partnerState;
+            }
+            internal set
+            {
+                _partnerState = value;
+            }
+        }
 
         class ResponseCrate
         {
@@ -110,15 +124,16 @@ namespace tiesky.com
             this.ExternalExceptionHandler = ExternalExceptionHandler;
             sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
         }
-
+        
         private void SharmIpc_OnPartnerState(ePartnerState obj)
         {
-            Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner is " + obj.ToString());
+            
+            Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " tiesky.com.SharmIpc " + sm.uniqueHandlerName +" partner is " + obj.ToString());
         }
 
-        internal void RaisePartnerState(ePartnerState obj)
+        internal void SetPartnerState(ePartnerState obj)
         {
-            PartnerState = obj;
+            this._partnerState = obj;
             Task.Run(() => { OnPartnerState(obj); });
         }
 

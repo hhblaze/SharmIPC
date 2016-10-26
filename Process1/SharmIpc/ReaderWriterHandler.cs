@@ -412,7 +412,7 @@ namespace tiesky.com.SharmIpcInternals
                             if (CurrentPingValue == 1 || (LastPingValue == 0 && CurrentPingValue > 0))
                             {
                                 //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner Connected " + CurrentPingValue);
-                                this.sm.SharmIPC.RaisePartnerState(SharmIpc.ePartnerState.Connected);
+                                this.sm.SharmIPC.SetPartnerState(SharmIpc.ePartnerState.Connected);
                                 PingRepetitions = 0;
                             }
                             else if (CurrentPingValue == LastPingValue)
@@ -425,7 +425,7 @@ namespace tiesky.com.SharmIpcInternals
                             if (PingRepetitions == 2 && LastPingValue != 0)
                             {
                                 //(Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner Disconnected ");
-                                this.sm.SharmIPC.RaisePartnerState(SharmIpc.ePartnerState.Disconnected);
+                                this.sm.SharmIPC.SetPartnerState(SharmIpc.ePartnerState.Disconnected);
                                 LastPingValue = 0;
                                 CurrentPingValue = 0;
                                 PingRepetitions = 0;
