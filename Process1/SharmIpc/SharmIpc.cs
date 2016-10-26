@@ -26,7 +26,16 @@ namespace tiesky.com
         SharedMemory sm = null;
         ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
         internal bool Master = true;
-        
+
+        public enum ePartnerState
+        {
+            Connected,
+            Disconnected
+        }
+
+        public ePartnerState PartnerState = ePartnerState.Disconnected;
+        public event Action<ePartnerState> OnPartnerState;
+
         class ResponseCrate
         {
             ///// <summary>
@@ -94,11 +103,22 @@ namespace tiesky.com
         {
             if (remoteCallHandler == null)
                 throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
-
+            
+            this.OnPartnerState += SharmIpc_OnPartnerState;
             this.Master = runAsMaster;
             this.remoteCallHandler = remoteCallHandler;
             this.ExternalExceptionHandler = ExternalExceptionHandler;
             sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
+        }
+
+        private void SharmIpc_OnPartnerState(ePartnerState obj)
+        {
+            Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner is " + obj.ToString());
+        }
+
+        internal void RaisePartnerState(ePartnerState obj)
+        {
+            Task.Run(() => { OnPartnerState(obj); });
         }
 
         /// <summary>

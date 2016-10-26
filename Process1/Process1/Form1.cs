@@ -162,8 +162,8 @@ namespace MemoryMappedFile
                 //sm.RemoteRequestWithoutResponse(new byte[512]);
                 //sm.RemoteRequestWithoutResponse(new byte[1]);
 
-              // var res = sm.RemoteRequest(data);
-                sm.RemoteRequestWithoutResponse(data);
+               var res = sm.RemoteRequest(data);
+               // sm.RemoteRequestWithoutResponse(data);
 
                 //spinWait.SpinOnce();
                 //Thread.SpinWait(100);

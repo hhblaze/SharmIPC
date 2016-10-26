@@ -365,6 +365,12 @@ namespace tiesky.com.SharmIpcInternals
         ushort currentChunk = 0;
         byte[] chunksCollected = null;
 
+        DateTime pingLastRead = DateTime.MinValue;
+        byte LastPingValue = 0;
+        byte CurrentPingValue = 0;
+        byte ownPing = 0;
+        int PingRepetitions = 0;
+
         /// <summary>
         /// 
         /// </summary>
@@ -394,10 +400,55 @@ namespace tiesky.com.SharmIpcInternals
                 var spinWait = new SspinWait();
 
                 try
-                {
+                {                   
                     while (true)
                     {
-                        //reading semaphore
+                        //Ping handler
+                        if (DateTime.UtcNow.Subtract(pingLastRead).TotalSeconds > 2)
+                        {
+                            //Reading partner state ping
+                            pingLastRead = DateTime.UtcNow;
+                            CurrentPingValue = ReadBytes(Reader_accessor_ptr, 1, 1)[0];
+                            if (CurrentPingValue == 1 || (LastPingValue == 0 && CurrentPingValue > 0))
+                            {
+                                //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner Connected " + CurrentPingValue);
+                                this.sm.SharmIPC.RaisePartnerState(SharmIpc.ePartnerState.Connected);
+                            }
+                            else if (CurrentPingValue == LastPingValue)
+                            {
+                                PingRepetitions++;
+                            }
+                            else
+                                PingRepetitions = 0;
+
+                            if (PingRepetitions == 2 && LastPingValue != 0)
+                            {
+                                //(Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner Disconnected ");
+                                this.sm.SharmIPC.RaisePartnerState(SharmIpc.ePartnerState.Disconnected);
+                                LastPingValue = 0;
+                                CurrentPingValue = 0;
+                                PingRepetitions = 0;
+                                this.WriteBytes(Reader_accessor_ptr, 1, new byte[] { 0 });
+                            }
+
+                            LastPingValue = CurrentPingValue;
+                            //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " " + LastPingValue);
+
+
+
+                            //Writing self-ping
+                            if (ownPing == 255)
+                                ownPing = 2;
+                            else
+                                ownPing++;
+
+                            this.WriteBytes(Writer_accessor_ptr, 1, new byte[] { ownPing });
+                        }
+
+
+
+
+                        //Reading semaphore
                         if (ReadBytes(Reader_accessor_ptr, 0, 1)[0] != 1)
                         {
                             //Nothing to read
