@@ -413,6 +413,7 @@ namespace tiesky.com.SharmIpcInternals
                             {
                                 //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " Partner Connected " + CurrentPingValue);
                                 this.sm.SharmIPC.RaisePartnerState(SharmIpc.ePartnerState.Connected);
+                                PingRepetitions = 0;
                             }
                             else if (CurrentPingValue == LastPingValue)
                             {
