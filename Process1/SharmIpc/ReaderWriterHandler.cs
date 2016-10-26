@@ -100,7 +100,16 @@ namespace tiesky.com.SharmIpcInternals
 
             if (Writer_mmf == null)
             {
-                Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+                //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+
+                var security = new MemoryMappedFileSecurity();                
+                security.AddAccessRule(new System.Security.AccessControl.AccessRule<MemoryMappedFileRights>(
+                    new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null), 
+                    MemoryMappedFileRights.FullControl, 
+                    System.Security.AccessControl.AccessControlType.Allow));
+                //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(@"Global\MapName1", sm.bufferCapacity, 
+                Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
+                    MemoryMappedFileAccess.ReadWrite,MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
 
                 //try
                 //{
@@ -125,7 +134,7 @@ namespace tiesky.com.SharmIpcInternals
                 //    sm.instanceType = tiesky.com.SharmIpcInternals.eInstanceType.Slave;
                 //    Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
                 //}
-                                
+
                 Writer_accessor = Writer_mmf.CreateViewAccessor(0, sm.bufferCapacity);
                 Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Writer_accessor_ptr);
             }
@@ -380,7 +389,18 @@ namespace tiesky.com.SharmIpcInternals
             
             if (Reader_mmf == null)
             {
-                Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+                //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+
+                var security = new MemoryMappedFileSecurity();
+                security.AddAccessRule(new System.Security.AccessControl.AccessRule<MemoryMappedFileRights>(
+                    new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
+                    MemoryMappedFileRights.FullControl,
+                    System.Security.AccessControl.AccessControlType.Allow));
+                //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(@"Global\MapName1", sm.bufferCapacity, 
+                Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
+                    MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
+
+
                 Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
                 Reader_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Reader_accessor_ptr);
             }
