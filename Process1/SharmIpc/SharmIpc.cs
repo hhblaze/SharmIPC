@@ -118,6 +118,7 @@ namespace tiesky.com
 
         internal void RaisePartnerState(ePartnerState obj)
         {
+            PartnerState = obj;
             Task.Run(() => { OnPartnerState(obj); });
         }
 
