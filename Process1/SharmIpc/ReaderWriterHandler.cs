@@ -107,7 +107,11 @@ namespace tiesky.com.SharmIpcInternals
                     new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null), 
                     MemoryMappedFileRights.FullControl, 
                     System.Security.AccessControl.AccessControlType.Allow));
-                //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(@"Global\MapName1", sm.bufferCapacity, 
+
+                //More access rules
+                //http://stackoverflow.com/questions/18067581/cant-open-memory-mapped-file-from-log-on-screen
+
+                //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen("Global\\" + sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,  //If started as admin
                 Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
                     MemoryMappedFileAccess.ReadWrite,MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
 
