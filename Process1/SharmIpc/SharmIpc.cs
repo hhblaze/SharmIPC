@@ -25,81 +25,33 @@ namespace tiesky.com
 
         SharedMemory sm = null;
         ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
-        internal bool Master = true;
-
-        public enum ePartnerState
-        {
-            Connected,
-            Disconnected
-        }
-
-        ePartnerState _partnerState = ePartnerState.Disconnected;
-        public event Action<ePartnerState> OnPartnerState;
-        /// <summary>
-        /// State of the connected Partner
-        /// </summary>
-        public ePartnerState PartnerState
-        {
-            get
-            {
-                return _partnerState;
-            }
-            internal set
-            {
-                _partnerState = value;
-            }
-        }
-
+        
         class ResponseCrate
         {
-            ///// <summary>
-            ///// Not SLIM version must be used (it works faster for longer delay which RPCs are)
-            ///// </summary>
-            //public ManualResetEvent mre = null;
+            /// <summary>
+            /// Not SLIM version must be used (it works faster for longer delay which RPCs are)
+            /// </summary>
+            public ManualResetEvent mre = null;
             public byte[] res = null;
             public Action<Tuple<bool, byte[]>> callBack = null;
             public bool IsRespOk = false;
 
-            bool wait = true;
-
             public void Init_MRE()
             {
-                //mre = new ManualResetEvent(false);
-            }
-
-            public void Set()
-            {
-                wait = false;
-            }
-
-            public bool WaitOne(int ms)
-            {
-                DateTime now = DateTime.UtcNow;
-                var spinWait = new SspinWait();
-
-                while (wait)
-                {
-                    if ((DateTime.UtcNow - now).TotalMilliseconds > ms)
-                        return false;
-
-                    // Thread.SpinWait(100);
-                    spinWait.Spin();
-                }
-
-                return true;
+                mre = new ManualResetEvent(false);
             }
                       
-            //int IsDisposed = 0;
-            //public void Dispose_MRE()
-            //{
-            //    int newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
-            //    if (newVal == 0 && mre != null)
-            //    {                   
-            //        mre.Set();
-            //        mre.Dispose();
-            //        mre = null;
-            //    }
-            //}
+            int IsDisposed = 0;
+            public void Dispose_MRE()
+            {
+                int newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
+                if (newVal == 0 && mre != null)
+                {                   
+                    mre.Set();
+                    mre.Dispose();
+                    mre = null;
+                }
+            }
           
         }
 
@@ -113,28 +65,14 @@ namespace tiesky.com
         /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
-        public SharmIpc(string uniqueHandlerName, bool runAsMaster=true, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler = null, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
+        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
         {
             if (remoteCallHandler == null)
                 throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
-            
-            this.OnPartnerState += SharmIpc_OnPartnerState;
-            this.Master = runAsMaster;
+
             this.remoteCallHandler = remoteCallHandler;
             this.ExternalExceptionHandler = ExternalExceptionHandler;
             sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
-        }
-        
-        private void SharmIpc_OnPartnerState(ePartnerState obj)
-        {
-            
-            Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + " tiesky.com.SharmIpc " + sm.uniqueHandlerName +" partner is " + obj.ToString());
-        }
-
-        internal void SetPartnerState(ePartnerState obj)
-        {
-            this._partnerState = obj;
-            Task.Run(() => { OnPartnerState(obj); });
         }
 
         /// <summary>
@@ -234,7 +172,7 @@ namespace tiesky.com
 
                         if (rsp.callBack == null)
                         {
-                            rsp.Set();  //Signalling, to make waiting in parallel thread to proceed
+                            rsp.mre.Set();  //Signalling, to make waiting in parallel thread to proceed
                             //rsp.Set_MRE();
                         }
                         else
@@ -288,18 +226,28 @@ namespace tiesky.com
 
             if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
             {
-                //resp.Dispose_MRE();               
+                resp.Dispose_MRE();
+                //if (resp.mre != null)
+                //    resp.mre.Dispose();
+                //resp.mre = null;
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
-            else if (!resp.WaitOne(timeoutMs))            
-            {              
-                //resp.Dispose_MRE();
+            else if (!resp.mre.WaitOne(timeoutMs))
+            //else if (!resp.Wait_MRE(timeoutMs))
+            {
+                //if (resp.mre != null)
+                //    resp.mre.Dispose();
+                //resp.mre = null;
+                resp.Dispose_MRE();
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
-         
-            //resp.Dispose_MRE();
+
+            //if (resp.mre != null)
+            //    resp.mre.Dispose();
+            //resp.mre = null;
+            resp.Dispose_MRE();
 
             if (df.TryRemove(msgId, out resp))
             {
@@ -346,8 +294,14 @@ namespace tiesky.com
                     if (df.TryRemove(el.Key, out rc))
                     {
                         rc.IsRespOk = false;
-                        //rc.Dispose_MRE();                        
-                        
+                        rc.Dispose_MRE();                        
+                        //if (rc.mre != null)
+                        //{
+                        //    rc.IsRespOk = false;
+                        //    rc.mre.Set();
+                        //    rc.mre.Dispose();
+                        //    rc.mre = null;
+                        //}
                     }
                     
                 }

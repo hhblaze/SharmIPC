@@ -30,7 +30,7 @@ namespace tiesky.com.SharmIpcInternals
         //System.IO.MemoryMappedFiles.MemoryMappedViewAccessor accessor = null;
         //System.IO.MemoryMappedFiles.MemoryMappedFile mmf = null;
 
-        //Mutex mt = null;
+        Mutex mt = null;
 
         //EventWaitHandle ewh_ReadyToRead = null;
         //EventWaitHandle ewh_ReadyToWrite = null;
@@ -42,16 +42,18 @@ namespace tiesky.com.SharmIpcInternals
 
         ReaderWriterHandler rwh = null;
         internal SharmIpc SharmIPC = null;
-
+            
         /// <summary>
         /// 
         /// </summary>
         /// <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
-        /// /// <param name="SharmIPC">SharmIPC instance</param>
-        /// <param name="bufferCapacity"></param>        
+        /// <param name="SharmIPC">SharmIPC instance</param>
+        /// <param name="bufferCapacity"></param>
+        /// <param name="maxQueueSizeInBytes"></param>                 
         public SharedMemory(string uniqueHandlerName, SharmIpc SharmIPC, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
         {
             this.SharmIPC = SharmIPC;
+            this.maxQueueSizeInBytes = maxQueueSizeInBytes;
 
             //if (dataArrived == null)
             //    throw new Exception("tiesky.com.SharmIpc: dataArrived callback can't be empty");
@@ -67,18 +69,54 @@ namespace tiesky.com.SharmIpcInternals
 
             this.uniqueHandlerName = uniqueHandlerName;
             this.bufferCapacity = bufferCapacity;
-                       
 
-            rwh = new ReaderWriterHandler(this);
+            try
+            {
+                mt = new Mutex(true, uniqueHandlerName + "SharmNet_MasterMutex");
+
+                if (mt.WaitOne(500))
+                {
+                    instanceType = eInstanceType.Master;
+                }
+                else
+                {
+                    instanceType = eInstanceType.Slave;
+                    if (mt != null)
+                    {
+                        //mt.ReleaseMutex();
+                        mt.Close();
+                        mt.Dispose();
+                        mt = null;
+                    }
+                }              
+            }
+            catch (System.Threading.AbandonedMutexException)
+            {
+                instanceType = eInstanceType.Master;
+            }
 
             Console.WriteLine("tiesky.com.SharmIpc: " + instanceType + " of " + uniqueHandlerName);
+
+            rwh = new ReaderWriterHandler(this);          
         }
 
         /// <summary>
         /// Disposing
         /// </summary>
         public void Dispose()
-        {          
+        {
+            try
+            {
+                if (mt != null)
+                {
+                    mt.ReleaseMutex();
+                    mt.Close();
+                    mt.Dispose();
+                    mt = null;
+                }
+            }
+            catch{
+            }
 
             if (rwh != null)
             {
