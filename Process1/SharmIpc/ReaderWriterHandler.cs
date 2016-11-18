@@ -13,12 +13,14 @@ namespace tiesky.com.SharmIpcInternals
     {
         System.IO.MemoryMappedFiles.MemoryMappedViewAccessor Writer_accessor = null;
         System.IO.MemoryMappedFiles.MemoryMappedFile Writer_mmf = null;
+        unsafe byte* Writer_accessor_ptr = (byte*)0;
 
         EventWaitHandle ewh_Writer_ReadyToRead = null;
         EventWaitHandle ewh_Writer_ReadyToWrite = null;
 
         System.IO.MemoryMappedFiles.MemoryMappedViewAccessor Reader_accessor = null;
         System.IO.MemoryMappedFiles.MemoryMappedFile Reader_mmf = null;
+        unsafe byte* Reader_accessor_ptr = (byte*)0;
 
         EventWaitHandle ewh_Reader_ReadyToRead = null;
         EventWaitHandle ewh_Reader_ReadyToWrite = null;
@@ -96,6 +98,7 @@ namespace tiesky.com.SharmIpcInternals
             {
                 if (Writer_accessor != null)
                 {
+                    Writer_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
                     Writer_accessor.Dispose();
                     Writer_accessor = null;
                 }
@@ -106,6 +109,7 @@ namespace tiesky.com.SharmIpcInternals
             {
                 if (Reader_accessor != null)
                 {
+                    Reader_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
                     Reader_accessor.Dispose();
                     Reader_accessor = null;
                 }
@@ -148,7 +152,7 @@ namespace tiesky.com.SharmIpcInternals
         }
 
 
-        void InitWriter()
+        unsafe void InitWriter()
         {
             string prefix = sm.instanceType == tiesky.com.SharmIpcInternals.eInstanceType.Master ? "1" : "2";
 
@@ -170,8 +174,24 @@ namespace tiesky.com.SharmIpcInternals
 
             if (Writer_mmf == null)
             {
-                Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+                //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+                //Writer_accessor = Writer_mmf.CreateViewAccessor(0, sm.bufferCapacity);
+
+                var security = new MemoryMappedFileSecurity();
+                security.AddAccessRule(new System.Security.AccessControl.AccessRule<MemoryMappedFileRights>(
+                    new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
+                    MemoryMappedFileRights.FullControl,
+                    System.Security.AccessControl.AccessControlType.Allow));
+
+                //More access rules
+                //http://stackoverflow.com/questions/18067581/cant-open-memory-mapped-file-from-log-on-screen
+
+                //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen("Global\\" + sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,  //If started as admin
+                Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
+                    MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
+
                 Writer_accessor = Writer_mmf.CreateViewAccessor(0, sm.bufferCapacity);
+                Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Writer_accessor_ptr);
             }
         }
 
@@ -359,8 +379,8 @@ namespace tiesky.com.SharmIpcInternals
                 });
         }
         */
-        
-        void StartSendProcedure()
+
+        unsafe void StartSendProcedure()
         {
             lock (lock_q)
             {
@@ -399,7 +419,7 @@ namespace tiesky.com.SharmIpcInternals
                         //Writing into MMF      
                                                 
                         //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-                        this.WriteBytes(0, toSend);
+                        this.WriteBytes(Writer_accessor_ptr, 0, toSend);
 
                         //Setting signal ready to read
                         ewh_Writer_ReadyToRead.Set();
@@ -426,27 +446,38 @@ namespace tiesky.com.SharmIpcInternals
             //});
 
         }//eom
-        
 
 
 
-        unsafe void WriteBytes(int offset, byte[] data)
+        unsafe void WriteBytes(byte* ptr, int offset, byte[] data)
         {
-            byte* ptr = (byte*)0;
-            Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
             Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(ptr), offset), data.Length);
-            Writer_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
         }
 
-        unsafe byte[] ReadBytes(int offset, int num)
+        unsafe byte[] ReadBytes(byte* ptr, int offset, int num)
         {
             byte[] arr = new byte[num];
-            byte* ptr = (byte*)0;
-            Reader_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
             Marshal.Copy(IntPtr.Add(new IntPtr(ptr), offset), arr, 0, num);
-            Reader_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
             return arr;
         }
+
+        //unsafe void WriteBytes(int offset, byte[] data)
+        //{
+        //    byte* ptr = (byte*)0;
+        //    Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
+        //    Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(ptr), offset), data.Length);
+        //    Writer_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+        //}
+
+        //unsafe byte[] ReadBytes(int offset, int num)
+        //{
+        //    byte[] arr = new byte[num];
+        //    byte* ptr = (byte*)0;
+        //    Reader_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
+        //    Marshal.Copy(IntPtr.Add(new IntPtr(ptr), offset), arr, 0, num);
+        //    Reader_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
+        //    return arr;
+        //}
 
         /*
         public void TestSendMessage()
@@ -497,7 +528,7 @@ namespace tiesky.com.SharmIpcInternals
         /// <summary>
         /// 
         /// </summary>
-        void InitReader()
+        unsafe void InitReader()
         {
             string prefix = sm.instanceType == eInstanceType.Slave ? "1" : "2";
 
@@ -520,8 +551,21 @@ namespace tiesky.com.SharmIpcInternals
 
             if (Reader_mmf == null)
             {
-                Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+                //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
+                //Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
+
+                var security = new MemoryMappedFileSecurity();
+                security.AddAccessRule(new System.Security.AccessControl.AccessRule<MemoryMappedFileRights>(
+                    new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
+                    MemoryMappedFileRights.FullControl,
+                    System.Security.AccessControl.AccessControlType.Allow));
+                //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(@"Global\MapName1", sm.bufferCapacity, 
+                Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
+                    MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
+
+
                 Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
+                Reader_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Reader_accessor_ptr);
             }
 
             Task.Run(() =>
@@ -547,7 +591,7 @@ namespace tiesky.com.SharmIpcInternals
                         //Reading data from MMF
 
                         //Reading header
-                        hdr = ReadBytes(0, protocolLen);                      
+                        hdr = ReadBytes(Reader_accessor_ptr, 0, protocolLen);                      
                         msgType = (eMsgType)hdr[0];
 
                         //Parsing header
@@ -600,12 +644,12 @@ namespace tiesky.com.SharmIpcInternals
                                 if (iTotChunk == iCurChunk)
                                 {
                                     if (chunksCollected == null)
-                                        this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(protocolLen, iPayLoadLen));
+                                        this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen));
                                     else
                                     {
                                         ret = new byte[iPayLoadLen + chunksCollected.Length];
                                         Buffer.BlockCopy(chunksCollected, 0, ret, 0, chunksCollected.Length);
-                                        Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
+                                        Buffer.BlockCopy(ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
                                         this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
                                     }
                                     chunksCollected = null;
@@ -615,14 +659,14 @@ namespace tiesky.com.SharmIpcInternals
                                 {
                                     if (chunksCollected == null)
                                     {
-                                        chunksCollected = ReadBytes(protocolLen, iPayLoadLen);
+                                        chunksCollected = ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen);
                                     }
                                     else
                                     {
 
                                         byte[] tmp = new byte[chunksCollected.Length + iPayLoadLen];
                                         Buffer.BlockCopy(chunksCollected, 0, tmp, 0, chunksCollected.Length);
-                                        Buffer.BlockCopy(ReadBytes(protocolLen, iPayLoadLen), 0, tmp, chunksCollected.Length, iPayLoadLen);
+                                        Buffer.BlockCopy(ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen), 0, tmp, chunksCollected.Length, iPayLoadLen);
                                         chunksCollected = tmp;
                                     }
 
