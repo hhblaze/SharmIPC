@@ -23,6 +23,7 @@ namespace tiesky.com.SharmIpcInternals
         Request = 4
     }
 
+    
     internal class SharedMemory:IDisposable
     {
        

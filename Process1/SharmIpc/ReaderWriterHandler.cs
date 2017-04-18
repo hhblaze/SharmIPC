@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace tiesky.com.SharmIpcInternals
 {
+    
     internal class ReaderWriterHandler:IDisposable
     {
         System.IO.MemoryMappedFiles.MemoryMappedViewAccessor Writer_accessor = null;
@@ -226,7 +227,10 @@ namespace tiesky.com.SharmIpcInternals
         /// <summary>
         /// Returns false if buffer threshold is reached
         /// </summary>
+        /// <param name="msgType"></param>
+        /// <param name="msgId"></param>
         /// <param name="msg"></param>
+        /// <param name="responseMsgId"></param>
         /// <returns></returns>
         public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId=0)
         {
@@ -240,6 +244,11 @@ namespace tiesky.com.SharmIpcInternals
                     q.Clear();
                 }
                 //Generating exception
+                
+                this.sm.SharmIPC.LogException(
+                    "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessage: max queue treshold is reached" + sm.maxQueueSizeInBytes,
+                    new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes));
+
                 throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
                 //return false;
             }
@@ -412,10 +421,17 @@ namespace tiesky.com.SharmIpcInternals
                 //here we got smth toSend
                 while(true)
                 {
+
+                //--STAT
+                this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
+
                 //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
                     if (ewh_Writer_ReadyToWrite.WaitOne())
                     {
-                        ewh_Writer_ReadyToWrite.Reset();
+                        //--STAT
+                        this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
+
+                    ewh_Writer_ReadyToWrite.Reset();
                         //Writing into MMF      
                                                 
                         //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
@@ -579,36 +595,46 @@ namespace tiesky.com.SharmIpcInternals
                 ulong iResponseMsgId = 0;
 
                 eMsgType msgType = eMsgType.RpcRequest;
+                int jPos = 0;
+                int jProtocolLen = 0;
+                int jPayloadLen = 0;
+                byte[] jReadBytes = null;
 
                 try
                 {
                     while (true)
                     {
+                        jPos = 0;
                         ewh_Reader_ReadyToRead.WaitOne();
+                        jPos = 1;
                         if (ewh_Reader_ReadyToRead == null) //Special Dispose case
                             return;
+                        jPos = 2;
                         ewh_Reader_ReadyToRead.Reset();
                         //Reading data from MMF
-
+                        jPos = 3;
                         //Reading header
-                        hdr = ReadBytes(Reader_accessor_ptr, 0, protocolLen);                      
+                        hdr = ReadBytes(Reader_accessor_ptr, 0, protocolLen);
+                        jPos = 4;
                         msgType = (eMsgType)hdr[0];
 
                         //Parsing header
                         switch (msgType)
                         {
                             case eMsgType.ErrorInRpc:
-
+                                jPos = 5;
                                 iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
                                 iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
 
                                 this.sm.SharmIPC.InternalDataArrived(msgType, iResponseMsgId, null);
+                                jPos = 6;
                                 break;
 
                             case eMsgType.RpcResponse:
                             case eMsgType.RpcRequest:
                             case eMsgType.Request:
 
+                                jPos = 7;
                                 bool zeroByte = false;
                                 iMsgId = BitConverter.ToUInt64(hdr, 1); //+8
                                 iPayLoadLen = BitConverter.ToInt32(hdr, 9); //+4
@@ -620,7 +646,7 @@ namespace tiesky.com.SharmIpcInternals
                                 iCurChunk = BitConverter.ToUInt16(hdr, 13); //+2
                                 iTotChunk = BitConverter.ToUInt16(hdr, 15); //+2     
                                 iResponseMsgId = BitConverter.ToUInt64(hdr, 17); //+8
-
+                                jPos = 8;
                                 if (iCurChunk == 1)
                                 {
                                     chunksCollected = null;
@@ -632,10 +658,14 @@ namespace tiesky.com.SharmIpcInternals
                                     switch (msgType)
                                     {
                                         case eMsgType.RpcRequest:
+                                            jPos = 9;
                                             this.SendMessage(eMsgType.ErrorInRpc, this.GetMessageId(), null, iMsgId);
+                                            jPos = 10;
                                             break;
                                         case eMsgType.RpcResponse:
+                                            jPos = 11;
                                             this.sm.SharmIPC.InternalDataArrived(eMsgType.ErrorInRpc, iResponseMsgId, null);
+                                            jPos = 12;
                                             break;
                                     }
                                     break;
@@ -643,38 +673,57 @@ namespace tiesky.com.SharmIpcInternals
 
                                 if (iTotChunk == iCurChunk)
                                 {
+                                    jPos = 13;
                                     if (chunksCollected == null)
-                                        this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen));
+                                    {
+                                        jPos = 14;
+                                        //Was
+                                        //this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen));
+                                        jProtocolLen = protocolLen;
+                                        jPayloadLen = iPayLoadLen;
+                                        jReadBytes = ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen);
+                                        jPos = 27;                                        
+                                        this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, iPayLoadLen == 0 ? ((zeroByte) ? new byte[0] : null) : jReadBytes);
+                                        ///////////// test
+                                        jPos = 15;
+                                    }
                                     else
                                     {
+                                        jPos = 16;
                                         ret = new byte[iPayLoadLen + chunksCollected.Length];
                                         Buffer.BlockCopy(chunksCollected, 0, ret, 0, chunksCollected.Length);
                                         Buffer.BlockCopy(ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen), 0, ret, chunksCollected.Length, iPayLoadLen);
                                         this.sm.SharmIPC.InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse) ? iResponseMsgId : iMsgId, ret);
+                                        jPos = 17;
                                     }
                                     chunksCollected = null;
                                     currentChunk = 0;
                                 }
                                 else
                                 {
+                                    jPos = 18;
                                     if (chunksCollected == null)
                                     {
+                                        jPos = 19;
                                         chunksCollected = ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen);
+                                        jPos = 20;
                                     }
                                     else
                                     {
-
+                                        jPos = 21;
                                         byte[] tmp = new byte[chunksCollected.Length + iPayLoadLen];
                                         Buffer.BlockCopy(chunksCollected, 0, tmp, 0, chunksCollected.Length);
                                         Buffer.BlockCopy(ReadBytes(Reader_accessor_ptr, protocolLen, iPayLoadLen), 0, tmp, chunksCollected.Length, iPayLoadLen);
                                         chunksCollected = tmp;
+                                        jPos = 22;
                                     }
-
+                                    jPos = 23;
                                     currentChunk = iCurChunk;
                                 }
                                 break;
                             default:
                                 //Unknown protocol type
+                                jPos = 24;
                                 chunksCollected = null;
                                 currentChunk = 0;
                                 //Wrong income, doing nothing
@@ -682,18 +731,36 @@ namespace tiesky.com.SharmIpcInternals
                                 //break;
                         }
 
+                        jPos = 25;
                         //Setting signal 
                         ewh_Reader_ReadyToWrite.Set();
+                        jPos = 26;
                     }
                 }
                 catch(System.Exception ex)
                 {
-					/*					
+                    //latest jPos = 27
+                    /*
+                     *  int jProtocolLen = 0;
+                int jPayloadLen = 0;
+                byte[] jReadBytes = null;
+                     */
+                    /*					
 					System.ObjectDisposedException: Das SafeHandle wurde geschlossen. bei System.Runtime.InteropServices.SafeHandle.DangerousAddRef(Boolean& success) 
                     bei System.StubHelpers.StubHelpers.SafeHandleAddRef(SafeHandle pHandle, Boolean& success) 
                     bei Microsoft.Win32.Win32Native.SetEvent(SafeWaitHandle handle) bei System.Threading.EventWaitHandle.Set() bei tiesky.com.SharmIpcInternals.ReaderWriterHandler.b__28_0()
 					*/
-                    this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.InitReader LE", ex);
+
+                    /*
+                     System.ObjectDisposedException: Das SafeHandle wurde geschlossen. bei System.Runtime.InteropServices.SafeHandle.DangerousAddRef(Boolean& success) 
+                     bei Microsoft.Win32.Win32Native.SetEvent(SafeWaitHandle handle)  
+                     bei System.Threading.EventWaitHandle.Set() bei tiesky.com.SharmIpcInternals.ReaderWriterHandler.b__28_0()
+                     */
+
+                    //constrained execution region (CER)
+                    //https://msdn.microsoft.com/en-us/library/system.runtime.interopservices.safehandle.dangerousaddref(v=vs.110).aspx
+
+                    this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.InitReader LE, jPos="+ jPos + "; jProtLen="+jProtocolLen + "; jPaylLen="+jPayloadLen + "; jReadBytesLen=" + (jReadBytes == null ? 0 : jReadBytes.Length), ex);
                 }               
 
 

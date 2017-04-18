@@ -10,6 +10,7 @@ using tiesky.com.SharmIpcInternals;
 
 namespace tiesky.com
 {
+    
     /// <summary>
     /// Inter-process communication handler. IPC for .NET
     /// https://github.com/hhblaze/SharmIPC or http://sharmipc.tiesky.com
@@ -25,13 +26,15 @@ namespace tiesky.com
 
         SharedMemory sm = null;
         ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
+
+        internal Statistic Statistic = new Statistic();
         
         class ResponseCrate
         {
             /// <summary>
             /// Not SLIM version must be used (it works faster for longer delay which RPCs are)
             /// </summary>
-            public ManualResetEvent mre = null;
+            ManualResetEvent mre = null;
             public byte[] res = null;
             public Action<Tuple<bool, byte[]>> callBack = null;
             public bool IsRespOk = false;
@@ -40,11 +43,26 @@ namespace tiesky.com
             {
                 mre = new ManualResetEvent(false);
             }
-                      
-            int IsDisposed = 0;
+
+            public void Set_MRE()
+            {
+                if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)
+                    return;
+                mre.Set();
+            }
+
+            public bool WaitOne_MRE(int timeouts)
+            {
+                if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)
+                    return false;
+                return mre.WaitOne(timeouts);
+            }
+
+            long IsDisposed = 0;
             public void Dispose_MRE()
             {
-                int newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
+                
+                long newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
                 if (newVal == 0 && mre != null)
                 {                   
                     mre.Set();
@@ -172,8 +190,9 @@ namespace tiesky.com
 
                         if (rsp.callBack == null)
                         {
-                            rsp.mre.Set();  //Signalling, to make waiting in parallel thread to proceed
-                            //rsp.Set_MRE();
+
+                            //rsp.mre.Set();  //Signalling, to make waiting in parallel thread to proceed
+                            rsp.Set_MRE();
                         }
                         else
                         {
@@ -233,8 +252,8 @@ namespace tiesky.com
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
-            else if (!resp.mre.WaitOne(timeoutMs))
-            //else if (!resp.Wait_MRE(timeoutMs))
+            //else if (!resp.mre.WaitOne(timeoutMs))
+            else if (!resp.WaitOne_MRE(timeoutMs))
             {
                 //if (resp.mre != null)
                 //    resp.mre.Dispose();
@@ -311,5 +330,12 @@ namespace tiesky.com
             }
          
         }
+
+
+        public string UsageReport()
+        {
+            return this.Statistic.Report();
+        }
+
     }
 }
