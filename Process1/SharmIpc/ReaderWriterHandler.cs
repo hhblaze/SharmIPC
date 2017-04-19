@@ -28,8 +28,8 @@ namespace tiesky.com.SharmIpcInternals
 
         SharedMemory sm = null;
         object lock_q = new object();
-        Queue<byte[]> q = new Queue<byte[]>();
         byte[] toSend = null;
+        Queue<byte[]> q = new Queue<byte[]>();        
         bool inSend = false;
         int bufferLenS = 0;
 
@@ -238,19 +238,24 @@ namespace tiesky.com.SharmIpcInternals
             if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
             {
                 //Cleaning queue
-                lock (lock_q)
-                {
-                    totalBytesInQUeue = 0;
-                    q.Clear();
-                }
+                //lock (lock_q)
+                //{
+                //    totalBytesInQUeue = 0;
+                //    q.Clear();
+                //}
                 //Generating exception
-                
+
+                //--STAT
+                this.sm.SharmIPC.Statistic.TotalBytesInQueueError();
+
                 this.sm.SharmIPC.LogException(
                     "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessage: max queue treshold is reached" + sm.maxQueueSizeInBytes,
                     new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes));
 
-                throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
-                //return false;
+                //throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
+
+                //Is handeld on upper level
+                return false;
             }
 
             lock (lock_q)
@@ -314,8 +319,6 @@ namespace tiesky.com.SharmIpcInternals
                     currentChunk++;
                 }
 
-                ////For SendProcedure1
-                //mreSmthToSend.Set();
             }//eo lock
 
             
@@ -324,116 +327,38 @@ namespace tiesky.com.SharmIpcInternals
             return true;
         }
 
-        //ManualResetEventSlim mreSmthToSend = new ManualResetEventSlim(false);
-        //ManualResetEvent mreSmthToSend = new ManualResetEvent(false);
-
-        /*SendProcedure1 - slower alternative. Starting from .NET4 ThreadPool is quite optimized
-        void SendProcedure1()
-        {
-            Task.Run(() =>
-                {
-                    while (true)
-                    {
-                        if (toSend == null)
-                        {
-                            while (true)
-                            {
-                                mreSmthToSend.WaitOne();//.Wait();
-
-                                if (disposed)
-                                    return;
-
-                                lock (lock_q)
-                                {
-                                    if (q.Count() > 0)
-                                    {
-                                        toSend = q.Dequeue();
-                                        break;
-                                    }
-                                    else
-                                        mreSmthToSend.Reset();
-                                }
-                            }
-                        }
-
-
-
-                        if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
-                        {
-                            ewh_Writer_ReadyToWrite.Reset();
-                            //Writing into MMF      
-
-                            //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-                            this.WriteBytes(0, toSend);
-
-                            //Setting signal ready to read
-                            ewh_Writer_ReadyToRead.Set();
-
-                            lock (lock_q)
-                            {
-                                toSend = null;
-                                if (q.Count() != 0)
-                                    toSend = q.Dequeue();
-                                else
-                                    mreSmthToSend.Reset();                                
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.fff") + "> Timeout of sending we must repeat operation");
-                        }
-
-
-                    }//eo while 
-                });
-        }
-        */
 
         unsafe void StartSendProcedure()
         {
             lock (lock_q)
             {
-                if (inSend)
+                if (inSend || q.Count() < 1)
                     return;
 
                 inSend = true;
+                toSend = q.Dequeue();
+                totalBytesInQUeue -= toSend.Length;
+
             }
 
-            //Task.Run(() =>
-            //{
-                lock (lock_q)
-                {
-                    if (toSend == null)
-                    {
-                        if (q.Count() > 0)
-                        {
-                            toSend = q.Dequeue();
-                            totalBytesInQUeue -= toSend.Length;
-                        }
-                        else
-                        {
-                            inSend = false;
-                            return;
-                        }
-                    }
-                }
-
+            Task.Run(() =>
+            {                
                 //here we got smth toSend
-                while(true)
+                while (true)
                 {
 
-                //--STAT
-                this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
+                    //--STAT
+                    this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
 
-                //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
+                    //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
                     if (ewh_Writer_ReadyToWrite.WaitOne())
                     {
                         //--STAT
                         this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
 
-                    ewh_Writer_ReadyToWrite.Reset();
+                        ewh_Writer_ReadyToWrite.Reset();
                         //Writing into MMF      
-                                                
+
                         //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
                         this.WriteBytes(Writer_accessor_ptr, 0, toSend);
 
@@ -441,11 +366,10 @@ namespace tiesky.com.SharmIpcInternals
                         ewh_Writer_ReadyToRead.Set();
 
                         lock (lock_q)
-                        {
-                            toSend = null;
+                        {                            
                             if (q.Count() == 0)
                             {
-                                //Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.fff") + "> Out of thread");
+                                toSend = null;
                                 inSend = false;
                                 return;
                             }
@@ -453,25 +377,27 @@ namespace tiesky.com.SharmIpcInternals
                             totalBytesInQUeue -= toSend.Length;
                         }
                     }
-                    //else
-                    //{
-                    //    Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.fff") + "> Timeout of sending we must repeat operation");
-                    //}
-                }
+                }//eo while
 
-            //});
+            });
 
-        }//eom
+        }//eof
 
 
 
         unsafe void WriteBytes(byte* ptr, int offset, byte[] data)
         {
+            //--STAT
+            this.sm.SharmIPC.Statistic.Writing(data.Length);
+
             Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(ptr), offset), data.Length);
         }
 
         unsafe byte[] ReadBytes(byte* ptr, int offset, int num)
         {
+            //--STAT
+            this.sm.SharmIPC.Statistic.Reading(num);
+
             byte[] arr = new byte[num];
             Marshal.Copy(IntPtr.Add(new IntPtr(ptr), offset), arr, 0, num);
             return arr;

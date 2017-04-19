@@ -255,6 +255,9 @@ namespace tiesky.com
             //else if (!resp.mre.WaitOne(timeoutMs))
             else if (!resp.WaitOne_MRE(timeoutMs))
             {
+                //--STAT
+                this.Statistic.Timeout();
+
                 //if (resp.mre != null)
                 //    resp.mre.Dispose();
                 //resp.mre = null;
