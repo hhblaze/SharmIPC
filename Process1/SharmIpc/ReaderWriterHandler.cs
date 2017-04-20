@@ -9,22 +9,37 @@ using System.Runtime.InteropServices;
 
 namespace tiesky.com.SharmIpcInternals
 {
-    
+    internal class SWaitHadle : EventWaitHandle
+    {
+        //Global prefix and extran permissions
+        //http://stackoverflow.com/questions/2590334/creating-a-cross-process-eventwaithandle
+
+
+        public override object InitializeLifetimeService()
+        {
+            return null;
+        }
+        public SWaitHadle(bool initialState, EventResetMode mode, string name) : base(initialState, mode, name)
+        {            
+        }
+    }
+
     internal class ReaderWriterHandler:IDisposable
     {
         System.IO.MemoryMappedFiles.MemoryMappedViewAccessor Writer_accessor = null;
         System.IO.MemoryMappedFiles.MemoryMappedFile Writer_mmf = null;
         unsafe byte* Writer_accessor_ptr = (byte*)0;
 
-        EventWaitHandle ewh_Writer_ReadyToRead = null;
-        EventWaitHandle ewh_Writer_ReadyToWrite = null;
+        //EventWaitHandle ewh_Writer_ReadyToRead = null;
+        SWaitHadle ewh_Writer_ReadyToRead = null;
+        SWaitHadle ewh_Writer_ReadyToWrite = null;
 
         System.IO.MemoryMappedFiles.MemoryMappedViewAccessor Reader_accessor = null;
         System.IO.MemoryMappedFiles.MemoryMappedFile Reader_mmf = null;
         unsafe byte* Reader_accessor_ptr = (byte*)0;
 
-        EventWaitHandle ewh_Reader_ReadyToRead = null;
-        EventWaitHandle ewh_Reader_ReadyToWrite = null;
+        SWaitHadle ewh_Reader_ReadyToRead = null;
+        SWaitHadle ewh_Reader_ReadyToWrite = null;
 
         SharedMemory sm = null;
         object lock_q = new object();
@@ -157,10 +172,11 @@ namespace tiesky.com.SharmIpcInternals
         {
             string prefix = sm.instanceType == tiesky.com.SharmIpcInternals.eInstanceType.Master ? "1" : "2";
 
+            
             if (ewh_Writer_ReadyToRead == null)
             {
-                ewh_Writer_ReadyToRead = new EventWaitHandle(false, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
-                ewh_Writer_ReadyToWrite = new EventWaitHandle(true, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
+                ewh_Writer_ReadyToRead = new SWaitHadle(false, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
+                ewh_Writer_ReadyToWrite = new SWaitHadle(true, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
                 ewh_Writer_ReadyToWrite.Set();
             }
 
@@ -365,6 +381,8 @@ namespace tiesky.com.SharmIpcInternals
                         //Setting signal ready to read
                         ewh_Writer_ReadyToRead.Set();
 
+                        
+
                         lock (lock_q)
                         {                            
                             if (q.Count() == 0)
@@ -391,6 +409,8 @@ namespace tiesky.com.SharmIpcInternals
             this.sm.SharmIPC.Statistic.Writing(data.Length);
 
             Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(ptr), offset), data.Length);
+
+            //https://msdn.microsoft.com/en-us/library/system.io.memorymappedfiles.memorymappedviewaccessor.safememorymappedviewhandle(v=vs.100).aspx
         }
 
         unsafe byte[] ReadBytes(byte* ptr, int offset, int num)
@@ -403,66 +423,7 @@ namespace tiesky.com.SharmIpcInternals
             return arr;
         }
 
-        //unsafe void WriteBytes(int offset, byte[] data)
-        //{
-        //    byte* ptr = (byte*)0;
-        //    Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-        //    Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(ptr), offset), data.Length);
-        //    Writer_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
-        //}
-
-        //unsafe byte[] ReadBytes(int offset, int num)
-        //{
-        //    byte[] arr = new byte[num];
-        //    byte* ptr = (byte*)0;
-        //    Reader_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-        //    Marshal.Copy(IntPtr.Add(new IntPtr(ptr), offset), arr, 0, num);
-        //    Reader_accessor.SafeMemoryMappedViewHandle.ReleasePointer();
-        //    return arr;
-        //}
-
-        /*
-        public void TestSendMessage()
-        {
-            Task.Run(() =>
-            {
-                byte[] tbt = new byte[512];
-
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
-                for (int i = 0; i < 100000; i++)
-                {
-
-                    if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
-                    {
-                        ewh_Writer_ReadyToWrite.Reset();
-                        //if still program must work then go on
-                        //Writing into MMF
-                        //accessor.Write(0, i);   
-
-                        //To check
-                        //https://msdn.microsoft.com/en-us/library/system.io.memorymappedfiles.memorymappedviewaccessor.safememorymappedviewhandle(v=vs.100).aspx
-
-
-                        //Writer_accessor.WriteArray<byte>(0, tbt, 0, tbt.Length);
-                        WriteBytes(0, tbt);
-
-                        //Setting signal ready to read
-                        ewh_Writer_ReadyToRead.Set();
-                    }
-                    else
-                        Console.WriteLine(DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.fff") + "> Timeout");
-                }
-                sw.Stop();
-                Console.WriteLine(sw.ElapsedMilliseconds);
-
-            });
-        }
-        */
-
-
-
-
+     
         ulong MsgId_Received = 0;
         ushort currentChunk = 0;
         byte[] chunksCollected = null;
@@ -477,8 +438,8 @@ namespace tiesky.com.SharmIpcInternals
             if (ewh_Reader_ReadyToRead == null)
             {
                 
-                ewh_Reader_ReadyToRead = new EventWaitHandle(false, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
-                ewh_Reader_ReadyToWrite = new EventWaitHandle(true, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
+                ewh_Reader_ReadyToRead = new SWaitHadle(false, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToRead");
+                ewh_Reader_ReadyToWrite = new SWaitHadle(true, EventResetMode.ManualReset, sm.uniqueHandlerName + prefix + "_SharmNet_ReadyToWrite");
                 ewh_Reader_ReadyToWrite.Set();
             }
 
@@ -532,11 +493,22 @@ namespace tiesky.com.SharmIpcInternals
                     {
                         jPos = 0;
                         ewh_Reader_ReadyToRead.WaitOne();
+
+                        //--STAT
+                        this.sm.SharmIPC.Statistic.Stop_WaitForRead_Signal();
+
                         jPos = 1;
                         if (ewh_Reader_ReadyToRead == null) //Special Dispose case
                             return;
                         jPos = 2;
+
+                        //--STAT
+                        this.sm.SharmIPC.Statistic.Start_ReadProcedure_Signal();
+
+                        //Setting STOP for ewh_Reader_ReadyToRead.WaitOne()
                         ewh_Reader_ReadyToRead.Reset();
+                        
+
                         //Reading data from MMF
                         jPos = 3;
                         //Reading header
@@ -660,6 +632,13 @@ namespace tiesky.com.SharmIpcInternals
                         jPos = 25;
                         //Setting signal 
                         ewh_Reader_ReadyToWrite.Set();
+
+                        //--STAT
+                        this.sm.SharmIPC.Statistic.Stop_ReadProcedure_Signal();
+
+                        //--STAT
+                        this.sm.SharmIPC.Statistic.Start_WaitForRead_Signal();
+
                         jPos = 26;
                     }
                 }

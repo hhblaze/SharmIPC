@@ -93,6 +93,9 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            var x = new DateTime(636282847257956630, DateTimeKind.Utc);
+            var x1 = new DateTime(636282847236855000, DateTimeKind.Utc);
+
             var dfr41 = sm.RemoteRequest(new byte[1700]);
             return;
             byte[] here = new byte[2500];

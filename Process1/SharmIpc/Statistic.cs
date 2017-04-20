@@ -26,6 +26,50 @@ namespace tiesky.com.SharmIpcInternals
         int _timeouts = 0;
         DateTime _timeouts_Last_Setup = DateTime.MinValue;
 
+        DateTime _readProcedure_Start = DateTime.MinValue;
+        long _readProcedure_Max = -1;
+        DateTime _readProcedure_Max_Setup = DateTime.MinValue;
+
+        DateTime _waitForRead_Start = DateTime.MinValue;
+        long _waitForRead_Max = -1;
+        DateTime _waitForRead_Max_Setup = DateTime.MinValue;
+        
+
+        public void Start_WaitForRead_Signal()
+        {
+            _waitForRead_Start = DateTime.UtcNow;
+        }
+
+        public void Stop_WaitForRead_Signal()
+        {
+            if (_waitForRead_Start == DateTime.MinValue)
+                return;
+
+            var t = DateTime.UtcNow.Subtract(_waitForRead_Start).Ticks;
+            if (_waitForRead_Max < t)
+            {
+                _waitForRead_Max = t;
+                _waitForRead_Max_Setup = DateTime.UtcNow;
+            }
+        }
+
+
+
+        public void Start_ReadProcedure_Signal()
+        {
+            _readProcedure_Start = DateTime.UtcNow;
+        }
+
+        public void Stop_ReadProcedure_Signal()
+        {
+            var t = DateTime.UtcNow.Subtract(_readProcedure_Start).Ticks;
+            if (_readProcedure_Max < t)
+            {
+                _readProcedure_Max = t;
+                _readProcedure_Max_Setup = DateTime.UtcNow;
+            }
+        }
+
         public void StartToWait_ReadyToWrite_Signal()
         {
             _ready2writeSignal_Start = DateTime.UtcNow;
@@ -84,6 +128,14 @@ namespace tiesky.com.SharmIpcInternals
             sb.Append("_ready2writeSignal_Last: " + _ready2writeSignal_Last + $" ({_ready2writeSignal_Last/TimeSpan.TicksPerMillisecond}); Setup: " + _ready2writeSignal_Last_Setup.ToString(dtf));
             sb.Append("<br>");
 
+            sb.Append("<hr>");
+            sb.Append("_waitForRead_Max: " + _waitForRead_Max + $" ({_waitForRead_Max / TimeSpan.TicksPerMillisecond }); Setup: " + _waitForRead_Max_Setup.ToString(dtf));
+            sb.Append("<br>");
+            sb.Append("_readProcedure_Max: " + _readProcedure_Max + $" ({_readProcedure_Max / TimeSpan.TicksPerMillisecond }); Setup: " + _readProcedure_Max_Setup.ToString(dtf));            
+            sb.Append("<br>");
+
+
+         
             sb.Append("<hr>");
             sb.Append("_writing: " + _writing + " bytes; Max: " + _writing_max + $" bytes; Times: {_writing_times}; Middle: {_writing / _writing_times} bytes");
             sb.Append("<br>");

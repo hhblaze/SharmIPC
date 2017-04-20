@@ -131,7 +131,7 @@ namespace tiesky.com
         /// <param name="res"></param>
         public void AsyncAnswerOnRemoteCall(ulong msgId, Tuple<bool, byte[]> res)
         {
-            if (res != null)
+            if (res != null && sm != null)
                 sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
         }
         
