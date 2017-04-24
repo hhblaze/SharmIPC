@@ -14,7 +14,10 @@
             <summary>
             Returns false if buffer threshold is reached
             </summary>
+            <param name="msgType"></param>
+            <param name="msgId"></param>
             <param name="msg"></param>
+            <param name="responseMsgId"></param>
             <returns></returns>
         </member>
         <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.InitReader">
