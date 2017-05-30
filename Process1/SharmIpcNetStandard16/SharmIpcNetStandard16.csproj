@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Inter-process communication IPC for .NET</Description>
+    <Copyright>Copyright @ sharmipc.tiesky.com / Alex Solovyov (hhblaze@gmail.com)</Copyright>
+    <AssemblyTitle>SharmIPC .NET</AssemblyTitle>
+    <VersionPrefix>1.0.9</VersionPrefix>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SharmIpc</AssemblyName>
+    <PackageId>SharmIpcNetCore</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Version>1.10.1</Version>
+    <AssemblyVersion>1.10.2017.530</AssemblyVersion>
+    <FileVersion>1.10.2017.530</FileVersion>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Authors>sharmipc.tiesky.com</Authors>
+    <PackageProjectUrl>https://github.com/hhblaze/SharmIPC</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.MemoryMappedFiles" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

@@ -4,6 +4,64 @@
         <name>SharmIpc</name>
     </assembly>
     <members>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.GetMessageId">
+            <summary>
+            To get new Id this function must be used
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.SendMessage(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[],System.UInt64)">
+            <summary>
+            Returns false if buffer threshold is reached
+            </summary>
+            <param name="msgType"></param>
+            <param name="msgId"></param>
+            <param name="msg"></param>
+            <param name="responseMsgId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.InitReader">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
+            /// <param name="SharmIPC">SharmIPC instance</param>
+            <param name="bufferCapacity"></param>        
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.Dispose">
+            <summary>
+            Disposing
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.Substring(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Substring int-dimensional byte arrays
+            </summary>
+            <param name="ar"></param>
+            <param name="startIndex"></param>
+            <param name="length"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.To_UInt32_BigEndian(System.Byte[])">
+            <summary>
+            From 4 bytes array which is in BigEndian order (highest byte first, lowest last) makes uint.
+            If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.To_4_bytes_array_BigEndian(System.Int32)">
+            <summary>
+            From Int32 to 4 bytes array with BigEndian order (highest byte first, lowest last).        
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
         <member name="T:tiesky.com.SharmIpc">
             <summary>
             Inter-process communication handler. IPC for .NET
@@ -82,41 +140,6 @@
         <member name="M:tiesky.com.SharmIpc.Dispose">
             <summary>
             
-            </summary>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.GetMessageId">
-            <summary>
-            To get new Id this function must be used
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.SendMessage(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[],System.UInt64)">
-            <summary>
-            Returns false if buffer threshold is reached
-            </summary>
-            <param name="msgType"></param>
-            <param name="msgId"></param>
-            <param name="msg"></param>
-            <param name="responseMsgId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.InitReader">
-            <summary>
-            
-            </summary>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32)">
-            <summary>
-            
-            </summary>
-            <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
-            <param name="SharmIPC">SharmIPC instance</param>
-            <param name="bufferCapacity"></param>
-            <param name="maxQueueSizeInBytes"></param>                 
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.Dispose">
-            <summary>
-            Disposing
             </summary>
         </member>
     </members>

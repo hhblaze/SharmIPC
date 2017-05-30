@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>SharmIpcNetCore</name>
+        <name>SharmIpc</name>
     </assembly>
     <members>
         <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.GetMessageId">

@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SharmIpcUWP</RootNamespace>
-    <AssemblyName>SharmIpcUWP</AssemblyName>
+    <AssemblyName>SharmIpc</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.10586.0</TargetPlatformVersion>
@@ -38,7 +38,7 @@
     <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\SharmIpcUWP.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\SharmIpc.xml</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
@@ -112,16 +112,16 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\SharmIpcNetCore\ReaderWriterHandler.cs">
+    <Compile Include="..\SharmIpcNetStandard16\ReaderWriterHandler.cs">
       <Link>ReaderWriterHandler.cs</Link>
     </Compile>
-    <Compile Include="..\SharmIpcNetCore\SharedMemory.cs">
+    <Compile Include="..\SharmIpcNetStandard16\SharedMemory.cs">
       <Link>SharedMemory.cs</Link>
     </Compile>
-    <Compile Include="..\SharmIpcNetCore\SharmIpc.cs">
+    <Compile Include="..\SharmIpcNetStandard16\SharmIpc.cs">
       <Link>SharmIpc.cs</Link>
     </Compile>
-    <Compile Include="..\SharmIpcNetCore\Utils.cs">
+    <Compile Include="..\SharmIpcNetStandard16\Utils.cs">
       <Link>Utils.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <AssemblyName>SharmIpc</AssemblyName>
+    <AssemblyVersion>1.10.2017.530</AssemblyVersion>
+    <FileVersion>1.10.2017.530</FileVersion>
+    <Description>Inter-process communication IPC for .NET
+</Description>
+    <Copyright>Copyright @ sharmipc.tiesky.com / Alex Solovyov (hhblaze@gmail.com)</Copyright>
+    <Product>SharmIPC .NET</Product>
+    <Authors>sharmipc.tiesky.com</Authors>
+    <Company>tiesky.com</Company>
+    <PackageProjectUrl>https://github.com/hhblaze/SharmIPC</PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <DocumentationFile>bin\Release\netcoreapp1.1\SharmIpc.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\SharmIpcNetStandard16\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
+    <Compile Include="..\SharmIpcNetStandard16\SharedMemory.cs" Link="SharedMemory.cs" />
+    <Compile Include="..\SharmIpcNetStandard16\SharmIpc.cs" Link="SharmIpc.cs" />
+    <Compile Include="..\SharmIpcNetStandard16\Utils.cs" Link="Utils.cs" />
+  </ItemGroup>
+
+</Project>
