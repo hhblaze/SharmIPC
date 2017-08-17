@@ -19784,10 +19784,10 @@
   },
   "project": {
     "restore": {
-      "projectUniqueName": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
+      "projectUniqueName": "D:\\Temp\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
       "projectName": "SharmIpcUWP",
-      "projectPath": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
-      "projectJsonPath": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\project.json",
+      "projectPath": "D:\\Temp\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
+      "projectJsonPath": "D:\\Temp\\SharmIPC\\Process1\\SharmIpcUWP\\project.json",
       "projectStyle": "ProjectJson"
     },
     "dependencies": {

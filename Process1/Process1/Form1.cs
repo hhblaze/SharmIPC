@@ -25,7 +25,7 @@ namespace MemoryMappedFile
         void AsyncRemoteCallHandler(ulong msgId, byte[] data)
         {
             Task.Run(() =>
-                {
+                {                    
                     sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
                 });
         }
@@ -77,13 +77,44 @@ namespace MemoryMappedFile
 
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall);
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
                 //or to get ability to answer to remote partner in async way
-                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler);                
+                //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
-                        
 
+            //System.Threading.ThreadPool.SetMinThreads(100, 100);
         }
+
+        #region "test"
+        void t001_TestIntensiveParallel()
+        {
+            //System.Threading.ThreadPool.SetMinThreads(100, 100);
+
+            var tasks = new List<Task>();
+            Action a = () =>
+            {
+                for (int j = 0; j < 1000; j++)
+                {
+                    //var tor = sm.RemoteRequest(new byte[50]);
+                    var tor = sm.RemoteRequest(new byte[50],null);
+                    //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
+                }
+            };
+
+            //var t = Task.Run(() => { sm.RemoteRequest(new byte[50]); });
+            for (int i = 0; i < 20; i++)
+            {
+                int index = i;
+                tasks.Add(Task.Factory.StartNew(a));
+            }
+
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            Task.WaitAll(tasks.ToArray());
+            sw.Stop();
+            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+        }
+        #endregion
 
         /// <summary>
         ///Test of RemoteRequest with answer (Process 2 must receive request in its RemoteCall and return back Response).
@@ -93,6 +124,9 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private void button2_Click(object sender, EventArgs e)
         {
+            //t001_TestIntensiveParallel();
+            return;
+
             var x = new DateTime(636282847257956630, DateTimeKind.Utc);
             var x1 = new DateTime(636282847236855000, DateTimeKind.Utc);
 

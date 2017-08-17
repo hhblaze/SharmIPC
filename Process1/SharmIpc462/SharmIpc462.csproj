@@ -54,6 +54,9 @@
     <Compile Include="..\SharmIpc\Statistic.cs">
       <Link>Statistic.cs</Link>
     </Compile>
+    <Compile Include="..\SharmIpc\Utils.cs">
+      <Link>Utils.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

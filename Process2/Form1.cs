@@ -42,10 +42,11 @@ namespace mmf2client
 
         private void button1_Click(object sender, EventArgs e)
         {
-
             if (sm == null)
-                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler);
-              sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall);
+            {
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);
+                //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
+            }
 
         }
 
