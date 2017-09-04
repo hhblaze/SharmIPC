@@ -86,8 +86,80 @@ namespace MemoryMappedFile
         }
 
         #region "test"
-        void t001_TestIntensiveParallel()
+        async void t001_TestIntensiveParallel()
         {
+            System.Diagnostics.Stopwatch sw = null;
+
+            //Parallel.For(0, 100, async (aii) => {
+            //    for (int j = 0; j < 1000; j++)
+            //    {
+            //        //var tor = sm.RemoteRequest(new byte[50]);
+            //        var tor = await sm.RemoteRequestAsync(new byte[50], null);
+            //        //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
+            //    }
+            //});
+
+
+            sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            for (int j = 0; j < 1000; j++)
+            {
+                var tor = await sm.RemoteRequestAsync(new byte[50000], null);
+
+            }
+            sw.Stop();
+            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            return;
+
+
+            //sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //for (int j = 0; j < 1000; j++)
+            //{
+            //    var tor = await sm.RemoteRequestAsync(new byte[50], (ans) => {
+
+            //            });
+
+            //    }
+            //sw.Stop();
+            ////Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            //return;
+
+
+
+
+            sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            for (int j = 0; j < 1000; j++)
+            {
+                var tor = sm.RemoteRequest(new byte[50000], null);
+
+            }
+            sw.Stop();
+            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            return;
+
+
+
+            //sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //for (int j = 0; j < 1000; j++)
+            //{
+            //    var tor = sm.RemoteRequest(new byte[50], (ans) => {
+
+            //    });
+
+            //}
+            //sw.Stop();
+            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            ////Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            //return;
+
+
+
             //System.Threading.ThreadPool.SetMinThreads(100, 100);
 
             var tasks = new List<Task>();
@@ -108,7 +180,7 @@ namespace MemoryMappedFile
                 tasks.Add(Task.Factory.StartNew(a));
             }
 
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             Task.WaitAll(tasks.ToArray());
             sw.Stop();
@@ -122,9 +194,27 @@ namespace MemoryMappedFile
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void button2_Click(object sender, EventArgs e)
+        private async void button2_Click(object sender, EventArgs e)
         {
-            //t001_TestIntensiveParallel();
+            //tiesky.com.SharmIpc.AsyncManualResetEvent mre = new tiesky.com.SharmIpc.AsyncManualResetEvent();
+
+            //Task.Run(() =>
+            //{
+            //    System.Threading.Thread.Sleep(3000);
+            //    mre.Set();
+            //});
+
+            //mre.Set();
+
+            //var trtz = await Task.WhenAny(mre.WaitAsync(), Task.Delay(10000));
+
+            //return;
+
+
+            //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
+            //return;
+
+            t001_TestIntensiveParallel();
             return;
 
             var x = new DateTime(636282847257956630, DateTimeKind.Utc);
