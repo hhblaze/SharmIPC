@@ -360,8 +360,8 @@ namespace tiesky.com.SharmIpcInternals
 
             }
 
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 //here we got smth toSend
                 while (true)
                 {
@@ -400,7 +400,7 @@ namespace tiesky.com.SharmIpcInternals
                     }
                 }//eo while
 
-            });
+            //});
 
         }//eof
 
@@ -421,8 +421,8 @@ namespace tiesky.com.SharmIpcInternals
 
             }
 
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 uint p = 0;
                 int ptr = 0;
                
@@ -502,7 +502,7 @@ namespace tiesky.com.SharmIpcInternals
                     }
                 }//eo while
 
-            });
+            //});
 
         }//eof
 

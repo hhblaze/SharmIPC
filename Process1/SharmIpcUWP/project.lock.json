@@ -1,7 +1,7 @@
 {
-  "version": 2,
+  "version": 3,
   "targets": {
-    "UAP,Version=v10.0": {
+    "UAP,Version=v10.0.10240": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -1839,7 +1839,7 @@
         }
       }
     },
-    "UAP,Version=v10.0/win10-arm": {
+    "UAP,Version=v10.0.10240/win10-arm": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -3940,7 +3940,7 @@
         }
       }
     },
-    "UAP,Version=v10.0/win10-arm-aot": {
+    "UAP,Version=v10.0.10240/win10-arm-aot": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -6040,7 +6040,7 @@
         }
       }
     },
-    "UAP,Version=v10.0/win10-x64": {
+    "UAP,Version=v10.0.10240/win10-x64": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -8150,7 +8150,7 @@
         }
       }
     },
-    "UAP,Version=v10.0/win10-x64-aot": {
+    "UAP,Version=v10.0.10240/win10-x64-aot": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -10250,7 +10250,7 @@
         }
       }
     },
-    "UAP,Version=v10.0/win10-x86": {
+    "UAP,Version=v10.0.10240/win10-x86": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -12360,7 +12360,7 @@
         }
       }
     },
-    "UAP,Version=v10.0/win10-x86-aot": {
+    "UAP,Version=v10.0.10240/win10-x86-aot": {
       "Microsoft.CSharp/4.0.0": {
         "type": "package",
         "dependencies": {
@@ -19777,25 +19777,39 @@
       "Microsoft.NETCore.UniversalWindowsPlatform >= 5.1.0",
       "System.IO.MemoryMappedFiles >= 4.0.0"
     ],
-    "UAP,Version=v10.0": []
+    "UAP,Version=v10.0.10240": []
   },
   "packageFolders": {
     "C:\\Users\\blaze\\.nuget\\packages\\": {}
   },
   "project": {
     "restore": {
-      "projectUniqueName": "D:\\Temp\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
+      "projectUniqueName": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
       "projectName": "SharmIpcUWP",
-      "projectPath": "D:\\Temp\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
-      "projectJsonPath": "D:\\Temp\\SharmIPC\\Process1\\SharmIpcUWP\\project.json",
-      "projectStyle": "ProjectJson"
+      "projectPath": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\SharmIpcUWP.csproj",
+      "projectJsonPath": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\project.json",
+      "packagesPath": "C:\\Users\\blaze\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GitHub\\SharmIPC\\Process1\\SharmIpcUWP\\obj\\",
+      "projectStyle": "ProjectJson",
+      "configFilePaths": [
+        "C:\\Users\\blaze\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\DBreeze\\Deployment\\Nuget": {},
+        "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GpsCarControl\\lib\\Net45\\WSN_PostSharp\\4.1.23": {},
+        "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\GpsCarControl\\lib\\YNuget": {},
+        "C:\\Users\\blaze\\Documents\\Visual Studio 2010\\Projects\\Nuget": {},
+        "https://api.nuget.org/v3/index.json": {}
+      }
     },
     "dependencies": {
       "Microsoft.NETCore.UniversalWindowsPlatform": "5.1.0",
       "System.IO.MemoryMappedFiles": "4.0.0"
     },
     "frameworks": {
-      "uap10.0": {}
+      "uap10.0.10240": {}
     },
     "runtimes": {
       "win10-arm": {
@@ -19817,5 +19831,178 @@
         "#import": []
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.NETCore (>= 5.0.0) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Net.Requests (>= 4.0.10) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Net.Http.Rtc (>= 4.0.0) -> System.Net.Http (>= 4.0.0) -> System.Net.Primitives (>= 4.0.0) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Net.Sockets (>= 4.0.0) -> runtime.win.System.Net.Sockets (>= 4.1.0) -> System.Net.Primitives (>= 4.0.11) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.ServiceModel.Duplex (>= 4.0.0) -> System.Private.ServiceModel (>= 4.0.0) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.ServiceModel.Http (>= 4.0.10) -> System.Private.ServiceModel (>= 4.0.0) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.ServiceModel.NetTcp (>= 4.0.0) -> System.Private.ServiceModel (>= 4.0.0) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.ServiceModel.Primitives (>= 4.0.0) -> System.Private.ServiceModel (>= 4.0.0) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: Microsoft.Win32.Primitives from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.ServiceModel.Security (>= 4.0.0) -> System.Private.ServiceModel (>= 4.0.0) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> Microsoft.Win32.Primitives (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> Microsoft.Win32.Primitives (>= 4.0.0)",
+      "libraryId": "Microsoft.Win32.Primitives",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm",
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Diagnostics.Contracts from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Net.Sockets (>= 4.0.0) -> runtime.win.System.Net.Sockets (>= 4.1.0) -> System.Diagnostics.Tracing (>= 4.1.0) -> runtime.aot.System.Diagnostics.Tracing (>= 4.0.20) -> System.Reflection.Extensions (>= 4.0.1) -> runtime.aot.System.Reflection.Extensions (>= 4.0.0) -> System.Reflection.TypeExtensions (>= 4.1.0) -> System.Diagnostics.Contracts (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Diagnostics.Contracts (>= 4.0.0)",
+      "libraryId": "System.Diagnostics.Contracts",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Diagnostics.Contracts from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Net.Requests (>= 4.0.10) -> System.Net.Primitives (>= 4.0.10) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> System.Diagnostics.Tracing (>= 4.1.0) -> runtime.aot.System.Diagnostics.Tracing (>= 4.0.20) -> System.Reflection.Extensions (>= 4.0.1) -> runtime.aot.System.Reflection.Extensions (>= 4.0.0) -> System.Reflection.TypeExtensions (>= 4.1.0) -> System.Diagnostics.Contracts (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Diagnostics.Contracts (>= 4.0.0)",
+      "libraryId": "System.Diagnostics.Contracts",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Detected package downgrade: System.Diagnostics.Contracts from 4.0.1 to 4.0.0. Reference the package directly from the project to select a different version. \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Net.Http.Rtc (>= 4.0.0) -> System.Net.Http (>= 4.0.0) -> System.Net.Primitives (>= 4.0.0) -> runtime.win.System.Net.Primitives (>= 4.0.11) -> System.Diagnostics.Tracing (>= 4.1.0) -> runtime.aot.System.Diagnostics.Tracing (>= 4.0.20) -> System.Reflection.Extensions (>= 4.0.1) -> runtime.aot.System.Reflection.Extensions (>= 4.0.0) -> System.Reflection.TypeExtensions (>= 4.1.0) -> System.Diagnostics.Contracts (>= 4.0.1) \r\n SharmIpcUWP (>= 1.0.0) -> Microsoft.NETCore.UniversalWindowsPlatform (>= 5.1.0) -> System.Diagnostics.Contracts (>= 4.0.0)",
+      "libraryId": "System.Diagnostics.Contracts",
+      "targetGraphs": [
+        "UAP,Version=v10.0.10240/win10-arm-aot",
+        "UAP,Version=v10.0.10240/win10-x64-aot",
+        "UAP,Version=v10.0.10240/win10-x86-aot"
+      ]
+    }
+  ]
 }

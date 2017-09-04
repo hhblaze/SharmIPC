@@ -31,7 +31,9 @@ namespace mmf2client
 
         void AsyncRemoteCallHandler(ulong msgId, byte[] data)
         {
-            sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9 }));
+            //sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9 }));
+
+            sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[512]));
 
             //Task.Run(() =>
             //{

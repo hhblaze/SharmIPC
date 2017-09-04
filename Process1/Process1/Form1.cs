@@ -100,17 +100,17 @@ namespace MemoryMappedFile
             //});
 
 
-            sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-            for (int j = 0; j < 1000; j++)
-            {
-                var tor = await sm.RemoteRequestAsync(new byte[50000], null);
+            //sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //for (int j = 0; j < 1000; j++)
+            //{
+            //    var tor = await sm.RemoteRequestAsync(new byte[50000], null);
 
-            }
-            sw.Stop();
-            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-            return;
+            //}
+            //sw.Stop();
+            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            ////MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            //return;
 
 
             //sw = new System.Diagnostics.Stopwatch();
@@ -134,7 +134,7 @@ namespace MemoryMappedFile
             sw.Start();
             for (int j = 0; j < 1000; j++)
             {
-                var tor = sm.RemoteRequest(new byte[50000], null);
+                var tor = sm.RemoteRequest(new byte[512], null);
 
             }
             sw.Stop();
@@ -167,8 +167,9 @@ namespace MemoryMappedFile
             {
                 for (int j = 0; j < 1000; j++)
                 {
-                    //var tor = sm.RemoteRequest(new byte[50]);
-                    var tor = sm.RemoteRequest(new byte[50],null);
+                    var tor = sm.RemoteRequest(new byte[512]);
+                    //var tor = sm.RemoteRequest(new byte[50],(par) => {
+                    //});
                     //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
                 }
             };
@@ -182,7 +183,7 @@ namespace MemoryMappedFile
 
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            Task.WaitAll(tasks.ToArray());
+            await Task.WhenAll(tasks.ToArray());
             sw.Stop();
             Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
         }
