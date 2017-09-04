@@ -25,37 +25,98 @@ namespace tiesky.com
 
         SharedMemory sm = null;
         ConcurrentDictionary<ulong, ResponseCrate> df = new ConcurrentDictionary<ulong, ResponseCrate>();
-        
+
+        public class AsyncManualResetEvent
+        {
+            private volatile TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
+
+            public Task WaitAsync() { return _tcs.Task; }
+            public void Set() { _tcs.TrySetResult(true); }
+            public void Reset()
+            {
+                while (true)
+                {
+                    var tcs = _tcs;
+                    if (!tcs.Task.IsCompleted ||
+                        Interlocked.CompareExchange(ref _tcs, new TaskCompletionSource<bool>(), tcs) == tcs)
+                        return;
+                }
+            }
+
+        }
+
         class ResponseCrate
         {
             /// <summary>
             /// Not SLIM version must be used (it works faster for longer delay which RPCs are)
             /// </summary>
-            public ManualResetEvent mre = null;
+            ManualResetEvent mre = null;
             public byte[] res = null;
             public Action<Tuple<bool, byte[]>> callBack = null;
             public bool IsRespOk = false;
+
+            public AsyncManualResetEvent amre = null;
 
             public void Init_MRE()
             {
                 mre = new ManualResetEvent(false);
             }
-                      
-            int IsDisposed = 0;
+
+            public void Init_AMRE()
+            {
+                amre = new AsyncManualResetEvent();
+            }
+
+            public void Set_MRE()
+            {
+                if (Interlocked.Read(ref IsDisposed) == 1)
+                    return;
+
+                if (amre != null)
+                {
+                    amre.Set();
+                }
+                else if (mre != null)
+                {
+                    mre.Set();
+                }
+
+                //if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)
+                //    return;
+
+            }
+
+            public bool WaitOne_MRE(int timeouts)
+            {
+                if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)
+                    return false;
+                return mre.WaitOne(timeouts);
+            }
+
+            long IsDisposed = 0;
             public void Dispose_MRE()
             {
-                int newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
-                if (newVal == 0 && mre != null)
-                {                   
-                    mre.Set();
-                    mre.Dispose();
-                    mre = null;
+
+                long newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
+                if (newVal == 0)
+                {
+                    if (mre != null)
+                    {
+                        mre.Set();
+                        mre.Dispose();
+                        mre = null;
+                    }
+                    else if (amre != null)
+                    {
+                        amre.Set();
+                        amre = null;
+                    }
                 }
             }
-          
+
         }
 
-      
+
 
         /// <summary>
         /// SharmIpc constructor
@@ -172,7 +233,7 @@ namespace tiesky.com
 
                         if (rsp.callBack == null)
                         {
-                            rsp.mre.Set();  //Signalling, to make waiting in parallel thread to proceed
+                            rsp.Set_MRE();  //Signalling, to make waiting in parallel thread to proceed
                             //rsp.Set_MRE();
                         }
                         else
@@ -190,6 +251,73 @@ namespace tiesky.com
             }
         }
 
+        public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
+        {
+
+            ulong msgId = sm.GetMessageId();
+            var resp = new ResponseCrate();
+
+            if (callBack != null)
+            {
+                //Async return
+                resp.callBack = callBack;
+                df[msgId] = resp;
+                if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
+                {
+                    df.TryRemove(msgId, out resp);
+                    callBack(new Tuple<bool, byte[]>(false, null));
+                    return new Tuple<bool, byte[]>(false, null);
+                }
+
+                return new Tuple<bool, byte[]>(true, null);
+            }
+
+            //resp.mre = new ManualResetEvent(false);
+            resp.Init_AMRE();
+
+            df[msgId] = resp;
+
+            if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
+            {
+                resp.Dispose_MRE();
+                //if (resp.mre != null)
+                //    resp.mre.Dispose();
+                //resp.mre = null;
+                df.TryRemove(msgId, out resp);
+                return new Tuple<bool, byte[]>(false, null);
+            }
+
+            ////else if (!resp.mre.WaitOne(timeoutMs))
+            //else if (!resp.WaitOne_MRE(timeoutMs))
+            //{
+            //    //--STAT
+            //    this.Statistic.Timeout();
+
+            //    //if (resp.mre != null)
+            //    //    resp.mre.Dispose();
+            //    //resp.mre = null;
+            //    resp.Dispose_MRE();
+            //    df.TryRemove(msgId, out resp);
+            //    return new Tuple<bool, byte[]>(false, null);
+            //}
+
+
+            //resp.TokenSource.Cancel();
+            await Task.WhenAny(resp.amre.WaitAsync(), Task.Delay(timeoutMs));
+
+
+            //if (resp.mre != null)
+            //    resp.mre.Dispose();
+            //resp.mre = null;
+            resp.Dispose_MRE();
+
+            if (df.TryRemove(msgId, out resp))
+            {
+                return new Tuple<bool, byte[]>(resp.IsRespOk, resp.res);
+            }
+
+            return new Tuple<bool, byte[]>(false, null);
+        }
 
         /// <summary>
         /// 
@@ -233,7 +361,7 @@ namespace tiesky.com
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
-            else if (!resp.mre.WaitOne(timeoutMs))
+            else if (!resp.WaitOne_MRE(timeoutMs))
             //else if (!resp.Wait_MRE(timeoutMs))
             {
                 //if (resp.mre != null)

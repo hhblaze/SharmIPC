@@ -5,7 +5,7 @@
     <Copyright>Copyright @ sharmipc.tiesky.com / Alex Solovyov (hhblaze@gmail.com)</Copyright>
     <AssemblyTitle>SharmIPC .NET</AssemblyTitle>
     <VersionPrefix>1.0.9</VersionPrefix>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SharmIpc</AssemblyName>
@@ -16,15 +16,15 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <Version>1.10.1</Version>
-    <AssemblyVersion>1.10.2017.530</AssemblyVersion>
-    <FileVersion>1.10.2017.530</FileVersion>
+    <AssemblyVersion>1.11.2017.0904</AssemblyVersion>
+    <FileVersion>1.11.2017.0904</FileVersion>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Authors>sharmipc.tiesky.com</Authors>
     <PackageProjectUrl>https://github.com/hhblaze/SharmIPC</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.MemoryMappedFiles" Version="4.0.0" />
+    <PackageReference Include="System.IO.MemoryMappedFiles" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

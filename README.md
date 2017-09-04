@@ -1,12 +1,12 @@
 **SharmIPC .NET**
 =====================
-![Image of Build](https://img.shields.io/badge/SharmIPC.NET-stable%20v1.10-4BA2AD.svg) 
+![Image of Build](https://img.shields.io/badge/SharmIPC.NET-stable%20v1.11-4BA2AD.svg) 
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg) 
 ![Image of Build](https://img.shields.io/badge/Roadmap-completed-33CC33.svg)
 ![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)
 
 Inter-process communication (IPC engine) between 2 partner processes of one OS:
-<br>- .NET 4.5 > /.NETCore 1.1 / .NETStandard 1.6 / UWP. Based on memory-mapped files
+<br>- .NET 4.5 > /.NETCore 2.0 / .NETStandard 2.0 / UWP. Based on memory-mapped files
 <br>- Written on C#
 <br>- Fast and lightweight
 <br>- Sync and Async calls with timeouts
@@ -66,8 +66,26 @@ void MakeRemoteRequestWithResponse()
 {
 	 //Making remote request (a la RPC). SYNC
 	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
-	 //or async way
+	 //or with callback
 	 //var res = sm.RemoteRequest(data, (par) => { },30000);
+	 
+	 //if !res.Item1 then our call was not put to the sending buffer, 
+	 //due to its threshold limitation
+	 //or remote partner answered with technical mistake
+	 //or timeout encountered
+	 if(res.Item1)
+	 {
+	 		//Analyzing response res.Item2
+	 }
+}
+
+// async/await pattern
+async void MakeRemoteRequestWithResponse()
+{
+	 //Making remote request (a la RPC). SYNC
+	 Tuple<bool,byte[]> res = await sm.RemoteRequestAsync(new byte[512]);
+	 //or with callback way
+	 //var res = await sm.RemoteRequestAsync(data, (par) => { },30000);
 	 
 	 //if !res.Item1 then our call was not put to the sending buffer, 
 	 //due to its threshold limitation
@@ -82,7 +100,7 @@ void MakeRemoteRequestWithResponse()
 void MakeRemoteRequestWithoutResponse()
 {
 	 //Making remote request (a la send and forget)
-	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
+	 Tuple<bool,byte[]> res = sm.RemoteRequestWithoutResponse(new byte[512]);
 	 
 	 if(!res.Item1)
 	 {
@@ -104,14 +122,9 @@ void AsyncRemoteCallHandler(ulong msgId, byte[] data)
         //data is received from remote partner
         
         //answer to remote partner:
-           sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
-        /* 
-       	//or in such way
-            Task.Run(() =>
-                {
-                    sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
-                });
-        */
+        sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
+         
+       
 }
 
 

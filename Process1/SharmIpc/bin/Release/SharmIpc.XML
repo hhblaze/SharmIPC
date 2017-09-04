@@ -105,6 +105,11 @@
             
             </summary>
         </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.ReaderV02(System.Byte[])">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32)">
             <summary>
             
@@ -118,6 +123,15 @@
             <summary>
             Disposing
             </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.Substring(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Substring int-dimensional byte arrays
+            </summary>
+            <param name="ar"></param>
+            <param name="startIndex"></param>
+            <param name="length"></param>
+            <returns></returns>
         </member>
     </members>
 </doc>
