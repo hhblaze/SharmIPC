@@ -124,6 +124,9 @@
     <Compile Include="..\SharmIpcNetStandard16\Utils.cs">
       <Link>Utils.cs</Link>
     </Compile>
+    <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs">
+      <Link>AsyncManualResetEvent.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\SharmIpcUWP.rd.xml" />
   </ItemGroup>

@@ -36,6 +36,8 @@ namespace tiesky.com.SharmIpcInternals
         SWaitHadle ewh_Reader_ReadyToRead = null;
         SWaitHadle ewh_Reader_ReadyToWrite = null;
 
+        ManualResetEvent mre_writer_thread = new ManualResetEvent(false);
+
         SharedMemory sm = null;
         object lock_q = new object();
         byte[] toSend = null;
@@ -96,6 +98,17 @@ namespace tiesky.com.SharmIpcInternals
                     //ewh_Reader_ReadyToWrite.Set();                    
                     ewh_Reader_ReadyToWrite.Dispose();
                     ewh_Reader_ReadyToWrite = null;
+                }
+            }
+            catch
+            { }
+            try
+            {
+                if (mre_writer_thread != null)
+                {
+                    mre_writer_thread.Set();                    
+                    mre_writer_thread.Dispose();
+                    mre_writer_thread = null;
                 }
             }
             catch
@@ -195,6 +208,11 @@ namespace tiesky.com.SharmIpcInternals
                 Writer_accessor = Writer_mmf.CreateViewAccessor(0, sm.bufferCapacity);
                 Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Writer_accessor_ptr);
             }
+
+            Task.Run(() =>
+            {
+                WriterV01();
+            });
         }
 
         const int protocolLen = 25;
@@ -310,12 +328,57 @@ namespace tiesky.com.SharmIpcInternals
                     currentChunk++;
                 }
 
+                mre_writer_thread.Set();
             }//eo lock
 
 
-            StartSendProcedure();
+            //StartSendProcedure();
 
             return true;
+        }
+
+
+        void WriterV01()
+        {
+            //spamre.Reset();
+            while (true)
+            {
+
+                //await spamre.WaitAsync();
+                if (mre_writer_thread.WaitOne())
+                {
+                    lock (lock_q)
+                    {
+                        if (q.Count() < 1)
+                        {
+                            mre_writer_thread.Reset();
+                            continue;
+                        }
+                        toSend = q.Dequeue();
+                        totalBytesInQUeue -= toSend.Length;
+
+                    }
+
+                    if (ewh_Writer_ReadyToWrite.WaitOne())
+                    {                 
+
+                        ewh_Writer_ReadyToWrite.Reset();
+                        //Writing into MMF      
+
+                        //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
+                        //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
+                        WriteBytes(0, toSend);
+
+                        //Setting signal ready to read
+                        ewh_Writer_ReadyToRead.Set();
+
+                    }
+
+                }
+
+
+            }
+
         }
 
 
@@ -332,8 +395,8 @@ namespace tiesky.com.SharmIpcInternals
 
             }
 
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 //here we got smth toSend
                 while (true)
                 {
@@ -368,11 +431,19 @@ namespace tiesky.com.SharmIpcInternals
                     }
                 }//eo while
 
-            });
+            //});
 
         }//eof
 
 
+        unsafe void WriteBytes(int offset, byte[] data)
+        {
+            
+
+            Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(Writer_accessor_ptr), offset), data.Length);
+
+            //https://msdn.microsoft.com/en-us/library/system.io.memorymappedfiles.memorymappedviewaccessor.safememorymappedviewhandle(v=vs.100).aspx
+        }
 
         unsafe void WriteBytes(byte* ptr, int offset, byte[] data)
         {

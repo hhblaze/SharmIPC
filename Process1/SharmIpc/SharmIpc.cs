@@ -29,24 +29,10 @@ namespace tiesky.com
 
         internal Statistic Statistic = new Statistic();
 
-        public class AsyncManualResetEvent
-        {
-            private volatile TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
-
-            public Task WaitAsync() { return _tcs.Task; }
-            public void Set() { _tcs.TrySetResult(true); }
-            public void Reset()
-            {
-                while (true)
-                {
-                    var tcs = _tcs;
-                    if (!tcs.Task.IsCompleted ||
-                        Interlocked.CompareExchange(ref _tcs, new TaskCompletionSource<bool>(), tcs) == tcs)
-                        return;
-                }
-            }
-            
-        }
+        /// <summary>
+        /// Removing timeout requests
+        /// </summary>
+        System.Threading.Timer tmr = null;
 
         class ResponseCrate
         {
@@ -59,6 +45,9 @@ namespace tiesky.com
             public bool IsRespOk = false;
 
             public AsyncManualResetEvent amre = null;
+
+            public DateTime created = DateTime.UtcNow;
+            public int Timeouts = 30;
 
             public void Init_MRE()
             {
@@ -130,13 +119,9 @@ namespace tiesky.com
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
         public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
+            :this(uniqueHandlerName,bufferCapacity,maxQueueSizeInBytes,ExternalExceptionHandler)
         {
-            if (remoteCallHandler == null)
-                throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
-
-            this.remoteCallHandler = remoteCallHandler;
-            this.ExternalExceptionHandler = ExternalExceptionHandler;
-            sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
+            this.remoteCallHandler = remoteCallHandler ?? throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
         }
 
         /// <summary>
@@ -148,13 +133,25 @@ namespace tiesky.com
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
         public SharmIpc(string uniqueHandlerName, Action<ulong, byte[]> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
-        {
-            if (remoteCallHandler == null)
-                throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
+            : this(uniqueHandlerName, bufferCapacity, maxQueueSizeInBytes, ExternalExceptionHandler)
+        {          
+            this.AsyncRemoteCallHandler = remoteCallHandler ?? throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null"); ;
+           
+        }
 
-            this.AsyncRemoteCallHandler = remoteCallHandler;
+        SharmIpc(string uniqueHandlerName, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null)
+        {
+            tmr = new Timer(new TimerCallback((state) =>
+            {
+                DateTime now = DateTime.UtcNow;
+                foreach (var el in df.Where(r => r.Value.amre != null && now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.Timeouts))
+                    el.Value.Set_MRE();
+            }), null, 10000, 10000);
+
+
             this.ExternalExceptionHandler = ExternalExceptionHandler;
             sm = new SharedMemory(uniqueHandlerName, this, bufferCapacity, maxQueueSizeInBytes);
+
         }
 
 
@@ -350,6 +347,7 @@ namespace tiesky.com
             
             //resp.mre = new ManualResetEvent(false);
             resp.Init_AMRE();
+            resp.Timeouts = timeoutMs;
 
             df[msgId] = resp;
 
@@ -379,8 +377,23 @@ namespace tiesky.com
 
 
             //resp.TokenSource.Cancel();
-            await Task.WhenAny(resp.amre.WaitAsync(), Task.Delay(timeoutMs));
+            //CancellationToken ct = new CancellationToken();
+            //var t = Task.Delay(timeoutMs,ct);
+            //try
+            //{
+            //    await Task.WhenAny(resp.amre.WaitAsync(), t).ConfigureAwait(false);                
+            //    t.Dispose();
+            //}
+            //catch (Exception ex)
+            //{
+                
+            //}
             
+            //await Task.WhenAny(resp.amre.WaitAsync(), Task.Delay(timeoutMs)).ConfigureAwait(false);
+            //await resp.amre.WaitAsync().ConfigureAwait(false);
+            await resp.amre.WaitAsync();
+
+            //tskWait.Dispose();
 
             //if (resp.mre != null)
             //    resp.mre.Dispose();
@@ -423,6 +436,18 @@ namespace tiesky.com
             }
             catch
             {}
+
+            try
+            {
+                if (tmr != null)
+                {                   
+                    tmr.Dispose();
+                    tmr = null;
+                }
+            }
+            catch
+            { }
+
 
             try
             {

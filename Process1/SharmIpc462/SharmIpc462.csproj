@@ -43,6 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs">
+      <Link>AsyncManualResetEvent.cs</Link>
+    </Compile>
     <Compile Include="..\SharmIpc\ReaderWriterHandler.cs">
       <Link>ReaderWriterHandler.cs</Link>
     </Compile>

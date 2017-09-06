@@ -26,14 +26,15 @@ namespace mmf2client
         {
             //Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
             //return new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17 });
-            return new Tuple<bool, byte[]>(true, new byte[] { 9 });
+            //return new Tuple<bool, byte[]>(true, new byte[] { 9 });
+            return new Tuple<bool, byte[]>(true, new byte[512]);
         }
 
         void AsyncRemoteCallHandler(ulong msgId, byte[] data)
         {
             //sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9 }));
-
-            sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[512]));
+            //System.Threading.Thread.Sleep(50000);
+            sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[1]));
 
             //Task.Run(() =>
             //{

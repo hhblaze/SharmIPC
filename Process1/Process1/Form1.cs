@@ -90,6 +90,9 @@ namespace MemoryMappedFile
         {
             System.Diagnostics.Stopwatch sw = null;
 
+            //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
+            //return;
+
             //Parallel.For(0, 100, async (aii) => {
             //    for (int j = 0; j < 1000; j++)
             //    {
@@ -100,17 +103,17 @@ namespace MemoryMappedFile
             //});
 
 
-            //sw = new System.Diagnostics.Stopwatch();
-            //sw.Start();
-            //for (int j = 0; j < 1000; j++)
-            //{
-            //    var tor = await sm.RemoteRequestAsync(new byte[50000], null);
+            sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            for (int j = 0; j < 20000; j++)
+            {
+                var tor = await sm.RemoteRequestAsync(new byte[1], null);
 
-            //}
-            //sw.Stop();
-            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            ////MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-            //return;
+            }
+            sw.Stop();
+            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            return;
 
 
             //sw = new System.Diagnostics.Stopwatch();
@@ -130,17 +133,17 @@ namespace MemoryMappedFile
 
 
 
-            sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-            for (int j = 0; j < 1000; j++)
-            {
-                var tor = sm.RemoteRequest(new byte[512], null);
+            //sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //for (int j = 0; j < 20000; j++)
+            //{
+            //    var tor = sm.RemoteRequest(new byte[1], null);
 
-            }
-            sw.Stop();
+            //}
+            //sw.Stop();
             //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            return;
+            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            //return;
 
 
 
@@ -165,7 +168,7 @@ namespace MemoryMappedFile
             var tasks = new List<Task>();
             Action a = () =>
             {
-                for (int j = 0; j < 1000; j++)
+                for (int j = 0; j < 10000; j++)
                 {
                     var tor = sm.RemoteRequest(new byte[512]);
                     //var tor = sm.RemoteRequest(new byte[50],(par) => {

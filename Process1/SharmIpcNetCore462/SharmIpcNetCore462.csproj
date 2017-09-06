@@ -28,6 +28,7 @@
     <Compile Include="..\SharmIpcNetStandard16\SharedMemory.cs" Link="SharedMemory.cs" />
     <Compile Include="..\SharmIpcNetStandard16\SharmIpc.cs" Link="SharmIpc.cs" />
     <Compile Include="..\SharmIpcNetStandard16\Utils.cs" Link="Utils.cs" />
+    <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs" Link="AsyncManualResetEvent.cs" />
   </ItemGroup>
 
 </Project>
