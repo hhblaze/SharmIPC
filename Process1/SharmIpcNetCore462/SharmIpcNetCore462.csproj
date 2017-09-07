@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>SharmIpc</AssemblyName>
-    <AssemblyVersion>1.11.2017.0904</AssemblyVersion>
-    <FileVersion>1.11.2017.0904</FileVersion>
+    <AssemblyVersion>1.12.2017.0907</AssemblyVersion>
+    <FileVersion>1.12.2017.0907</FileVersion>
     <Description>Inter-process communication IPC for .NET
 </Description>
     <Copyright>Copyright @ sharmipc.tiesky.com / Alex Solovyov (hhblaze@gmail.com)</Copyright>

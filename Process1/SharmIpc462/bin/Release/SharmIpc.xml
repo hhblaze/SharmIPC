@@ -65,6 +65,11 @@
             msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
             </summary>
         </member>
+        <member name="F:tiesky.com.SharmIpc.tmr">
+            <summary>
+            Removing timeout requests
+            </summary>
+        </member>
         <member name="F:tiesky.com.SharmIpc.ResponseCrate.mre">
             <summary>
             Not SLIM version must be used (it works faster for longer delay which RPCs are)

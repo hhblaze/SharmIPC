@@ -103,17 +103,17 @@ namespace MemoryMappedFile
             //});
 
 
-            sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-            for (int j = 0; j < 20000; j++)
-            {
-                var tor = await sm.RemoteRequestAsync(new byte[1], null);
+            //sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //for (int j = 0; j < 20000; j++)
+            //{
+            //    var tor = await sm.RemoteRequestAsync(new byte[1], null);
 
-            }
-            sw.Stop();
-            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-            return;
+            //}
+            //sw.Stop();
+            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            //return;
 
 
             //sw = new System.Diagnostics.Stopwatch();
@@ -170,7 +170,7 @@ namespace MemoryMappedFile
             {
                 for (int j = 0; j < 10000; j++)
                 {
-                    var tor = sm.RemoteRequest(new byte[512]);
+                    var tor = sm.RemoteRequest(new byte[1]);
                     //var tor = sm.RemoteRequest(new byte[50],(par) => {
                     //});
                     //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
@@ -189,6 +189,7 @@ namespace MemoryMappedFile
             await Task.WhenAll(tasks.ToArray());
             sw.Stop();
             Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
         }
         #endregion
 
