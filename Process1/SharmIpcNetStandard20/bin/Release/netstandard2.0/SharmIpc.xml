@@ -25,6 +25,11 @@
             
             </summary>
         </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.ReaderV02(System.Byte[])">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32)">
             <summary>
             
@@ -72,6 +77,11 @@
             <summary>
             If we don't want to answer in sync way via remoteCallHandler
             msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
+            </summary>
+        </member>
+        <member name="F:tiesky.com.SharmIpc.tmr">
+            <summary>
+            Removing timeout requests
             </summary>
         </member>
         <member name="F:tiesky.com.SharmIpc.ResponseCrate.mre">
@@ -140,6 +150,72 @@
         <member name="M:tiesky.com.SharmIpc.Dispose">
             <summary>
             
+            </summary>
+        </member>
+        <member name="T:tiesky.com.WaitHandleAsyncFactory">
+            <summary>
+            Provides interop utilities for <see cref="T:System.Threading.WaitHandle"/> types.
+            </summary>
+        </member>
+        <member name="M:tiesky.com.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task"/>. When the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned <see cref="T:System.Threading.Tasks.Task"/> is completed. If the handle is already signalled, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+        </member>
+        <member name="M:tiesky.com.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.TimeSpan)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is completed with a <c>true</c> result. If the observation times out, the returned task is completed with a <c>false</c> result. If the handle is already signalled or the timeout is zero, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+            <param name="timeout">The timeout after which the <see cref="T:System.Threading.WaitHandle"/> is no longer observed.</param>
+        </member>
+        <member name="M:tiesky.com.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.Threading.CancellationToken)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is (successfully) completed. If the observation is cancelled, the returned task is cancelled. If the handle is already signalled or the cancellation token is already cancelled, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+            <param name="token">The cancellation token that cancels observing the <see cref="T:System.Threading.WaitHandle"/>.</param>
+        </member>
+        <member name="T:tiesky.com.WaitHandleAsyncFactory.TaskConstants">
+            <summary>
+            Provides completed task constants.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.BooleanTrue">
+            <summary>
+            A task that has been completed with the value <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.BooleanFalse">
+            <summary>
+            A task that has been completed with the value <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.Int32Zero">
+            <summary>
+            A task that has been completed with the value <c>0</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.Int32NegativeOne">
+            <summary>
+            A task that has been completed with the value <c>-1</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.Canceled">
+            <summary>
+            A task that has been canceled.
+            </summary>
+        </member>
+        <member name="T:tiesky.com.WaitHandleAsyncFactory.TaskConstants`1">
+            <summary>
+            Provides completed task constants.
+            </summary>
+            <typeparam name="T">The type of the task result.</typeparam>
+        </member>
+        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants`1.Default">
+            <summary>
+            A task that has been completed with the default value of <typeparamref name="T"/>.
             </summary>
         </member>
     </members>

@@ -41,7 +41,8 @@ namespace tiesky.com.SharmIpcInternals
         SWaitHadle ewh_Reader_ReadyToRead = null;
         SWaitHadle ewh_Reader_ReadyToWrite = null;
 
-        ManualResetEvent mre_writer_thread = new ManualResetEvent(false);
+        //ManualResetEvent mre_writer_thread = new ManualResetEvent(false);
+        AsyncManualResetEvent mre_writer_thread = new AsyncManualResetEvent();
 
         SharedMemory sm = null;
         object lock_q = new object();
@@ -118,8 +119,8 @@ namespace tiesky.com.SharmIpcInternals
                 if (mre_writer_thread != null)
                 {
                     mre_writer_thread.Set();
-                    mre_writer_thread.Close();
-                    mre_writer_thread.Dispose();
+                    //mre_writer_thread.Close();
+                    //mre_writer_thread.Dispose();
                     mre_writer_thread = null;
                 }
             }
@@ -370,14 +371,17 @@ namespace tiesky.com.SharmIpcInternals
 
             return true;
         }
-                
 
-        void WriterV01()
+
+        //void WriterV01()
+        async Task WriterV01()
         {          
             while (true)
-            {                
-                
-                if(mre_writer_thread.WaitOne())
+            {
+
+                //if(mre_writer_thread.WaitOne())
+                await mre_writer_thread.WaitAsync();
+
                 {
                     lock (lock_q)
                     {
@@ -691,7 +695,7 @@ namespace tiesky.com.SharmIpcInternals
         //        await ReaderV01();
         //    });
         //}
-        void ReaderV01()
+        async Task ReaderV01()
         {
             byte[] hdr = null;
             byte[] ret = null;
@@ -712,8 +716,10 @@ namespace tiesky.com.SharmIpcInternals
                 while (true)
                 {
                     jPos = 0;
-                    ewh_Reader_ReadyToRead.WaitOne();
-                    //await WaitHandleAsyncFactory.FromWaitHandle(ewh_Reader_ReadyToRead).ConfigureAwait(false);
+
+                    //Exchange these 2 lines to make Reader event wait in async mode
+                    //ewh_Reader_ReadyToRead.WaitOne();
+                    await WaitHandleAsyncFactory.FromWaitHandle(ewh_Reader_ReadyToRead);//.ConfigureAwait(false);
 
                     //--STAT
                     this.sm.SharmIPC.Statistic.Stop_WaitForRead_Signal();
@@ -841,13 +847,9 @@ namespace tiesky.com.SharmIpcInternals
                                 currentChunk = iCurChunk;
                             }
                             break;
-                            //Such changes can run other protocols
+                        //Such changes can run other protocols
                         case eMsgType.SwitchToV2:
-                            
-                            Task.Run(() =>
-                            {
-                                ReaderV02(hdr);
-                            });
+                            ReaderV02(hdr);                           
                             return;
                         default:
                             //Unknown protocol type
@@ -905,7 +907,7 @@ namespace tiesky.com.SharmIpcInternals
         /// <summary>
         /// 
         /// </summary>
-        unsafe void ReaderV02(byte[] uhdr)
+        async void ReaderV02(byte[] uhdr)
         {
             byte[] hdr = null;
             byte[] ret = null;
@@ -934,7 +936,10 @@ namespace tiesky.com.SharmIpcInternals
                         //if (sm.instanceType == eInstanceType.Slave)
                         //    Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> reader is waiting ");
 
-                        ewh_Reader_ReadyToRead.WaitOne();
+                        
+                        //Exchange these 2 lines to make Reader event wait in async mode
+                        //ewh_Reader_ReadyToRead.WaitOne();
+                        await WaitHandleAsyncFactory.FromWaitHandle(ewh_Reader_ReadyToRead);//.ConfigureAwait(true);
 
                         //--STAT
                         this.sm.SharmIPC.Statistic.Stop_WaitForRead_Signal();

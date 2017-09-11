@@ -103,17 +103,17 @@ namespace MemoryMappedFile
             //});
 
 
-            //sw = new System.Diagnostics.Stopwatch();
-            //sw.Start();
-            //for (int j = 0; j < 20000; j++)
-            //{
-            //    var tor = await sm.RemoteRequestAsync(new byte[1], null);
+            sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            for (int j = 0; j < 20000; j++)
+            {
+                var tor = await sm.RemoteRequestAsync(new byte[1], null);
 
-            //}
-            //sw.Stop();
-            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-            //return;
+            }
+            sw.Stop();
+            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            return;
 
 
             //sw = new System.Diagnostics.Stopwatch();
