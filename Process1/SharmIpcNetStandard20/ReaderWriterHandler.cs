@@ -544,10 +544,12 @@ namespace tiesky.com.SharmIpcInternals
                     await WaitHandleAsyncFactory.FromWaitHandle(ewh_Reader_ReadyToRead);//.ConfigureAwait(false);
 
 
-                    jPos = 1;
-                    if (ewh_Reader_ReadyToRead == null) //Special Dispose case
+                    if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
                         return;
-                    jPos = 2;
+                    //jPos = 1;
+                    //if (ewh_Reader_ReadyToRead == null) //Special Dispose case
+                    //    return;
+                    //jPos = 2;
 
 
                     //Setting STOP for ewh_Reader_ReadyToRead.WaitOne()

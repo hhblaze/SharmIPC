@@ -85,21 +85,19 @@ namespace tiesky.com
             long IsDisposed = 0;
             public void Dispose_MRE()
             {
+                if (System.Threading.Interlocked.CompareExchange(ref IsDisposed, 1, 0) != 0)
+                    return;
 
-                long newVal = Interlocked.CompareExchange(ref IsDisposed, 1, 0);
-                if (newVal == 0)
+                if (mre != null)
                 {
-                    if (mre != null)
-                    {
-                        mre.Set();
-                        mre.Dispose();
-                        mre = null;
-                    }
-                    else if (amre != null)
-                    {
-                        amre.Set();
-                        amre = null;
-                    }
+                    mre.Set();
+                    mre.Dispose();
+                    mre = null;
+                }
+                else if (amre != null)
+                {
+                    amre.Set();
+                    amre = null;
                 }
             }
 
@@ -252,8 +250,17 @@ namespace tiesky.com
             }
         }
 
+        /// <summary>
+        /// Usage var x = await RemoteRequestAsync(...);
+        /// </summary>
+        /// <param name="args">payload which must be send to remote partner</param>
+        /// <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
+        /// <param name="timeoutMs">Default 30 sec</param>
+        /// <returns></returns>
         public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
         {
+            if (Interlocked.Read(ref Disposed) == 1)
+                return new Tuple<bool, byte[]>(false, null);
 
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
@@ -331,7 +338,9 @@ namespace tiesky.com
         /// <returns></returns>
         public Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
         {
-       
+            if (Interlocked.Read(ref Disposed) == 1)
+                return new Tuple<bool, byte[]>(false, null);
+
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
 
@@ -395,27 +404,23 @@ namespace tiesky.com
         /// <param name="args">payload</param>
         /// <returns>if Message was accepted for sending</returns>
         public bool RemoteRequestWithoutResponse(byte[] args)
-        {            
+        {
+            if (Interlocked.Read(ref Disposed) == 1)
+                return false;
+
             ulong msgId = sm.GetMessageId();
             return sm.SendMessage(eMsgType.Request, msgId, args);
         }
 
+        internal long Disposed = 0;
 
         /// <summary>
         /// 
         /// </summary>
         public void Dispose()
         {
-            try
-            {
-                if (sm != null)
-                {
-                    sm.Dispose();
-                    sm = null;
-                }
-            }
-            catch
-            {}
+            if (System.Threading.Interlocked.CompareExchange(ref Disposed, 1, 0) != 0)
+                return;
 
             try
             {
@@ -437,22 +442,25 @@ namespace tiesky.com
                     if (df.TryRemove(el.Key, out rc))
                     {
                         rc.IsRespOk = false;
-                        rc.Dispose_MRE();                        
-                        //if (rc.mre != null)
-                        //{
-                        //    rc.IsRespOk = false;
-                        //    rc.mre.Set();
-                        //    rc.mre.Dispose();
-                        //    rc.mre = null;
-                        //}
+                        rc.Dispose_MRE();                                               
                     }
                     
                 }
             }
             catch
+            {}
+
+            try
             {
+                if (sm != null)
+                {
+                    sm.Dispose();
+                    sm = null;
+                }
             }
-         
+            catch
+            { }
+
         }
     }
 }

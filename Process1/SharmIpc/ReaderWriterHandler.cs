@@ -60,7 +60,7 @@ namespace tiesky.com.SharmIpcInternals
 
         public void Dispose()
         {
-  
+            
             try
             {
                 if (ewh_Writer_ReadyToRead != null)
@@ -375,47 +375,59 @@ namespace tiesky.com.SharmIpcInternals
 
         //void WriterV01()
         async Task WriterV01()
-        {          
-            while (true)
+        {
+            try
             {
-
-                //if(mre_writer_thread.WaitOne())
-                await mre_writer_thread.WaitAsync();
-
+                while (true)
                 {
-                    lock (lock_q)
+
+                    //if(mre_writer_thread.WaitOne())
+                    await mre_writer_thread.WaitAsync();
+
                     {
-                        if (q.Count() < 1)
+                        //if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
+                        //    return;
+
+                        lock (lock_q)
                         {
-                            mre_writer_thread.Reset();
-                            continue;
-                        }                            
-                        toSend = q.Dequeue();
-                        totalBytesInQUeue -= toSend.Length;
+                            if (q.Count() < 1)
+                            {
+                                mre_writer_thread.Reset();
+                                continue;
+                            }
+                            toSend = q.Dequeue();
+                            totalBytesInQUeue -= toSend.Length;
+
+                        }
+
+                        if (ewh_Writer_ReadyToWrite.WaitOne())
+                        {
+
+                            //--STAT
+                            this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
+
+                            ewh_Writer_ReadyToWrite.Reset();
+                            //Writing into MMF      
+
+                            //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
+                            //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
+                            WriteBytes(0, toSend);
+
+                            //Setting signal ready to read
+                            ewh_Writer_ReadyToRead.Set();
+
+                        }
 
                     }
 
-                    if (ewh_Writer_ReadyToWrite.WaitOne())
-                    {
-                        //--STAT
-                        this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
-
-                        ewh_Writer_ReadyToWrite.Reset();
-                        //Writing into MMF      
-
-                        //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-                        //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
-                        WriteBytes(0, toSend);
-
-                        //Setting signal ready to read
-                        ewh_Writer_ReadyToRead.Set();
-                        
-                    }
 
                 }
-
-
             }
+            catch (Exception ex)
+            {
+                //this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.WriterV01", ex);
+            }
+            
 
         }
 
@@ -721,13 +733,17 @@ namespace tiesky.com.SharmIpcInternals
                     //ewh_Reader_ReadyToRead.WaitOne();
                     await WaitHandleAsyncFactory.FromWaitHandle(ewh_Reader_ReadyToRead);//.ConfigureAwait(false);
 
+                  
+
                     //--STAT
                     this.sm.SharmIPC.Statistic.Stop_WaitForRead_Signal();
 
-                    jPos = 1;
-                    if (ewh_Reader_ReadyToRead == null) //Special Dispose case
+                    if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
                         return;
-                    jPos = 2;
+                    //jPos = 1;
+                    //if (ewh_Reader_ReadyToRead == null) //Special Dispose case
+                    //    return;
+                    //jPos = 2;
 
                     //--STAT
                     this.sm.SharmIPC.Statistic.Start_ReadProcedure_Signal();

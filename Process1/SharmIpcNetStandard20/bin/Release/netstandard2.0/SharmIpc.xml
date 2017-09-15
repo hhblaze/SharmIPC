@@ -131,6 +131,15 @@
             <param name="msgId"></param>
             <param name="bt"></param>
         </member>
+        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
+            <summary>
+            Usage var x = await RemoteRequestAsync(...);
+            </summary>
+            <param name="args">payload which must be send to remote partner</param>
+            <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
+            <param name="timeoutMs">Default 30 sec</param>
+            <returns></returns>
+        </member>
         <member name="M:tiesky.com.SharmIpc.RemoteRequest(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
             <summary>
             
