@@ -210,10 +210,10 @@ namespace tiesky.com.SharmIpcInternals
                 Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Writer_accessor_ptr);
             }
 
-            Task.Run(() =>
-            {
-                WriterV01();
-            });
+            //Task.Run(() =>
+            //{
+            //    WriterV01();
+            //});
         }
 
         const int protocolLen = 25;
@@ -329,60 +329,107 @@ namespace tiesky.com.SharmIpcInternals
                     currentChunk++;
                 }
 
-                mre_writer_thread.Set();
+                //mre_writer_thread.Set();
             }//eo lock
 
 
+            WriterV02();
             //StartSendProcedure();
 
             return true;
         }
 
-
-        async Task WriterV01()
+        async Task WriterV02()
         {
-            //spamre.Reset();
-            while (true)
+            lock (lock_q)
             {
+                if (inSend || q.Count() < 1)
+                    return;
 
-                //await spamre.WaitAsync();
-                //if(mre_writer_thread.WaitOne())
-
-                await mre_writer_thread.WaitAsync();
-                {
-                    lock (lock_q)
-                    {
-                        if (q.Count() < 1)
-                        {
-                            mre_writer_thread.Reset();
-                            continue;
-                        }
-                        toSend = q.Dequeue();
-                        totalBytesInQUeue -= toSend.Length;
-
-                    }
-
-                    if (ewh_Writer_ReadyToWrite.WaitOne())
-                    {                 
-
-                        ewh_Writer_ReadyToWrite.Reset();
-                        //Writing into MMF      
-
-                        //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-                        //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
-                        WriteBytes(0, toSend);
-
-                        //Setting signal ready to read
-                        ewh_Writer_ReadyToRead.Set();
-
-                    }
-
-                }
-
+                inSend = true;
+                toSend = q.Dequeue();
+                totalBytesInQUeue -= toSend.Length;
 
             }
 
-        }
+            while (true)
+            {
+
+               
+
+                if (ewh_Writer_ReadyToWrite.WaitOne())
+                {
+                    
+
+                    ewh_Writer_ReadyToWrite.Reset();
+
+                    WriteBytes(0, toSend);
+
+                    //Setting signal ready to read
+                    ewh_Writer_ReadyToRead.Set();
+
+                    lock (lock_q)
+                    {
+                        if (q.Count() == 0)
+                        {
+                            toSend = null;
+                            inSend = false;
+                            return;
+                        }
+                        toSend = q.Dequeue();
+                        totalBytesInQUeue -= toSend.Length;
+                    }
+                }
+            }//eo while
+
+            //});
+
+        }//eof
+
+        //async Task WriterV01()
+        //{
+        //    //spamre.Reset();
+        //    while (true)
+        //    {
+
+        //        //await spamre.WaitAsync();
+        //        //if(mre_writer_thread.WaitOne())
+
+        //        await mre_writer_thread.WaitAsync();
+        //        {
+        //            lock (lock_q)
+        //            {
+        //                if (q.Count() < 1)
+        //                {
+        //                    mre_writer_thread.Reset();
+        //                    continue;
+        //                }
+        //                toSend = q.Dequeue();
+        //                totalBytesInQUeue -= toSend.Length;
+
+        //            }
+
+        //            if (ewh_Writer_ReadyToWrite.WaitOne())
+        //            {                 
+
+        //                ewh_Writer_ReadyToWrite.Reset();
+        //                //Writing into MMF      
+
+        //                //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
+        //                //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
+        //                WriteBytes(0, toSend);
+
+        //                //Setting signal ready to read
+        //                ewh_Writer_ReadyToRead.Set();
+
+        //            }
+
+        //        }
+
+
+        //    }
+
+        //}
 
 
         //unsafe void StartSendProcedure()

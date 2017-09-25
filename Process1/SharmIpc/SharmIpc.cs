@@ -64,7 +64,7 @@ namespace tiesky.com
                 if (Interlocked.Read(ref IsDisposed) == 1)
                     return;
 
-                if(amre != null)
+                if (amre != null)
                 {
                     amre.Set();
                 }
@@ -175,7 +175,12 @@ namespace tiesky.com
             if (res != null && sm != null)
                 sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
         }
-        
+
+        //async Task CallAsyncRemoteHandler(ulong msgId, byte[] bt)
+        //{
+        //    AsyncRemoteCallHandler(msgId, bt);
+        //}
+
         /// <summary>
         /// Any incoming data from remote partner is accumulated here
         /// </summary>
@@ -183,7 +188,7 @@ namespace tiesky.com
         /// <param name="msgId"></param>
         /// <param name="bt"></param>
         internal void InternalDataArrived(eMsgType msgType, ulong msgId, byte[] bt)
-        {   
+        {
             ResponseCrate rsp = null;
 
             switch (msgType)
@@ -194,6 +199,7 @@ namespace tiesky.com
                     {
                         if (AsyncRemoteCallHandler != null)
                         {
+                            //CallAsyncRemoteHandler(msgId, bt);
                             AsyncRemoteCallHandler(msgId, bt);
                             //Answer must be supplied via AsyncAnswerOnRemoteCall
                         }
@@ -201,14 +207,14 @@ namespace tiesky.com
                         {
                             this.remoteCallHandler(bt);
                         }
-                    });   
+                    });
 
                     break;
                 case eMsgType.RpcRequest:
 
                     Task.Run(() =>
                     {
-                    if (AsyncRemoteCallHandler != null)
+                        if (AsyncRemoteCallHandler != null)
                         {
                             AsyncRemoteCallHandler(msgId, bt);
                             //Answer must be supplied via AsyncAnswerOnRemoteCall
@@ -218,12 +224,12 @@ namespace tiesky.com
                             var res = this.remoteCallHandler(bt);
                             sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
                         }
-                    });                    
+                    });
 
                     break;
                 case eMsgType.ErrorInRpc:
                 case eMsgType.RpcResponse:
-                                        
+
                     if (df.TryGetValue(msgId, out rsp))
                     {
                         rsp.res = bt;
@@ -245,9 +251,120 @@ namespace tiesky.com
                             });
                         }
                     }
-             
-                    break;                
+
+                    break;
             }
+        }
+
+        //internal void InternalDataArrived(eMsgType msgType, ulong msgId, byte[] bt)
+        //{
+        //    ResponseCrate rsp = null;
+
+        //    switch (msgType)
+        //    {
+        //        case eMsgType.Request:
+
+
+        //            if (AsyncRemoteCallHandler != null)
+        //            {
+        //                RunAsync(msgId, bt);
+        //            }
+        //            else
+        //            {
+        //                RunV1(bt);
+
+        //            }
+
+        //            //Task.Run(() =>
+        //            //{
+        //            //    if (AsyncRemoteCallHandler != null)
+        //            //    {
+        //            //        //CallAsyncRemoteHandler(msgId, bt);
+        //            //        AsyncRemoteCallHandler(msgId, bt);
+        //            //        //Answer must be supplied via AsyncAnswerOnRemoteCall
+        //            //    }
+        //            //    else
+        //            //    {
+        //            //        this.remoteCallHandler(bt);
+        //            //    }
+        //            //});
+
+        //            break;
+        //        case eMsgType.RpcRequest:
+
+        //            if (AsyncRemoteCallHandler != null)
+        //            {
+        //                RunAsync(msgId, bt);
+        //                //Answer must be supplied via AsyncAnswerOnRemoteCall
+        //            }
+        //            else
+        //            {
+        //                Run(msgId, bt);
+        //            }
+        //            //Task.Run(() =>
+        //            //{
+        //            //    if (AsyncRemoteCallHandler != null)
+        //            //    {
+        //            //        AsyncRemoteCallHandler(msgId, bt);
+        //            //        //Answer must be supplied via AsyncAnswerOnRemoteCall
+        //            //    }
+        //            //    else
+        //            //    {
+        //            //        var res = this.remoteCallHandler(bt);
+        //            //        sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+        //            //    }
+        //            //});
+
+        //            break;
+        //        case eMsgType.ErrorInRpc:
+        //        case eMsgType.RpcResponse:
+
+        //            if (df.TryGetValue(msgId, out rsp))
+        //            {
+        //                rsp.res = bt;
+        //                rsp.IsRespOk = msgType == eMsgType.RpcResponse;
+
+        //                if (rsp.callBack == null)
+        //                {
+
+        //                    //rsp.mre.Set();  //Signalling, to make waiting in parallel thread to proceed
+        //                    rsp.Set_MRE();
+        //                }
+        //                else
+        //                {
+        //                    df.TryRemove(msgId, out rsp);
+        //                    //Calling callback in parallel thread, quicly to return to ReaderWriterhandler.Reader procedure
+        //                    RunV2(rsp, bt);
+        //                    //Task.Run(() =>
+        //                    //{
+        //                    //    rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
+        //                    //});
+        //                }
+        //            }
+
+        //            break;
+        //    }
+        //}
+
+        async Task RunAsync(ulong msgId, byte[] bt)
+        {
+            AsyncRemoteCallHandler(msgId, bt);
+        }
+
+        async Task Run(ulong msgId, byte[] bt)
+        {
+            var res = this.remoteCallHandler(bt);
+            sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+        }
+
+        async Task RunV1(byte[] bt)
+        {
+            this.remoteCallHandler(bt);
+        }
+
+        async Task RunV2(ResponseCrate rsp, byte[] bt)
+        {
+            rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
         }
 
 
@@ -439,6 +556,8 @@ namespace tiesky.com
         {
             if (System.Threading.Interlocked.CompareExchange(ref Disposed, 1, 0) != 0)
                 return;
+
+            //this.sm.SharmIPC.LogException("dispose test",new Exception("p1 "));
             try
             {
                 if (tmr != null)
@@ -450,7 +569,7 @@ namespace tiesky.com
             catch
             { }
 
-
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p2"));
             try
             {
                 ResponseCrate rc=null;
@@ -468,6 +587,7 @@ namespace tiesky.com
             {
             }
 
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p3"));
 
             try
             {
@@ -479,6 +599,7 @@ namespace tiesky.com
             }
             catch
             { }
+           
 
         }
 

@@ -20,7 +20,7 @@ namespace tiesky.com
 
         public AsyncManualResetEvent()
         {
-            _mutex = new object();            
+            _mutex = new object();
         }
 
         public Task<bool> WaitAsync()

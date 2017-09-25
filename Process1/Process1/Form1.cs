@@ -15,6 +15,7 @@ namespace MemoryMappedFile
         public Form1()
         {
             InitializeComponent();
+            button1_Click(null, null);
         }
 
         tiesky.com.SharmIpc sm = null;
@@ -89,6 +90,8 @@ namespace MemoryMappedFile
         async void t001_TestIntensiveParallel()
         {
             System.Diagnostics.Stopwatch sw = null;
+            List<byte[]> mll = new List<byte[]>();
+
 
             //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
             //return;
@@ -102,29 +105,35 @@ namespace MemoryMappedFile
             //    }
             //});
 
-
+            //Task.Run(async () =>
+            //{
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            for (int j = 0; j < 20000; j++)
+            for (int j = 0; j < 10000; j++)
             {
+                //var tor = sm.RemoteRequest(new byte[1]);
                 var tor = await sm.RemoteRequestAsync(new byte[1], null);
+                //mll.Add(tor.Item2);
 
             }
             sw.Stop();
             Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
             MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            //});
             return;
 
 
             //sw = new System.Diagnostics.Stopwatch();
             //sw.Start();
-            //for (int j = 0; j < 1000; j++)
+
+            //for (int j = 0; j < 10000; j++)
             //{
-            //    var tor = await sm.RemoteRequestAsync(new byte[50], (ans) => {
+            //    var tor = await sm.RemoteRequestAsync(new byte[1], (ans) =>
+            //    {
 
-            //            });
+            //    });
 
-            //    }
+            //}
             //sw.Stop();
             ////Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
             //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
@@ -166,22 +175,26 @@ namespace MemoryMappedFile
             //System.Threading.ThreadPool.SetMinThreads(100, 100);
 
             var tasks = new List<Task>();
-            Action a = () =>
-            {
-                for (int j = 0; j < 10000; j++)
-                {
-                    var tor = sm.RemoteRequest(new byte[1]);
-                    //var tor = sm.RemoteRequest(new byte[50],(par) => {
-                    //});
-                    //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
-                }
-            };
+            //Action a = () =>
+            //{
+            //    for (int j = 0; j < 10000; j++)
+            //    {                  
+            //        var tor = sm.RemoteRequest(new byte[1]);
+
+            //        //var tor = sm.RemoteRequest(new byte[50],(par) => {
+            //        //});
+            //        //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
+            //    }
+            //};
 
             //var t = Task.Run(() => { sm.RemoteRequest(new byte[50]); });
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 5; i++)
             {
                 int index = i;
-                tasks.Add(Task.Factory.StartNew(a));
+                //tasks.Add(Task.Factory.StartNew(a));
+
+                //tasks.Add(Task.Factory.StartNew(RunMeManyAsync));
+                tasks.Add(RunMeManyAsync());
             }
 
             sw = new System.Diagnostics.Stopwatch();
@@ -192,6 +205,21 @@ namespace MemoryMappedFile
             MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
         }
         #endregion
+
+
+        async Task RunMeManyAsync()
+        {
+            for (int j = 0; j < 10000; j++)
+            {
+                //var tor = await sm.RemoteRequestAsync(new byte[1], (ans) =>
+                //{
+
+                //});
+
+                var tor = await sm.RemoteRequestAsync(new byte[1], null);
+
+            }
+        }
 
         /// <summary>
         ///Test of RemoteRequest with answer (Process 2 must receive request in its RemoteCall and return back Response).
@@ -302,7 +330,10 @@ namespace MemoryMappedFile
 
         private void button3_Click(object sender, EventArgs e)
         {
-
+            //if (sm != null)
+            //{
+            //    sm.Dispose();
+            //}
         }
     }
 }

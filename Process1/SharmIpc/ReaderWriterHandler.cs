@@ -60,7 +60,8 @@ namespace tiesky.com.SharmIpcInternals
 
         public void Dispose()
         {
-            
+
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p8"));
             try
             {
                 if (ewh_Writer_ReadyToRead != null)
@@ -74,6 +75,7 @@ namespace tiesky.com.SharmIpcInternals
             catch
             {
             }
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p9"));
             try
             {
                 if (ewh_Writer_ReadyToWrite != null)
@@ -87,7 +89,7 @@ namespace tiesky.com.SharmIpcInternals
             catch
             {
             }
-
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p10"));
             try
             {
                 if (ewh_Reader_ReadyToRead != null)
@@ -101,6 +103,7 @@ namespace tiesky.com.SharmIpcInternals
             catch
             {
             }
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p11"));
             try
             {
                 if (ewh_Reader_ReadyToWrite != null)
@@ -113,7 +116,7 @@ namespace tiesky.com.SharmIpcInternals
             }
             catch
             {}
-
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p12"));
             try
             {
                 if (mre_writer_thread != null)
@@ -126,8 +129,8 @@ namespace tiesky.com.SharmIpcInternals
             }
             catch
             { }
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p13"));
 
-           
             try
             {
                 if (Writer_accessor != null)
@@ -139,6 +142,7 @@ namespace tiesky.com.SharmIpcInternals
             }
             catch
             {}
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p14"));
             try
             {
                 if (Reader_accessor != null)
@@ -150,6 +154,7 @@ namespace tiesky.com.SharmIpcInternals
             }
             catch
             { }
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p15"));
             try
             {
                 if (Writer_mmf != null)
@@ -160,6 +165,7 @@ namespace tiesky.com.SharmIpcInternals
             }
             catch
             { }
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p16"));
             try
             {
                 if (Reader_mmf != null)
@@ -170,6 +176,7 @@ namespace tiesky.com.SharmIpcInternals
             }
             catch
             { }
+            //this.sm.SharmIPC.LogException("dispose test", new Exception("p17"));
         }
 
 
@@ -229,10 +236,10 @@ namespace tiesky.com.SharmIpcInternals
                 Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Writer_accessor_ptr);
             }
 
-            Task.Run(() =>
-            {
-                WriterV01();
-            });
+            //Task.Run(() =>
+            //{
+            //    WriterV01();
+            //});
         }
 
         const int protocolLen = 25;
@@ -273,6 +280,8 @@ namespace tiesky.com.SharmIpcInternals
         /// <returns></returns>
         public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId=0)
         {
+            if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
+                return false;
 
             if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
             {
@@ -360,79 +369,22 @@ namespace tiesky.com.SharmIpcInternals
                 }
 
 
-                mre_writer_thread.Set();
+                //mre_writer_thread.Set();
 
             }//eo lock
 
+            
+
+            WriterV02();
 
             //StartSendProcedure();
             //StartSendProcedure_v2();
-            
+
 
             return true;
         }
 
-
-        //void WriterV01()
-        async Task WriterV01()
-        {
-            try
-            {
-                while (true)
-                {
-
-                    //if(mre_writer_thread.WaitOne())
-                    await mre_writer_thread.WaitAsync();
-
-                    {
-                        //if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
-                        //    return;
-
-                        lock (lock_q)
-                        {
-                            if (q.Count() < 1)
-                            {
-                                mre_writer_thread.Reset();
-                                continue;
-                            }
-                            toSend = q.Dequeue();
-                            totalBytesInQUeue -= toSend.Length;
-
-                        }
-
-                        if (ewh_Writer_ReadyToWrite.WaitOne())
-                        {
-
-                            //--STAT
-                            this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
-
-                            ewh_Writer_ReadyToWrite.Reset();
-                            //Writing into MMF      
-
-                            //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-                            //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
-                            WriteBytes(0, toSend);
-
-                            //Setting signal ready to read
-                            ewh_Writer_ReadyToRead.Set();
-
-                        }
-
-                    }
-
-
-                }
-            }
-            catch (Exception ex)
-            {
-                //this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.WriterV01", ex);
-            }
-            
-
-        }
-
-
-        void StartSendProcedure()
+        async Task WriterV02()
         {
             lock (lock_q)
             {
@@ -445,52 +397,165 @@ namespace tiesky.com.SharmIpcInternals
 
             }
 
-            //Task.Run(() =>
-            //{
-                //here we got smth toSend
-                while (true)
+            while (true)
+            {
+
+                //--STAT
+                this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
+
+                if (ewh_Writer_ReadyToWrite.WaitOne())
                 {
-
                     //--STAT
-                    this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
+                    this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
 
-                    //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
+                    ewh_Writer_ReadyToWrite.Reset();
+                   
+                    WriteBytes(0, toSend);
 
-                    // if (await WaitHandleAsyncFactory.FromWaitHandle(ewh_Writer_ReadyToWrite).ConfigureAwait(false))
-                    if (ewh_Writer_ReadyToWrite.WaitOne())
+                    //Setting signal ready to read
+                    ewh_Writer_ReadyToRead.Set();
+                    
+                    lock (lock_q)
                     {
-                        //--STAT
-                        this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
-
-                        ewh_Writer_ReadyToWrite.Reset();
-                        //Writing into MMF      
-
-                        //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-                        //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
-                        WriteBytes(0, toSend);
-
-                        //Setting signal ready to read
-                        ewh_Writer_ReadyToRead.Set();
-
-
-
-                        lock (lock_q)
+                        if (q.Count() == 0)
                         {
-                            if (q.Count() == 0)
-                            {
-                                toSend = null;
-                                inSend = false;
-                                return;
-                            }
-                            toSend = q.Dequeue();
-                            totalBytesInQUeue -= toSend.Length;
+                            toSend = null;
+                            inSend = false;
+                            return;
                         }
+                        toSend = q.Dequeue();
+                        totalBytesInQUeue -= toSend.Length;
                     }
-                }//eo while
+                }
+            }//eo while
 
             //});
 
         }//eof
+
+
+
+        
+        //async Task WriterV01()
+        //{
+        //    try
+        //    {
+        //        while (true)
+        //        {
+
+        //            //if(mre_writer_thread.WaitOne())
+        //            await mre_writer_thread.WaitAsync();
+
+        //            {
+        //                //if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
+        //                //    return;
+
+        //                lock (lock_q)
+        //                {
+        //                    if (q.Count() < 1)
+        //                    {
+        //                        mre_writer_thread.Reset();
+        //                        continue;
+        //                    }
+        //                    toSend = q.Dequeue();
+        //                    totalBytesInQUeue -= toSend.Length;
+
+        //                }
+
+        //                if (ewh_Writer_ReadyToWrite.WaitOne())
+        //                {
+
+        //                    //--STAT
+        //                    this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
+
+        //                    ewh_Writer_ReadyToWrite.Reset();
+        //                    //Writing into MMF      
+
+        //                    //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
+        //                    //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
+        //                    WriteBytes(0, toSend);
+
+        //                    //Setting signal ready to read
+        //                    ewh_Writer_ReadyToRead.Set();
+
+        //                }
+
+        //            }
+
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        //this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.WriterV01", ex);
+        //    }
+            
+
+        //}
+
+
+       
+
+
+        //void StartSendProcedure()
+        //{
+        //    lock (lock_q)
+        //    {
+        //        if (inSend || q.Count() < 1)
+        //            return;
+
+        //        inSend = true;
+        //        toSend = q.Dequeue();
+        //        totalBytesInQUeue -= toSend.Length;
+
+        //    }
+
+        //    //Task.Run(() =>
+        //    //{
+        //        //here we got smth toSend
+        //        while (true)
+        //        {
+
+        //            //--STAT
+        //            this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
+
+        //            //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
+
+        //            // if (await WaitHandleAsyncFactory.FromWaitHandle(ewh_Writer_ReadyToWrite).ConfigureAwait(false))
+        //            if (ewh_Writer_ReadyToWrite.WaitOne())
+        //            {
+        //                //--STAT
+        //                this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
+
+        //                ewh_Writer_ReadyToWrite.Reset();
+        //                //Writing into MMF      
+
+        //                //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
+        //                //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
+        //                WriteBytes(0, toSend);
+
+        //                //Setting signal ready to read
+        //                ewh_Writer_ReadyToRead.Set();
+
+
+
+        //                lock (lock_q)
+        //                {
+        //                    if (q.Count() == 0)
+        //                    {
+        //                        toSend = null;
+        //                        inSend = false;
+        //                        return;
+        //                    }
+        //                    toSend = q.Dequeue();
+        //                    totalBytesInQUeue -= toSend.Length;
+        //                }
+        //            }
+        //        }//eo while
+
+        //    //});
+
+        //}//eof
 
 
 

@@ -17,6 +17,8 @@ namespace mmf2client
         public Form1()
         {
             InitializeComponent();
+
+            button1_Click(null,null);
         }
 
         tiesky.com.SharmIpc sm = null;

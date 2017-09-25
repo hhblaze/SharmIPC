@@ -176,7 +176,7 @@ namespace tiesky.com
             if (res != null)
                 sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
         }
-        
+
         /// <summary>
         /// Any incoming data from remote partner is accumulated here
         /// </summary>
@@ -184,7 +184,7 @@ namespace tiesky.com
         /// <param name="msgId"></param>
         /// <param name="bt"></param>
         internal void InternalDataArrived(eMsgType msgType, ulong msgId, byte[] bt)
-        {   
+        {
             ResponseCrate rsp = null;
 
             switch (msgType)
@@ -202,14 +202,14 @@ namespace tiesky.com
                         {
                             this.remoteCallHandler(bt);
                         }
-                    });   
+                    });
 
                     break;
                 case eMsgType.RpcRequest:
 
                     Task.Run(() =>
                     {
-                    if (AsyncRemoteCallHandler != null)
+                        if (AsyncRemoteCallHandler != null)
                         {
                             AsyncRemoteCallHandler(msgId, bt);
                             //Answer must be supplied via AsyncAnswerOnRemoteCall
@@ -219,12 +219,12 @@ namespace tiesky.com
                             var res = this.remoteCallHandler(bt);
                             sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
                         }
-                    });                    
+                    });
 
                     break;
                 case eMsgType.ErrorInRpc:
                 case eMsgType.RpcResponse:
-                                        
+
                     if (df.TryGetValue(msgId, out rsp))
                     {
                         rsp.res = bt;
@@ -245,8 +245,8 @@ namespace tiesky.com
                             });
                         }
                     }
-             
-                    break;                
+
+                    break;
             }
         }
 

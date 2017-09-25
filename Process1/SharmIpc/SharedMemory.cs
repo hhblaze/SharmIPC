@@ -108,8 +108,10 @@ namespace tiesky.com.SharmIpcInternals
         /// </summary>
         public void Dispose()
         {
+            //this.SharmIPC.LogException("dispose test", new Exception("p7"));
             try
             {
+                
                 if (mt != null)
                 {
                     mt.ReleaseMutex();
@@ -121,11 +123,15 @@ namespace tiesky.com.SharmIpcInternals
             catch{
             }
 
+            //this.SharmIPC.LogException("dispose test", new Exception("p6"));
+
             if (rwh != null)
             {
                 rwh.Dispose();
                 rwh = null;
             }
+
+            //this.SharmIPC.LogException("dispose test", new Exception("p7"));
 
         }
 
