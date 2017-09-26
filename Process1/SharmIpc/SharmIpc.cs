@@ -61,8 +61,8 @@ namespace tiesky.com
 
             public void Set_MRE()
             {
-                if (Interlocked.Read(ref IsDisposed) == 1)
-                    return;
+                //if (Interlocked.Read(ref IsDisposed) == 1)
+                //    return;
 
                 if (amre != null)
                 {
