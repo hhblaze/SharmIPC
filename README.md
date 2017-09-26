@@ -84,6 +84,7 @@ void MakeRemoteRequestWithResponse()
 async void MakeRemoteRequestWithResponse()
 {
 	 //Making remote request (a la RPC). SYNC
+	 //Non-blocking current thread construction!
 	 Tuple<bool,byte[]> res = await sm.RemoteRequestAsync(new byte[512]);
 	 //or with callback way
 	 //var res = await sm.RemoteRequestAsync(data, (par) => { },30000);
