@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.0": {
-      "SharmIpc/1.14.2017.0910": {
+      "SharmIpc/1.15.2017.0926": {
         "runtime": {
           "SharmIpc.dll": {}
         }
@@ -14,7 +14,7 @@
     }
   },
   "libraries": {
-    "SharmIpc/1.14.2017.0910": {
+    "SharmIpc/1.15.2017.0926": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
