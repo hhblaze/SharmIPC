@@ -328,12 +328,23 @@ namespace MemoryMappedFile
 
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        async private void button3_Click(object sender, EventArgs e)
         {
-            //if (sm != null)
-            //{
-            //    sm.Dispose();
-            //}
+            for (int j = 0; j < 1; j++)
+            {              
+                var tor = await sm.RemoteRequestAsync(new byte[] { 1 }).ConfigureAwait(false);
+                Console.WriteLine("mmmmm");
+            }
+            
+        }
+
+        async private void button4_Click(object sender, EventArgs e)
+        {
+            for (int j = 0; j < 1; j++)
+            {
+                var tor = await sm.RemoteRequestAsync(new byte[] { 2 }).ConfigureAwait(false);
+                Console.WriteLine("here");
+            }
         }
     }
 }

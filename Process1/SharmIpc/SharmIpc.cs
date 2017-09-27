@@ -275,20 +275,6 @@ namespace tiesky.com
 
         //            }
 
-        //            //Task.Run(() =>
-        //            //{
-        //            //    if (AsyncRemoteCallHandler != null)
-        //            //    {
-        //            //        //CallAsyncRemoteHandler(msgId, bt);
-        //            //        AsyncRemoteCallHandler(msgId, bt);
-        //            //        //Answer must be supplied via AsyncAnswerOnRemoteCall
-        //            //    }
-        //            //    else
-        //            //    {
-        //            //        this.remoteCallHandler(bt);
-        //            //    }
-        //            //});
-
         //            break;
         //        case eMsgType.RpcRequest:
 
@@ -301,19 +287,7 @@ namespace tiesky.com
         //            {
         //                Run(msgId, bt);
         //            }
-        //            //Task.Run(() =>
-        //            //{
-        //            //    if (AsyncRemoteCallHandler != null)
-        //            //    {
-        //            //        AsyncRemoteCallHandler(msgId, bt);
-        //            //        //Answer must be supplied via AsyncAnswerOnRemoteCall
-        //            //    }
-        //            //    else
-        //            //    {
-        //            //        var res = this.remoteCallHandler(bt);
-        //            //        sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
-        //            //    }
-        //            //});
+
 
         //            break;
         //        case eMsgType.ErrorInRpc:
@@ -335,10 +309,7 @@ namespace tiesky.com
         //                    df.TryRemove(msgId, out rsp);
         //                    //Calling callback in parallel thread, quicly to return to ReaderWriterhandler.Reader procedure
         //                    RunV2(rsp, bt);
-        //                    //Task.Run(() =>
-        //                    //{
-        //                    //    rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
-        //                    //});
+
         //                }
         //            }
 
@@ -346,26 +317,26 @@ namespace tiesky.com
         //    }
         //}
 
-        async Task RunAsync(ulong msgId, byte[] bt)
-        {
-            AsyncRemoteCallHandler(msgId, bt);
-        }
+        //async Task RunAsync(ulong msgId, byte[] bt)
+        //{
+        //    AsyncRemoteCallHandler(msgId, bt);
+        //}
 
-        async Task Run(ulong msgId, byte[] bt)
-        {
-            var res = this.remoteCallHandler(bt);
-            sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
-        }
+        //async Task Run(ulong msgId, byte[] bt)
+        //{
+        //    var res = this.remoteCallHandler(bt);
+        //    sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+        //}
 
-        async Task RunV1(byte[] bt)
-        {
-            this.remoteCallHandler(bt);
-        }
+        //async Task RunV1(byte[] bt)
+        //{
+        //    this.remoteCallHandler(bt);
+        //}
 
-        async Task RunV2(ResponseCrate rsp, byte[] bt)
-        {
-            rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
-        }
+        //async Task RunV2(ResponseCrate rsp, byte[] bt)
+        //{
+        //    rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
+        //}
 
 
         /// <summary>
