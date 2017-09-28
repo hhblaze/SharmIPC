@@ -339,7 +339,8 @@ namespace tiesky.com.SharmIpcInternals
             return true;
         }
 
-        async Task WriterV02()
+        //async Task WriterV02()
+        void WriterV02()
         {
             lock (lock_q)
             {
@@ -354,9 +355,6 @@ namespace tiesky.com.SharmIpcInternals
 
             while (true)
             {
-
-               
-
                 if (ewh_Writer_ReadyToWrite.WaitOne())
                 {
                     
@@ -381,8 +379,7 @@ namespace tiesky.com.SharmIpcInternals
                     }
                 }
             }//eo while
-
-            //});
+            
 
         }//eof
 
