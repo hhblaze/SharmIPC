@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>SharmIpc</AssemblyName>
-    <AssemblyVersion>1.15.2017.0926</AssemblyVersion>
-    <FileVersion>1.15.2017.0926</FileVersion>
+    <AssemblyVersion>1.16.2017.0930</AssemblyVersion>
+    <FileVersion>1.16.2017.0930</FileVersion>
     <Description>Inter-process communication IPC for .NET
 </Description>
     <Copyright>Copyright @ sharmipc.tiesky.com / Alex Solovyov (hhblaze@gmail.com)</Copyright>
@@ -12,7 +12,7 @@
     <Authors>sharmipc.tiesky.com</Authors>
     <Company>tiesky.com</Company>
     <PackageProjectUrl>https://github.com/hhblaze/SharmIPC</PackageProjectUrl>
-    <Version>1.15.2017.0926</Version>
+    <Version>1.16.2017.0930</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
