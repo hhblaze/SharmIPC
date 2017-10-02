@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.16.2017.0930</Version>
-    <FileVersion>1.16.2017.0930</FileVersion>
+    <Version>1.17.2017.1002</Version>
+    <FileVersion>1.17.2017.1002</FileVersion>
     <AssemblyName>SharmIpc</AssemblyName>
   </PropertyGroup>
 
@@ -17,7 +17,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ReaderWriterHandler1.cs" />
+    <Compile Remove="SharedMemory1.cs" />
+    <Compile Remove="SharmIpc1.cs" />
+    <Compile Remove="Utils.cs" />
+    <Compile Remove="Utils1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs" Link="AsyncManualResetEvent.cs" />
+    <Compile Include="..\SharmIpc\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
+    <Compile Include="..\SharmIpc\SharedMemory.cs" Link="SharedMemory.cs" />
+    <Compile Include="..\SharmIpc\SharmIpc.cs" Link="SharmIpc.cs" />
+    <Compile Include="..\SharmIpc\Statistic.cs" Link="Statistic.cs" />
+    <Compile Include="..\SharmIpc\Utils.cs" Link="Utils.cs" />
     <Compile Include="..\SharmIpc\WaitHandleAsyncFactory.cs" Link="WaitHandleAsyncFactory.cs" />
   </ItemGroup>
 

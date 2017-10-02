@@ -25,18 +25,20 @@
             
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.ReaderV02(System.Byte[])">
+        <member name="T:tiesky.com.SharmIpcInternals.eProtocolVersion">
             <summary>
-            
+            Both peers must have the same version implementation
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32)">
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32,tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             
             </summary>
             <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
-            /// <param name="SharmIPC">SharmIPC instance</param>
-            <param name="bufferCapacity"></param>        
+            <param name="SharmIPC">SharmIPC instance</param>
+            <param name="bufferCapacity"></param>
+            <param name="maxQueueSizeInBytes"></param>     
+            <param name="protocolVersion"></param> 
         </member>
         <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.Dispose">
             <summary>
@@ -52,19 +54,20 @@
             <param name="length"></param>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.To_UInt32_BigEndian(System.Byte[])">
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.ToProtoBytes(System.UInt64)">
             <summary>
-            From 4 bytes array which is in BigEndian order (highest byte first, lowest last) makes uint.
-            If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
+            Uses protobuf concepts
+            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
             </summary>
             <param name="value"></param>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.To_4_bytes_array_BigEndian(System.Int32)">
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.FromProtoBytes(System.Byte[])">
             <summary>
-            From Int32 to 4 bytes array with BigEndian order (highest byte first, lowest last).        
+            Uses protobuf concepts
+            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
             </summary>
-            <param name="value"></param>
+            <param name="bytes"></param>        
             <returns></returns>
         </member>
         <member name="T:tiesky.com.SharmIpc">
@@ -89,7 +92,7 @@
             Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception})">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -98,8 +101,9 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+            <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception})">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -108,6 +112,7 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+            <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.LogException(System.String,System.Exception)">
             <summary>
@@ -131,18 +136,18 @@
             <param name="msgId"></param>
             <param name="bt"></param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
+        <member name="M:tiesky.com.SharmIpc.RemoteRequest(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
             <summary>
-            Usage var x = await RemoteRequestAsync(...);
+            
             </summary>
             <param name="args">payload which must be send to remote partner</param>
             <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
             <param name="timeoutMs">Default 30 sec</param>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpc.RemoteRequest(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
+        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
             <summary>
-            
+            Usage var x = await RemoteRequestAsync(...);
             </summary>
             <param name="args">payload which must be send to remote partner</param>
             <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>

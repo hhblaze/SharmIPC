@@ -35,6 +35,7 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+            <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
@@ -45,7 +46,7 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
-            <param name="protocolVersion">Both peers must have the same protocolVersion implementation</param>
+            <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.LogException(System.String,System.Exception)">
             <summary>

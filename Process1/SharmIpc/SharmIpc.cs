@@ -106,7 +106,7 @@ namespace tiesky.com
           
         }
 
-      
+
 
         /// <summary>
         /// SharmIpc constructor
@@ -116,7 +116,9 @@ namespace tiesky.com
         /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
-        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null, eProtocolVersion protocolVersion = eProtocolVersion.V1)
+        /// <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
+        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, 
+            Action<string, System.Exception> ExternalExceptionHandler = null, eProtocolVersion protocolVersion = eProtocolVersion.V1)
             :this(uniqueHandlerName,bufferCapacity,maxQueueSizeInBytes,ExternalExceptionHandler, protocolVersion)
         {
             this.remoteCallHandler = remoteCallHandler ?? throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null");
@@ -130,15 +132,18 @@ namespace tiesky.com
         /// <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
         /// <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
         /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
-        /// <param name="protocolVersion">Both peers must have the same protocolVersion implementation</param>
-        public SharmIpc(string uniqueHandlerName, Action<ulong, byte[]> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null, eProtocolVersion protocolVersion = eProtocolVersion.V1)
+        /// <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
+        public SharmIpc(string uniqueHandlerName, Action<ulong, byte[]> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, 
+            Action<string, System.Exception> ExternalExceptionHandler = null, eProtocolVersion protocolVersion = eProtocolVersion.V1)
             : this(uniqueHandlerName, bufferCapacity, maxQueueSizeInBytes, ExternalExceptionHandler, protocolVersion)
         {          
             this.AsyncRemoteCallHandler = remoteCallHandler ?? throw new Exception("tiesky.com.SharmIpc: remoteCallHandler can't be null"); ;
            
         }
 
-        SharmIpc(string uniqueHandlerName, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null, eProtocolVersion protocolVersion = eProtocolVersion.V1)
+       
+        SharmIpc(string uniqueHandlerName, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null, 
+            eProtocolVersion protocolVersion = eProtocolVersion.V1)
         {
             tmr = new Timer(new TimerCallback((state) =>
             {

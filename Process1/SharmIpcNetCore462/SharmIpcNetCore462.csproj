@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>SharmIpc</AssemblyName>
-    <AssemblyVersion>1.16.2017.0930</AssemblyVersion>
-    <FileVersion>1.16.2017.0930</FileVersion>
+    <AssemblyVersion>1.17.2017.1002</AssemblyVersion>
+    <FileVersion>1.17.2017.1002</FileVersion>
     <Description>Inter-process communication IPC for .NET
 </Description>
     <Copyright>Copyright @ sharmipc.tiesky.com / Alex Solovyov (hhblaze@gmail.com)</Copyright>
@@ -12,7 +12,7 @@
     <Authors>sharmipc.tiesky.com</Authors>
     <Company>tiesky.com</Company>
     <PackageProjectUrl>https://github.com/hhblaze/SharmIPC</PackageProjectUrl>
-    <Version>1.16.2017.0930</Version>
+    <Version>1.17.2017.1002</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -25,11 +25,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\SharmIpcNetStandard20\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
-    <Compile Include="..\SharmIpcNetStandard20\SharedMemory.cs" Link="SharedMemory.cs" />
-    <Compile Include="..\SharmIpcNetStandard20\SharmIpc.cs" Link="SharmIpc.cs" />
-    <Compile Include="..\SharmIpcNetStandard20\Utils.cs" Link="Utils.cs" />
     <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs" Link="AsyncManualResetEvent.cs" />
+    <Compile Include="..\SharmIpc\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
+    <Compile Include="..\SharmIpc\SharedMemory.cs" Link="SharedMemory.cs" />
+    <Compile Include="..\SharmIpc\SharmIpc.cs" Link="SharmIpc.cs" />
+    <Compile Include="..\SharmIpc\Statistic.cs" Link="Statistic.cs" />
+    <Compile Include="..\SharmIpc\Utils.cs" Link="Utils.cs" />
     <Compile Include="..\SharmIpc\WaitHandleAsyncFactory.cs" Link="WaitHandleAsyncFactory.cs" />
   </ItemGroup>
 

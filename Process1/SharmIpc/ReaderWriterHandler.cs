@@ -220,6 +220,8 @@ namespace tiesky.com.SharmIpcInternals
                 //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
                 //Writer_accessor = Writer_mmf.CreateViewAccessor(0, sm.bufferCapacity);
 
+
+#if FULLNET
                 var security = new MemoryMappedFileSecurity();
                 security.AddAccessRule(new System.Security.AccessControl.AccessRule<MemoryMappedFileRights>(
                     new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
@@ -232,7 +234,11 @@ namespace tiesky.com.SharmIpcInternals
                 //Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen("Global\\" + sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,  //If started as admin
                 Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
                     MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
-                
+#else
+                Writer_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
+                   MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, System.IO.HandleInheritability.Inheritable);
+#endif
+
                 Writer_accessor = Writer_mmf.CreateViewAccessor(0, sm.bufferCapacity);
                 Writer_accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref Writer_accessor_ptr);
             }
@@ -604,132 +610,10 @@ namespace tiesky.com.SharmIpcInternals
         }//eof
 
 
-        byte[] btMln = new byte[1000000];
-
-        void StartSendProcedure_v2()
-        {
-            lock (lock_q)
-            {
-                if (inSend || q.Count() < 1)
-                    return;
-
-                inSend = true;
-                toSend = q.Dequeue();
-                totalBytesInQUeue -= toSend.Length;
-
-            }
-
-            //Task.Run(() =>
-            //{
-                uint p = 0;
-                int ptr = 0;
-               
-                //here we got smth toSend
-                while (true)
-                {
-                    p = 0;
-                    ptr = 0;
-
-                    //--STAT
-                    this.sm.SharmIPC.Statistic.StartToWait_ReadyToWrite_Signal();
-
-                //if(sm.instanceType == eInstanceType.Master)
-                //    Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> waiting of writing");
-
-                //if (ewh_Writer_ReadyToWrite.WaitOne(2 * 1000))
-                //if (await WaitHandleAsyncFactory.FromWaitHandle(ewh_Writer_ReadyToWrite).ConfigureAwait(false))
-                if (ewh_Writer_ReadyToWrite.WaitOne())
-                {
-                        //--STAT
-                        this.sm.SharmIPC.Statistic.StopToWait_ReadyToWrite_Signal();
-
-                        ewh_Writer_ReadyToWrite.Reset();
-                        //Writing into MMF      
-
-
-                        while(true)
-                        {
-                            //Collecting messages 2b sent
-                            if (toSend == null)
-                            {
-                                lock (lock_q)
-                                {
-                                    if (q.Count() < 1)
-                                        break;
-
-                                    toSend = q.Dequeue();
-                                }
-                                totalBytesInQUeue -= toSend.Length;
-                                if (ptr + toSend.Length > btMln.Length)
-                                    break;
-                            }
-
-                            Buffer.BlockCopy(toSend, 0, btMln, ptr, toSend.Length);
-                            p++;
-                            ptr += toSend.Length;
-                            toSend = null;
-                            if (ptr >= btMln.Length)
-                                break;
-                        }
-
-                        toSend = new byte[3 + ptr];
-                        Buffer.BlockCopy(btMln, 0, toSend, 3, ptr);                        
-                        Buffer.BlockCopy(BitConverter.GetBytes(p), 0, toSend, 1, 2);
-                        toSend[0] = 5;
-
-                    //Writer_accessor.WriteArray<byte>(0, toSend, 0, toSend.Length);
-
-                    //this.WriteBytes(Writer_accessor_ptr, 0, toSend);
-                    this.WriteBytes(0, toSend);
-                    toSend = null;
-
-                        //Setting signal ready to read
-                        ewh_Writer_ReadyToRead.Set();
-
-
-
-                        lock (lock_q)
-                        {
-                            if (q.Count() == 0)
-                            {
-                                toSend = null;
-                                inSend = false;
-                                return;
-                            }
-                            toSend = q.Dequeue();
-                            totalBytesInQUeue -= toSend.Length;
-                        }
-                    }
-                }//eo while
-
-            //});
-
-        }//eof
-
-        //unsafe void WriteBytes(byte* ptr, int offset, byte[] data)
-        //{
-        //    //--STAT
-        //    this.sm.SharmIPC.Statistic.Writing(data.Length);
-
-        //    Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(ptr), offset), data.Length);
-
-        //    //https://msdn.microsoft.com/en-us/library/system.io.memorymappedfiles.memorymappedviewaccessor.safememorymappedviewhandle(v=vs.100).aspx
-        //}
-
-        //unsafe byte[] ReadBytes(byte* ptr, int offset, int num)
-        //{
-        //    //--STAT
-        //    this.sm.SharmIPC.Statistic.Reading(num);
-
-        //    byte[] arr = new byte[num];
-        //    Marshal.Copy(IntPtr.Add(new IntPtr(ptr), offset), arr, 0, num);
-        //    return arr;
-        //}
-
         unsafe void WriteBytes(int offset, byte[] data)
         {
-            //--STAT
-            this.sm.SharmIPC.Statistic.Writing(data.Length);
+            ////--STAT
+            //this.sm.SharmIPC.Statistic.Writing(data.Length);
 
             Marshal.Copy(data, 0, IntPtr.Add(new IntPtr(Writer_accessor_ptr), offset), data.Length);
 
@@ -738,8 +622,8 @@ namespace tiesky.com.SharmIpcInternals
 
         unsafe byte[] ReadBytes(int offset, int num)
         {
-            //--STAT
-            this.sm.SharmIPC.Statistic.Reading(num);
+            ////--STAT
+            //this.sm.SharmIPC.Statistic.Reading(num);
 
             byte[] arr = new byte[num];
             Marshal.Copy(IntPtr.Add(new IntPtr(Reader_accessor_ptr), offset), arr, 0, num);
@@ -779,6 +663,7 @@ namespace tiesky.com.SharmIpcInternals
                 //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity, MemoryMappedFileAccess.ReadWrite);
                 //Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
 
+#if FULLNET
                 var security = new MemoryMappedFileSecurity();
                 security.AddAccessRule(new System.Security.AccessControl.AccessRule<MemoryMappedFileRights>(
                     new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
@@ -787,7 +672,10 @@ namespace tiesky.com.SharmIpcInternals
                 //Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(@"Global\MapName1", sm.bufferCapacity, 
                 Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
                     MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, security, System.IO.HandleInheritability.Inheritable);
-
+#else
+                Reader_mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(sm.uniqueHandlerName + prefix + "_SharmNet_MMF", sm.bufferCapacity,
+                    MemoryMappedFileAccess.ReadWrite, MemoryMappedFileOptions.DelayAllocatePages, System.IO.HandleInheritability.Inheritable);
+#endif
 
                 Reader_accessor = Reader_mmf.CreateViewAccessor(0, sm.bufferCapacity);
                 //AcquirePointer();

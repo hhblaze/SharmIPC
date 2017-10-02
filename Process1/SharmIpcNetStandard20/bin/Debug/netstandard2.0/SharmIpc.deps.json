@@ -7,13 +7,13 @@
   "targets": {
     ".NETStandard,Version=v2.0": {},
     ".NETStandard,Version=v2.0/": {
-      "SharmIpcNetStandard20/1.0.0": {
+      "SharmIpc/1.17.2017.1002": {
         "dependencies": {
           "NETStandard.Library": "2.0.0",
           "System.IO.MemoryMappedFiles": "4.3.0"
         },
         "runtime": {
-          "SharmIpcNetStandard20.dll": {}
+          "SharmIpc.dll": {}
         }
       },
       "Microsoft.NETCore.Platforms/1.1.0": {},
@@ -205,7 +205,7 @@
     }
   },
   "libraries": {
-    "SharmIpcNetStandard20/1.0.0": {
+    "SharmIpc/1.17.2017.1002": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
