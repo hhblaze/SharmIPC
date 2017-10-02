@@ -47,7 +47,7 @@ namespace tiesky.com
             public AsyncManualResetEvent amre = null;
 
             public DateTime created = DateTime.UtcNow;
-            public int Timeouts = 30;
+            public int TimeoutsMs = 30000;
 
             public void Init_MRE()
             {
@@ -148,7 +148,7 @@ namespace tiesky.com
             tmr = new Timer(new TimerCallback((state) =>
             {
                 DateTime now = DateTime.UtcNow;
-                foreach (var el in df.Where(r => r.Value.amre != null && now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.Timeouts))
+                foreach (var el in df.Where(r => r.Value.amre != null && now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs))
                     el.Value.Set_MRE();
             }), null, 10000, 10000);
 
@@ -357,6 +357,7 @@ namespace tiesky.com
        
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
+            resp.TimeoutsMs = timeoutMs;
 
             if (callBack != null)
             {
@@ -429,6 +430,7 @@ namespace tiesky.com
 
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
+            resp.TimeoutsMs = timeoutMs;
 
             //if (callBack != null)
             //{
@@ -444,10 +446,10 @@ namespace tiesky.com
 
             //    return new Tuple<bool, byte[]>(true, null);
             //}
-            
+
             //resp.mre = new ManualResetEvent(false);
             resp.Init_AMRE();
-            resp.Timeouts = timeoutMs;
+            
 
             df[msgId] = resp;
 
