@@ -57,7 +57,7 @@ namespace mmf2client
             //    //sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9, 4, 12, 17, 25 }));
             //    sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 9 }));
             //}
-            //);
+            //); 
         }
 
 
@@ -65,7 +65,7 @@ namespace mmf2client
         {
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpcInternals.eProtocolVersion.V2);
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
             }
 

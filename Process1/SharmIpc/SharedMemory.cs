@@ -22,7 +22,16 @@ namespace tiesky.com.SharmIpcInternals
         ErrorInRpc=3,     
         Request = 4,
 
-        SwitchToV2=5
+        //SwitchToV2=5
+    }
+
+    /// <summary>
+    /// Both peers must have the same version implementation
+    /// </summary>
+    public enum eProtocolVersion
+    {
+        V1,
+        V2
     }
 
     
@@ -45,18 +54,22 @@ namespace tiesky.com.SharmIpcInternals
 
         ReaderWriterHandler rwh = null;
         internal SharmIpc SharmIPC = null;
-            
+
+        internal eProtocolVersion ProtocolVersion = eProtocolVersion.V1;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
         /// <param name="SharmIPC">SharmIPC instance</param>
         /// <param name="bufferCapacity"></param>
-        /// <param name="maxQueueSizeInBytes"></param>                 
-        public SharedMemory(string uniqueHandlerName, SharmIpc SharmIPC, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000)
+        /// <param name="maxQueueSizeInBytes"></param>     
+        /// <param name="protocolVersion"></param> 
+        public SharedMemory(string uniqueHandlerName, SharmIpc SharmIPC, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, eProtocolVersion protocolVersion = eProtocolVersion.V1)
         {
             this.SharmIPC = SharmIPC;
             this.maxQueueSizeInBytes = maxQueueSizeInBytes;
+            this.ProtocolVersion = protocolVersion;
 
             //if (dataArrived == null)
             //    throw new Exception("tiesky.com.SharmIpc: dataArrived callback can't be empty");
@@ -143,7 +156,16 @@ namespace tiesky.com.SharmIpcInternals
 
         public bool SendMessage(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId = 0)     
         {
-            return this.rwh.SendMessage(msgType, msgId, msg, responseMsgId);
+            switch(ProtocolVersion)
+            {
+                case eProtocolVersion.V1:
+                    return this.rwh.SendMessage(msgType, msgId, msg, responseMsgId);                    
+                case eProtocolVersion.V2:
+                    return this.rwh.SendMessageV2(msgType, msgId, msg, responseMsgId);
+                    
+            }
+
+            return false;
         }
 
 

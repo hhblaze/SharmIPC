@@ -70,6 +70,69 @@ namespace tiesky.com.SharmIpcInternals
        
         }
 
+        /// <summary>
+        /// Uses protobuf concepts
+        /// //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static byte[] ToProtoBytes(ulong value)
+        {
+            var buffer = new byte[10];
+            var pos = 0;
+            do
+            {
+                var byteVal = value & 0x7f;
+                value >>= 7;
+
+                if (value != 0)
+                {
+                    byteVal |= 0x80;
+                }
+
+                buffer[pos++] = (byte)byteVal;
+
+            } while (value != 0);
+
+            var result = new byte[pos];
+            Buffer.BlockCopy(buffer, 0, result, 0, pos);
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Uses protobuf concepts
+        /// //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
+        /// </summary>
+        /// <param name="bytes"></param>        
+        /// <returns></returns>
+        private static ulong FromProtoBytes(byte[] bytes)
+        {
+            int shift = 0;
+            ulong result = 0;
+
+            foreach (ulong byteValue in bytes)
+            {
+                ulong tmp = byteValue & 0x7f;
+                result |= tmp << shift;
+
+                //if (shift > sizeBites)
+                //{
+                //    throw new ArgumentOutOfRangeException("bytes", "Byte array is too large.");
+                //}
+
+                if ((byteValue & 0x80) != 0x80)
+                {
+                    return result;
+                }
+
+                shift += 7;
+            }
+
+            throw new ArgumentException("Cannot decode varint from byte array.", "bytes");
+        }
+
 
     }
 }

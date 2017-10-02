@@ -78,7 +78,7 @@ namespace MemoryMappedFile
 
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpcInternals.eProtocolVersion.V2);
                 //or to get ability to answer to remote partner in async way
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
@@ -105,22 +105,21 @@ namespace MemoryMappedFile
             //    }
             //});
 
-            //Task.Run(async () =>
+         
+            //sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //for (int j = 0; j < 10000; j++)
             //{
-            sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
-            for (int j = 0; j < 10000; j++)
-            {
-                //var tor = sm.RemoteRequest(new byte[1]);
-                var tor = await sm.RemoteRequestAsync(new byte[1], null);
-                //mll.Add(tor.Item2);
+            //    //var tor = sm.RemoteRequest(new byte[1]);
+            //    var tor = await sm.RemoteRequestAsync(new byte[1] { 17 }, null);
+            //    //mll.Add(tor.Item2);
 
-            }
-            sw.Stop();
-            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-            //});
-            return;
+            //}
+            //sw.Stop();
+            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+          
+            //return;
 
 
             //sw = new System.Diagnostics.Stopwatch();
@@ -189,12 +188,13 @@ namespace MemoryMappedFile
 
             //var t = Task.Run(() => { sm.RemoteRequest(new byte[50]); });
             for (int i = 0; i < 5; i++)
-            {
+            { 
                 int index = i;
                 //tasks.Add(Task.Factory.StartNew(a));
 
                 //tasks.Add(Task.Factory.StartNew(RunMeManyAsync));
-                tasks.Add(RunMeManyAsync());
+                tasks.Add(Task.Run(() =>  RunMeManyAsync() ));
+                //tasks.Add(RunMeManyAsync());
             }
 
             sw = new System.Diagnostics.Stopwatch();
@@ -216,7 +216,7 @@ namespace MemoryMappedFile
 
                 //});
 
-                var tor = await sm.RemoteRequestAsync(new byte[1], null);
+                var tor = await sm.RemoteRequestAsync(new byte[] { 18 }, null);
 
             }
         }

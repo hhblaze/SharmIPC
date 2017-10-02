@@ -26,7 +26,7 @@
             Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception})">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -36,7 +36,7 @@
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception})">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -45,6 +45,7 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+            <param name="protocolVersion">Both peers must have the same protocolVersion implementation</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.LogException(System.String,System.Exception)">
             <summary>
@@ -119,19 +120,20 @@
             
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.ReaderV02(System.Byte[])">
+        <member name="T:tiesky.com.SharmIpcInternals.eProtocolVersion">
             <summary>
-            
+            Both peers must have the same version implementation
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32)">
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32,tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             
             </summary>
             <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
             <param name="SharmIPC">SharmIPC instance</param>
             <param name="bufferCapacity"></param>
-            <param name="maxQueueSizeInBytes"></param>                 
+            <param name="maxQueueSizeInBytes"></param>     
+            <param name="protocolVersion"></param> 
         </member>
         <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.Dispose">
             <summary>
@@ -145,6 +147,22 @@
             <param name="ar"></param>
             <param name="startIndex"></param>
             <param name="length"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.ToProtoBytes(System.UInt64)">
+            <summary>
+            Uses protobuf concepts
+            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.FromProtoBytes(System.Byte[])">
+            <summary>
+            Uses protobuf concepts
+            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
+            </summary>
+            <param name="bytes"></param>        
             <returns></returns>
         </member>
         <member name="T:tiesky.com.WaitHandleAsyncFactory">

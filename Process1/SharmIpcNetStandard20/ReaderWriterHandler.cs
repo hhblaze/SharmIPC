@@ -355,9 +355,11 @@ namespace tiesky.com.SharmIpcInternals
 
             while (true)
             {
-                if (ewh_Writer_ReadyToWrite.WaitOne())
+                if (ewh_Writer_ReadyToWrite.WaitOne())  //We don't need here async awaiter
                 {
-                    
+
+                    if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
+                        return;
 
                     ewh_Writer_ReadyToWrite.Reset();
 
