@@ -111,7 +111,7 @@ namespace MemoryMappedFile
             //for (int j = 0; j < 10000; j++)
             //{
             //    //var tor = sm.RemoteRequest(new byte[1]);
-            //    var tor = await sm.RemoteRequestAsync(new byte[1] { 17 }, null);
+            //    var tor = await sm.RemoteRequestAsync(new byte[1] { 17 });
             //    //mll.Add(tor.Item2);
 
             //}
@@ -127,10 +127,7 @@ namespace MemoryMappedFile
 
             //for (int j = 0; j < 10000; j++)
             //{
-            //    var tor = await sm.RemoteRequestAsync(new byte[1], (ans) =>
-            //    {
-
-            //    });
+            //    var tor = await sm.RemoteRequestAsync(new byte[1]);
 
             //}
             //sw.Stop();
@@ -216,7 +213,7 @@ namespace MemoryMappedFile
 
                 //});
 
-                var tor = await sm.RemoteRequestAsync(new byte[] { 18 }, null);
+                var tor = await sm.RemoteRequestAsync(new byte[] { 18 });
 
             }
         }

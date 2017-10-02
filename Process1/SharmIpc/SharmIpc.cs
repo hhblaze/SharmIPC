@@ -419,11 +419,10 @@ namespace tiesky.com
         /// <summary>
         /// Usage var x = await RemoteRequestAsync(...);
         /// </summary>
-        /// <param name="args">payload which must be send to remote partner</param>
-        /// <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
+        /// <param name="args">payload which must be send to remote partner</param>        
         /// <param name="timeoutMs">Default 30 sec</param>
         /// <returns></returns>
-        public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
+        public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
         {
             if (Interlocked.Read(ref Disposed) == 1)
                 return new Tuple<bool, byte[]>(false, null);
@@ -431,20 +430,20 @@ namespace tiesky.com
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
 
-            if (callBack != null)
-            {
-                //Async return
-                resp.callBack = callBack;
-                df[msgId] = resp;
-                if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
-                {
-                    df.TryRemove(msgId, out resp);
-                    callBack(new Tuple<bool, byte[]>(false, null));
-                    return new Tuple<bool, byte[]>(false, null);
-                }
+            //if (callBack != null)
+            //{
+            //    //Async return
+            //    resp.callBack = callBack;
+            //    df[msgId] = resp;
+            //    if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
+            //    {
+            //        df.TryRemove(msgId, out resp);
+            //        callBack(new Tuple<bool, byte[]>(false, null));
+            //        return new Tuple<bool, byte[]>(false, null);
+            //    }
 
-                return new Tuple<bool, byte[]>(true, null);
-            }
+            //    return new Tuple<bool, byte[]>(true, null);
+            //}
             
             //resp.mre = new ManualResetEvent(false);
             resp.Init_AMRE();
@@ -461,44 +460,9 @@ namespace tiesky.com
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
+                       
+            await resp.amre.WaitAsync();    //.ConfigureAwait(false);
 
-            ////else if (!resp.mre.WaitOne(timeoutMs))
-            //else if (!resp.WaitOne_MRE(timeoutMs))
-            //{
-            //    //--STAT
-            //    this.Statistic.Timeout();
-
-            //    //if (resp.mre != null)
-            //    //    resp.mre.Dispose();
-            //    //resp.mre = null;
-            //    resp.Dispose_MRE();
-            //    df.TryRemove(msgId, out resp);
-            //    return new Tuple<bool, byte[]>(false, null);
-            //}
-
-
-            //resp.TokenSource.Cancel();
-            //CancellationToken ct = new CancellationToken();
-            //var t = Task.Delay(timeoutMs,ct);
-            //try
-            //{
-            //    await Task.WhenAny(resp.amre.WaitAsync(), t).ConfigureAwait(false);                
-            //    t.Dispose();
-            //}
-            //catch (Exception ex)
-            //{
-                
-            //}
-            
-            //await Task.WhenAny(resp.amre.WaitAsync(), Task.Delay(timeoutMs)).ConfigureAwait(false);
-            //await resp.amre.WaitAsync().ConfigureAwait(false);
-            await resp.amre.WaitAsync();
-
-            //tskWait.Dispose();
-
-            //if (resp.mre != null)
-            //    resp.mre.Dispose();
-            //resp.mre = null;
             resp.Dispose_MRE();
 
             if (df.TryRemove(msgId, out resp))
