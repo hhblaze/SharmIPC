@@ -148,8 +148,28 @@ namespace tiesky.com
             tmr = new Timer(new TimerCallback((state) =>
             {
                 DateTime now = DateTime.UtcNow;
-                foreach (var el in df.Where(r => r.Value.amre != null && now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs))
-                    el.Value.Set_MRE();
+                //r.Value.amre != null &&
+                //foreach (var el in df)
+                //{
+                //    Console.WriteLine(el.Key + "    "  + now.Subtract(el.Value.created).TotalMilliseconds);
+                //}
+                //ResponseCrate
+                List<ulong> toRemove = new List<ulong>();
+                foreach (var el in df.Where(r => now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs))
+                {
+                    if(el.Value.callBack != null)
+                        toRemove.Add(el.Key);
+                    else 
+                        el.Value.Set_MRE();
+                }
+
+                ResponseCrate rc = null;
+                foreach(var el in toRemove)
+                {
+                    if(df.TryRemove(el, out rc))
+                        rc.callBack(new Tuple<bool, byte[]>(false, null));  //timeout
+                }
+
             }), null, 10000, 10000);
 
 

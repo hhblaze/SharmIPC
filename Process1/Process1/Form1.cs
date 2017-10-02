@@ -87,11 +87,19 @@ namespace MemoryMappedFile
         }
 
         #region "test"
-        async void t001_TestIntensiveParallel()
+        async Task t001_TestIntensiveParallel()
         {
             System.Diagnostics.Stopwatch sw = null;
             List<byte[]> mll = new List<byte[]>();
 
+
+            var uzuz = sm.RemoteRequest(new byte[] { 50 }, (Tuple<bool, byte[]> myres1) => 
+            {
+                Console.WriteLine("received");
+            }, timeoutMs: 10000);
+
+
+            return;
 
             //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
             //return;
