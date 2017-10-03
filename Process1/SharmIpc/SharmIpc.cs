@@ -39,7 +39,7 @@ namespace tiesky.com
             /// <summary>
             /// Not SLIM version must be used (it works faster for longer delay which RPCs are)
             /// </summary>
-            ManualResetEvent mre = null;
+            public ManualResetEvent mre = null;
             public byte[] res = null;
             public Action<Tuple<bool, byte[]>> callBack = null;
             public bool IsRespOk = false;
@@ -54,6 +54,9 @@ namespace tiesky.com
                 mre = new ManualResetEvent(false);
             }
 
+            /// <summary>
+            /// Works faster with timer than WaitOneAsync
+            /// </summary>
             public void Init_AMRE()
             {
                 amre = new AsyncManualResetEvent();
@@ -61,29 +64,46 @@ namespace tiesky.com
 
             public void Set_MRE()
             {
-                //if (Interlocked.Read(ref IsDisposed) == 1)
-                //    return;
-
-                if (amre != null)
+              
+                if (mre != null)
+                {
+                    mre.Set();
+                }
+                else if (amre != null)
                 {
                     amre.Set();
                 }
-                else if (mre != null)
-                { 
-                    mre.Set();
-                }
 
-                //if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)
-                //    return;
-               
             }
 
             public bool WaitOne_MRE(int timeouts)
             {
-                if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)
-                    return false;
+                //if (Interlocked.Read(ref IsDisposed) == 1 || mre == null)  //No sense
+                //    return false;
                 return mre.WaitOne(timeouts);
             }
+
+            /// <summary>
+            /// Works slower than amre (AsyncManualResetEvent) with the timer
+            /// </summary>
+            /// <param name="timeouts"></param>
+            /// <returns></returns>
+            async public Task WaitOneAsync(int timeouts)
+            {
+
+                //await resp.amre.WaitAsync();
+                await mre.AsTask(TimeSpan.FromMilliseconds(timeouts));
+            }
+
+            //async public Task<bool> WaitOneAsync()
+            //{
+            //    //if (Interlocked.Read(ref IsDisposed) == 1 || amre == null)
+            //    //    return false;
+
+            //    return await amre.WaitAsync();
+
+            //}
+
 
             long IsDisposed = 0;
             public void Dispose_MRE()
@@ -148,12 +168,9 @@ namespace tiesky.com
             tmr = new Timer(new TimerCallback((state) =>
             {
                 DateTime now = DateTime.UtcNow;
-                //r.Value.amre != null &&
-                //foreach (var el in df)
-                //{
-                //    Console.WriteLine(el.Key + "    "  + now.Subtract(el.Value.created).TotalMilliseconds);
-                //}
-                //ResponseCrate
+              
+                //This timer is necessary for Calls based on Callbacks, calls based on WaitHandler have their own timeout,
+                //That's why for non-callback calls, timeout will be infinite
                 List<ulong> toRemove = new List<ulong>();
                 foreach (var el in df.Where(r => now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs))
                 {
@@ -377,10 +394,12 @@ namespace tiesky.com
        
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
-            resp.TimeoutsMs = timeoutMs;
+            
 
             if (callBack != null)
             {
+                resp.TimeoutsMs = timeoutMs; //IS NECESSARY FOR THE CALLBACK TYPE OF RETURN
+
                 //Async return
                 resp.callBack = callBack;
                 df[msgId] = resp;
@@ -393,6 +412,8 @@ namespace tiesky.com
 
                 return new Tuple<bool, byte[]>(true, null);
             }
+
+            resp.TimeoutsMs = Int32.MaxValue; //using timeout of the wait handle (not the timer)
 
 
             //resp.mre = new ManualResetEvent(false);
@@ -450,24 +471,10 @@ namespace tiesky.com
 
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
-            resp.TimeoutsMs = timeoutMs;
+            resp.TimeoutsMs = timeoutMs; //enable for amre
+            //resp.TimeoutsMs = Int32.MaxValue; //using timeout of the wait handle (not the timer), enable for mre
 
-            //if (callBack != null)
-            //{
-            //    //Async return
-            //    resp.callBack = callBack;
-            //    df[msgId] = resp;
-            //    if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
-            //    {
-            //        df.TryRemove(msgId, out resp);
-            //        callBack(new Tuple<bool, byte[]>(false, null));
-            //        return new Tuple<bool, byte[]>(false, null);
-            //    }
-
-            //    return new Tuple<bool, byte[]>(true, null);
-            //}
-
-            //resp.mre = new ManualResetEvent(false);
+            //resp.Init_MRE();
             resp.Init_AMRE();
             
 
@@ -482,8 +489,10 @@ namespace tiesky.com
                 df.TryRemove(msgId, out resp);
                 return new Tuple<bool, byte[]>(false, null);
             }
-                       
-            await resp.amre.WaitAsync();    //.ConfigureAwait(false);
+                        
+            //await resp.mre.AsTask(TimeSpan.FromMilliseconds(timeoutMs));        //enable for mre
+            await resp.amre.WaitAsync();    //enable for amre
+
 
             resp.Dispose_MRE();
 

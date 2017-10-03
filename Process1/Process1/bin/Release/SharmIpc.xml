@@ -26,6 +26,18 @@
             Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
+        <member name="M:tiesky.com.SharmIpc.ResponseCrate.Init_AMRE">
+            <summary>
+            Works faster with timer than WaitOneAsync
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.ResponseCrate.WaitOneAsync(System.Int32)">
+            <summary>
+            Works slower than amre (AsyncManualResetEvent) with the timer
+            </summary>
+            <param name="timeouts"></param>
+            <returns></returns>
+        </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             SharmIpc constructor
@@ -35,6 +47,7 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
+            <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
@@ -45,7 +58,7 @@
             <param name="bufferCapacity">bigger buffer sends larger datablocks faster. Default value is 50000</param>
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
-            <param name="protocolVersion">Both peers must have the same protocolVersion implementation</param>
+            <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.LogException(System.String,System.Exception)">
             <summary>
@@ -78,12 +91,11 @@
             <param name="timeoutMs">Default 30 sec</param>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
+        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Int32)">
             <summary>
             Usage var x = await RemoteRequestAsync(...);
             </summary>
-            <param name="args">payload which must be send to remote partner</param>
-            <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
+            <param name="args">payload which must be send to remote partner</param>        
             <param name="timeoutMs">Default 30 sec</param>
             <returns></returns>
         </member>

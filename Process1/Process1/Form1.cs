@@ -93,13 +93,13 @@ namespace MemoryMappedFile
             List<byte[]> mll = new List<byte[]>();
 
 
-            var uzuz = sm.RemoteRequest(new byte[] { 50 }, (Tuple<bool, byte[]> myres1) => 
-            {
-                Console.WriteLine("received");
-            }, timeoutMs: 10000);
+            //var uzuz = sm.RemoteRequest(new byte[] { 50 }, (Tuple<bool, byte[]> myres1) => 
+            //{
+            //    Console.WriteLine("received");
+            //}, timeoutMs: 10000);
 
 
-            return;
+            //return;
 
             //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
             //return;
@@ -113,21 +113,21 @@ namespace MemoryMappedFile
             //    }
             //});
 
-         
-            //sw = new System.Diagnostics.Stopwatch();
-            //sw.Start();
-            //for (int j = 0; j < 10000; j++)
-            //{
-            //    //var tor = sm.RemoteRequest(new byte[1]);
-            //    var tor = await sm.RemoteRequestAsync(new byte[1] { 17 });
-            //    //mll.Add(tor.Item2);
 
-            //}
-            //sw.Stop();
-            //Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            //MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
-          
-            //return;
+            sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            for (int j = 0; j < 10000; j++)
+            {
+                //var tor = sm.RemoteRequest(new byte[1]);
+                var tor = await sm.RemoteRequestAsync(new byte[1] { 17 });
+                //mll.Add(tor.Item2);
+
+            }
+            sw.Stop();
+            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
+            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+
+            return;
 
 
             //sw = new System.Diagnostics.Stopwatch();

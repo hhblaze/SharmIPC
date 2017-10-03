@@ -26,6 +26,18 @@
             Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
+        <member name="M:tiesky.com.SharmIpc.ResponseCrate.Init_AMRE">
+            <summary>
+            Works faster with timer than WaitOneAsync
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.ResponseCrate.WaitOneAsync(System.Int32)">
+            <summary>
+            Works slower than amre (AsyncManualResetEvent) with the timer
+            </summary>
+            <param name="timeouts"></param>
+            <returns></returns>
+        </member>
         <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
             <summary>
             SharmIpc constructor
