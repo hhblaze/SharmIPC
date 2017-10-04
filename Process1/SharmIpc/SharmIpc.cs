@@ -17,6 +17,15 @@ namespace tiesky.com
     /// </summary>
     public class SharmIpc:IDisposable
     {
+        /// <summary>
+        /// Both peers must have the same version implementation
+        /// </summary>
+        public enum eProtocolVersion
+        {
+            V1 = 0, //Must be 0 for compatibility
+            V2 = 2
+        }
+
         Func<byte[], Tuple<bool, byte[]>> remoteCallHandler = null;
         /// <summary>
         /// If we don't want to answer in sync way via remoteCallHandler
@@ -126,7 +135,13 @@ namespace tiesky.com
           
         }
 
-
+        /// <summary>
+        /// Communication protocol, must be the same for both peers. Can be setup via constructor
+        /// </summary>
+        public eProtocolVersion ProtocolVersion
+        {
+            get { return this.sm.ProtocolVersion; }
+        }
 
         /// <summary>
         /// SharmIpc constructor

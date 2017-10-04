@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.IO.MemoryMappedFiles;
 
+
 namespace tiesky.com.SharmIpcInternals
 {
     internal enum eInstanceType
@@ -25,14 +26,7 @@ namespace tiesky.com.SharmIpcInternals
         //SwitchToV2=5
     }
 
-    /// <summary>
-    /// Both peers must have the same version implementation
-    /// </summary>
-    public enum eProtocolVersion
-    {
-        V1,
-        V2
-    }
+ 
 
     
     internal class SharedMemory:IDisposable
@@ -55,7 +49,7 @@ namespace tiesky.com.SharmIpcInternals
         ReaderWriterHandler rwh = null;
         internal SharmIpc SharmIPC = null;
 
-        internal eProtocolVersion ProtocolVersion = eProtocolVersion.V1;
+        internal tiesky.com.SharmIpc.eProtocolVersion ProtocolVersion = tiesky.com.SharmIpc.eProtocolVersion.V1;
 
         /// <summary>
         /// 
@@ -65,7 +59,7 @@ namespace tiesky.com.SharmIpcInternals
         /// <param name="bufferCapacity"></param>
         /// <param name="maxQueueSizeInBytes"></param>     
         /// <param name="protocolVersion"></param> 
-        public SharedMemory(string uniqueHandlerName, SharmIpc SharmIPC, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, eProtocolVersion protocolVersion = eProtocolVersion.V1)
+        public SharedMemory(string uniqueHandlerName, SharmIpc SharmIPC, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, tiesky.com.SharmIpc.eProtocolVersion protocolVersion = tiesky.com.SharmIpc.eProtocolVersion.V1)
         {
             this.SharmIPC = SharmIPC;
             this.maxQueueSizeInBytes = maxQueueSizeInBytes;
@@ -158,9 +152,9 @@ namespace tiesky.com.SharmIpcInternals
         {
             switch(ProtocolVersion)
             {
-                case eProtocolVersion.V1:
+                case tiesky.com.SharmIpc.eProtocolVersion.V1:
                     return this.rwh.SendMessage(msgType, msgId, msg, responseMsgId);                    
-                case eProtocolVersion.V2:
+                case tiesky.com.SharmIpc.eProtocolVersion.V2:
                     return this.rwh.SendMessageV2(msgType, msgId, msg, responseMsgId);
                     
             }

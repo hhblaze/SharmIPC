@@ -78,7 +78,7 @@ namespace MemoryMappedFile
 
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpcInternals.eProtocolVersion.V2);
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V2);
                 //or to get ability to answer to remote partner in async way
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }

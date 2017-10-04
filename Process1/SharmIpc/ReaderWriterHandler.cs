@@ -318,7 +318,10 @@ namespace tiesky.com.SharmIpcInternals
 
                 this.sm.SharmIPC.LogException(
                     "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessage: max queue treshold is reached" + sm.maxQueueSizeInBytes,
-                    new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes));
+                    new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes +
+                    $"; totalBytesInQUeue: {totalBytesInQUeue}; q.Count: {q.Count}; " +
+                    $"_ready2writeSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2writeSignal_Last_Setup}" +
+                    $"_ready2ReadSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2ReadSignal_Last_Setup}"));
 
                 //throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
 
@@ -404,6 +407,14 @@ namespace tiesky.com.SharmIpcInternals
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="msgType"></param>
+        /// <param name="msgId"></param>
+        /// <param name="msg"></param>
+        /// <param name="responseMsgId"></param>
+        /// <returns></returns>
         public bool SendMessageV2(eMsgType msgType, ulong msgId, byte[] msg, ulong responseMsgId = 0)
         {
             if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
@@ -416,8 +427,11 @@ namespace tiesky.com.SharmIpcInternals
                 this.sm.SharmIPC.Statistic.TotalBytesInQueueError();
 
                 this.sm.SharmIPC.LogException(
-                    "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessage: max queue treshold is reached" + sm.maxQueueSizeInBytes,
-                    new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes));
+                      "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessageV2: max queue treshold is reached" + sm.maxQueueSizeInBytes,
+                      new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes +
+                      $"; totalBytesInQUeue: {totalBytesInQUeue}; q.Count: {q.Count}; " +
+                      $"_ready2writeSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2writeSignal_Last_Setup}" +
+                      $"_ready2ReadSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2ReadSignal_Last_Setup}"));
 
                 //throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
 
@@ -492,6 +506,9 @@ namespace tiesky.com.SharmIpcInternals
             return true;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
         void WriterV01()
         {
             lock (lock_q)
@@ -686,10 +703,10 @@ namespace tiesky.com.SharmIpcInternals
             {
                 switch (this.sm.ProtocolVersion)
                 {
-                    case eProtocolVersion.V1:
+                    case tiesky.com.SharmIpc.eProtocolVersion.V1:
                         ReaderV01();
                         break;
-                    case eProtocolVersion.V2:
+                    case tiesky.com.SharmIpc.eProtocolVersion.V2:
                         ReaderV02();
                         break;
 

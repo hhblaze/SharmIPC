@@ -67,7 +67,7 @@ namespace mmf2client
         {
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpcInternals.eProtocolVersion.V2);
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V2);
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
             }
 

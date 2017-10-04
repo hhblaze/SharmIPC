@@ -13,7 +13,8 @@ namespace tiesky.com.SharmIpcInternals
         long _ready2writeSignal_Last = -1;
         long _ready2writeSignal_Max = -1;
         DateTime _ready2writeSignal_Max_Setup = DateTime.MinValue;
-        DateTime _ready2writeSignal_Last_Setup = DateTime.MinValue;
+        public DateTime _ready2ReadSignal_Last_Setup = DateTime.MinValue;
+        public DateTime _ready2writeSignal_Last_Setup = DateTime.MinValue;
         const string dtf = "dd.MM.yyyy HH:mm:ss.ms";
         ulong _ready2writeSignal_Calls = 0;
         ulong _writing = 0;
@@ -42,6 +43,8 @@ namespace tiesky.com.SharmIpcInternals
 
         public void Stop_WaitForRead_Signal()
         {
+            _ready2ReadSignal_Last_Setup = DateTime.UtcNow;
+
             if (_waitForRead_Start == DateTime.MinValue)
                 return;
 
@@ -78,8 +81,9 @@ namespace tiesky.com.SharmIpcInternals
 
         public void StopToWait_ReadyToWrite_Signal()
         {
-            _ready2writeSignal_Last = DateTime.UtcNow.Subtract(_ready2writeSignal_Start).Ticks;
             _ready2writeSignal_Last_Setup = DateTime.UtcNow;
+            _ready2writeSignal_Last = DateTime.UtcNow.Subtract(_ready2writeSignal_Start).Ticks;
+            
             if (_ready2writeSignal_Max < _ready2writeSignal_Last)
             {
                 _ready2writeSignal_Max = _ready2writeSignal_Last;
@@ -125,9 +129,11 @@ namespace tiesky.com.SharmIpcInternals
             sb.Append("<br>");
             sb.Append("_ready2writeSignal_Max: " + _ready2writeSignal_Max + $" ({_ready2writeSignal_Max/TimeSpan.TicksPerMillisecond}); Setup: " + _ready2writeSignal_Max_Setup.ToString(dtf));
             sb.Append("<br>");
-            sb.Append("_ready2writeSignal_Last: " + _ready2writeSignal_Last + $" ({_ready2writeSignal_Last/TimeSpan.TicksPerMillisecond}); Setup: " + _ready2writeSignal_Last_Setup.ToString(dtf));
+            sb.Append("_ready2writeSignal_Last (shows when writer's await was set): " + _ready2writeSignal_Last + $" ({_ready2writeSignal_Last/TimeSpan.TicksPerMillisecond}); Setup: " + _ready2writeSignal_Last_Setup.ToString(dtf));
             sb.Append("<br>");
-
+            sb.Append("_ready2ReadSignal_Last_Setup (shows when read's await was set): " + _ready2ReadSignal_Last_Setup.ToString(dtf));
+            sb.Append("<br>");
+            //
             sb.Append("<hr>");
             sb.Append("_waitForRead_Max: " + _waitForRead_Max + $" ({_waitForRead_Max / TimeSpan.TicksPerMillisecond }); Setup: " + _waitForRead_Max_Setup.ToString(dtf));
             sb.Append("<br>");
