@@ -133,7 +133,7 @@ namespace tiesky.com.SharmIpcInternals
             sb.Append("<br>");
             sb.Append("_ready2ReadSignal_Last_Setup (shows when read's await was set): " + _ready2ReadSignal_Last_Setup.ToString(dtf));
             sb.Append("<br>");
-            //
+            
             sb.Append("<hr>");
             sb.Append("_waitForRead_Max: " + _waitForRead_Max + $" ({_waitForRead_Max / TimeSpan.TicksPerMillisecond }); Setup: " + _waitForRead_Max_Setup.ToString(dtf));
             sb.Append("<br>");
