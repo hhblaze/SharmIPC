@@ -64,6 +64,7 @@ namespace tiesky.com.SharmIpcInternals
             this.SharmIPC = SharmIPC;
             this.maxQueueSizeInBytes = maxQueueSizeInBytes;
             this.ProtocolVersion = protocolVersion;
+            
 
             //if (dataArrived == null)
             //    throw new Exception("tiesky.com.SharmIpc: dataArrived callback can't be empty");

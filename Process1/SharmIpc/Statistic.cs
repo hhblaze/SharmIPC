@@ -8,7 +8,7 @@ namespace tiesky.com.SharmIpcInternals
 {
     internal class Statistic
     {
-
+        internal SharmIpc ipc = null;        
         DateTime _ready2writeSignal_Start = DateTime.MinValue;
         long _ready2writeSignal_Last = -1;
         long _ready2writeSignal_Max = -1;
@@ -34,6 +34,8 @@ namespace tiesky.com.SharmIpcInternals
         DateTime _waitForRead_Start = DateTime.MinValue;
         long _waitForRead_Max = -1;
         DateTime _waitForRead_Max_Setup = DateTime.MinValue;
+
+        public long TotalBytesInQueue = 0;
         
 
         public void Start_WaitForRead_Signal()
@@ -122,7 +124,7 @@ namespace tiesky.com.SharmIpcInternals
         public string Report()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("Time: " + DateTime.UtcNow.ToString(dtf) + "");
+            sb.Append("Time: " + DateTime.UtcNow.ToString(dtf) + $"; Protocol: {this.ipc.ProtocolVersion.ToString()}");
             sb.Append("<hr>");
 
             sb.Append("_ready2writeSignal_Calls: " + _ready2writeSignal_Calls + ";");
@@ -149,6 +151,8 @@ namespace tiesky.com.SharmIpcInternals
             sb.Append("<br>");
 
             sb.Append("<hr>");
+            sb.Append("TotalBytesInQueue: " + this.TotalBytesInQueue + ";");
+            sb.Append("<br>");
             sb.Append("_error_totalBytesInQueue: " + _error_totalBytesInQueue + ";");
             sb.Append("<br>");
 

@@ -40,6 +40,23 @@ namespace tiesky.com.SharmIpcInternals
             return ret;
         }
 
+        public static byte[] Concat(this byte[] ar1, byte[] ar2)
+        {
+            if (ar1 == null)
+                ar1 = new byte[] { };
+            if (ar2 == null)
+                ar2 = new byte[] { };
+
+            byte[] ret = null;
+
+            ret = new byte[ar1.Length + ar2.Length];
+
+            Buffer.BlockCopy(ar1, 0, ret, 0, ar1.Length);
+            Buffer.BlockCopy(ar2, 0, ret, ar1.Length, ar2.Length);
+
+            return ret;
+        }
+
         /// <summary>
         /// Uses protobuf concepts
         /// //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs

@@ -101,7 +101,8 @@ namespace tiesky.com
             {
 
                 //await resp.amre.WaitAsync();
-                await mre.AsTask(TimeSpan.FromMilliseconds(timeouts));
+                await WaitHandleAsyncFactory.FromWaitHandle(mre, TimeSpan.FromMilliseconds(timeouts));
+                //await mre.AsTask(TimeSpan.FromMilliseconds(timeouts));
             }
 
             //async public Task<bool> WaitOneAsync()
@@ -180,6 +181,8 @@ namespace tiesky.com
         SharmIpc(string uniqueHandlerName, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, Action<string, System.Exception> ExternalExceptionHandler = null, 
             eProtocolVersion protocolVersion = eProtocolVersion.V1)
         {
+            this.Statistic.ipc = this;
+
             tmr = new Timer(new TimerCallback((state) =>
             {
                 DateTime now = DateTime.UtcNow;

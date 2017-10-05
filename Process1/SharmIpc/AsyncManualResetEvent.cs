@@ -15,7 +15,7 @@ namespace tiesky.com
 
     public class AsyncManualResetEvent
     {
-        //also http://www.thomaslevesque.com/2015/06/04/async-and-cancellation-support-for-wait-handles/ can be checked 
+        // can be used WaitHandleAsyncFactory.cs (From WaitHandle)
 
         private volatile TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
         private readonly object _mutex;
@@ -54,29 +54,30 @@ namespace tiesky.com
     }
 
 
-    public static class WaitHandleExtensions
-    {
-        public static Task AsTask(this WaitHandle handle)
-        {
-            return AsTask(handle, Timeout.InfiniteTimeSpan);
-        }
+    // can be used WaitHandleAsyncFactory.cs (From WaitHandle)
+    //public static class WaitHandleExtensions
+    //{
+    //    public static Task AsTask(this WaitHandle handle)
+    //    {
+    //        return AsTask(handle, Timeout.InfiniteTimeSpan);
+    //    }
 
-        public static Task AsTask(this WaitHandle handle, TimeSpan timeout)
-        {
-            var tcs = new TaskCompletionSource<object>();
-            var registration = ThreadPool.RegisterWaitForSingleObject(handle, (state, timedOut) =>
-            {
-                var localTcs = (TaskCompletionSource<object>)state;
-                if (timedOut)
-                    localTcs.TrySetResult(null);
-                //localTcs.TrySetCanceled();
-                else
-                    localTcs.TrySetResult(null);
-            }, tcs, timeout, executeOnlyOnce: true);
-            tcs.Task.ContinueWith((_, state) => ((RegisteredWaitHandle)state).Unregister(null), registration, TaskScheduler.Default);
-            return tcs.Task;
-        }
-    }
+    //    public static Task AsTask(this WaitHandle handle, TimeSpan timeout)
+    //    {
+    //        var tcs = new TaskCompletionSource<object>();
+    //        var registration = ThreadPool.RegisterWaitForSingleObject(handle, (state, timedOut) =>
+    //        {
+    //            var localTcs = (TaskCompletionSource<object>)state;
+    //            if (timedOut)
+    //                localTcs.TrySetResult(null);
+    //            //localTcs.TrySetCanceled();
+    //            else
+    //                localTcs.TrySetResult(null);
+    //        }, tcs, timeout, executeOnlyOnce: true);
+    //        tcs.Task.ContinueWith((_, state) => ((RegisteredWaitHandle)state).Unregister(null), registration, TaskScheduler.Default);
+    //        return tcs.Task;
+    //    }
+    //}
 
 
     //public class AsyncManualResetEvent
