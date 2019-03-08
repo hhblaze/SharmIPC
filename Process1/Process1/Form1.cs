@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,7 +79,7 @@ namespace MemoryMappedFile
 
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V2);
+                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
                 //or to get ability to answer to remote partner in async way
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
@@ -335,12 +336,32 @@ namespace MemoryMappedFile
 
         async private void button3_Click(object sender, EventArgs e)
         {
-            for (int j = 0; j < 1; j++)
-            {              
-                var tor = await sm.RemoteRequestAsync(new byte[] { 1 }).ConfigureAwait(false);
-                Console.WriteLine("mmmmm");
-            }
-            
+            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            //sw.Start();
+            //byte[] bt = new byte[1];
+            //char[] cbt = new char[1];
+
+
+            //using (MemoryStream ms = new MemoryStream())
+            //{
+            //    using (var inputStreamReader = new StreamReader(ms))
+            //    {
+            //        var jj1 = await inputStreamReader.ReadAsync(cbt, 0, 1);
+            //        var jj = await inputStreamReader.ReadBlockAsync(cbt, 0, 1);
+            //    }
+            //    //var jj = await ms.ReadAsync(bt, 0, 1);
+            //}
+            //    sw.Stop();
+            //Console.WriteLine("Finished in ms {0}", sw.ElapsedMilliseconds);
+
+            //var tor = await sm.RemoteRequestAsync(new byte[] { 1 });
+
+            //for (int j = 0; j < 1; j++)
+            //{              
+            //    var tor = await sm.RemoteRequestAsync(new byte[] { 1 }).ConfigureAwait(false);
+            //    Console.WriteLine("mmmmm");
+            //}
+
         }
 
         async private void button4_Click(object sender, EventArgs e)

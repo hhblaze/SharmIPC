@@ -424,90 +424,99 @@ namespace tiesky.com.SharmIpcInternals
             if (Interlocked.Read(ref this.sm.SharmIPC.Disposed) == 1)
                 return false;
 
-            if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
-            {              
-
-                //--STAT
-                this.sm.SharmIPC.Statistic.TotalBytesInQueueError();
-
-                this.sm.SharmIPC.LogException(
-                    "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessageV2: max queue treshold is reached" + sm.maxQueueSizeInBytes,
-                    new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes +
-                    $"; totalBytesInQUeue: {totalBytesInQUeue}; q.Count: {q.Count}; " +
-                    $"_ready2writeSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2writeSignal_Last_Setup}" +
-                    $"_ready2ReadSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2ReadSignal_Last_Setup}" +
-                    this.sm.SharmIPC.Statistic.Report()));
-
-                //throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
-
-                //Is handeld on upper level
-                return false;
-            }
-
-
-            lock (lock_q)
+            try
             {
-
-                //Splitting message
-                int i = 0;
-                int left = msg == null ? 0 : msg.Length;
-                
-                byte[] tmp;
-                ushort totalChunks = msg == null ? (ushort)1 : (msg.Length == 0) ? Convert.ToUInt16(1) : Convert.ToUInt16(Math.Ceiling((double)msg.Length / (double)bufferLenS));
-                ushort currentChunk = 1;
-                int currentChunkLen = 0;
-
-                while (true)
+                if (totalBytesInQUeue > sm.maxQueueSizeInBytes)
                 {
 
-                    if (left > bufferLenS)
-                        currentChunkLen = bufferLenS;
-                    else
-                        currentChunkLen = left;
+                    //--STAT
+                    this.sm.SharmIPC.Statistic.TotalBytesInQueueError();
 
-                    //Writing protocol header
-                    tmp = ((ulong)msgType).ToProtoBytes();
-                    totalBytesInQUeue += tmp.Length;
-                    q.Enqueue(tmp);//MsgType (1 for standard message)                       
-                    tmp = (msgId).ToProtoBytes();
-                    totalBytesInQUeue += tmp.Length;
-                    q.Enqueue(tmp);//msgId_Sending                      
-                    tmp = ((ulong)currentChunkLen).ToProtoBytes();
-                    totalBytesInQUeue += tmp.Length;
-                    q.Enqueue(tmp);//payload len  
-                    tmp = ((ulong)currentChunk).ToProtoBytes();
-                    totalBytesInQUeue += tmp.Length;
-                    q.Enqueue(tmp);//current chunk
-                    tmp = ((ulong)totalChunks).ToProtoBytes();
-                    totalBytesInQUeue += tmp.Length;
-                    q.Enqueue(tmp);//total chunks 
-                    tmp = (responseMsgId).ToProtoBytes();
-                    totalBytesInQUeue += tmp.Length;
-                    q.Enqueue(tmp);//Response message id
+                    this.sm.SharmIPC.LogException(
+                        "tiesky.com.SharmIpc.ReaderWriterHandler.SendMessageV2: max queue treshold is reached" + sm.maxQueueSizeInBytes,
+                        new Exception("ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes +
+                        $"; totalBytesInQUeue: {totalBytesInQUeue}; q.Count: {q.Count}; " +
+                        $"_ready2writeSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2writeSignal_Last_Setup}" +
+                        $"_ready2ReadSignal_Last_Setup: {this.sm.SharmIPC.Statistic._ready2ReadSignal_Last_Setup}" +
+                        this.sm.SharmIPC.Statistic.Report()));
 
-                    //Writing payload
-                    if (msg != null && msg.Length > 0)
-                    {
-                        tmp = new byte[currentChunkLen];                        
-                        Buffer.BlockCopy(msg, i, tmp, 0, currentChunkLen);
-                        totalBytesInQUeue += tmp.Length;
-                        q.Enqueue(tmp);
-                    }
+                    //throw new Exception("tiesky.com.SharmIpc: ReaderWriterHandler max queue treshold is reached " + sm.maxQueueSizeInBytes);
 
-
-                    left -= currentChunkLen;
-                    i += currentChunkLen;
-                   
-                    if (left == 0)
-                        break;
-                    currentChunk++;
+                    //Is handeld on upper level
+                    return false;
                 }
 
-                this.sm.SharmIPC.Statistic.TotalBytesInQueue = totalBytesInQUeue;
 
-            }//eo lock
+                lock (lock_q)
+                {
 
-            WriterV02();
+                    //Splitting message
+                    int i = 0;
+                    int left = msg == null ? 0 : msg.Length;
+
+                    byte[] tmp;
+                    ushort totalChunks = msg == null ? (ushort)1 : (msg.Length == 0) ? Convert.ToUInt16(1) : Convert.ToUInt16(Math.Ceiling((double)msg.Length / (double)bufferLenS));
+                    ushort currentChunk = 1;
+                    int currentChunkLen = 0;
+
+                    while (true)
+                    {
+
+                        if (left > bufferLenS)
+                            currentChunkLen = bufferLenS;
+                        else
+                            currentChunkLen = left;
+
+                        //Writing protocol header
+                        tmp = ((ulong)msgType).ToProtoBytes();
+                        totalBytesInQUeue += tmp.Length;
+                        q.Enqueue(tmp);//MsgType (1 for standard message)                       
+                        tmp = (msgId).ToProtoBytes();
+                        totalBytesInQUeue += tmp.Length;
+                        q.Enqueue(tmp);//msgId_Sending                      
+                        tmp = ((ulong)currentChunkLen).ToProtoBytes();
+                        totalBytesInQUeue += tmp.Length;
+                        q.Enqueue(tmp);//payload len  
+                        tmp = ((ulong)currentChunk).ToProtoBytes();
+                        totalBytesInQUeue += tmp.Length;
+                        q.Enqueue(tmp);//current chunk
+                        tmp = ((ulong)totalChunks).ToProtoBytes();
+                        totalBytesInQUeue += tmp.Length;
+                        q.Enqueue(tmp);//total chunks 
+                        tmp = (responseMsgId).ToProtoBytes();
+                        totalBytesInQUeue += tmp.Length;
+                        q.Enqueue(tmp);//Response message id
+
+                        //Writing payload
+                        if (msg != null && msg.Length > 0)
+                        {
+                            tmp = new byte[currentChunkLen];
+                            Buffer.BlockCopy(msg, i, tmp, 0, currentChunkLen);
+                            totalBytesInQUeue += tmp.Length;
+                            q.Enqueue(tmp);
+                        }
+
+
+                        left -= currentChunkLen;
+                        i += currentChunkLen;
+
+                        if (left == 0)
+                            break;
+                        currentChunk++;
+                    }
+
+                    this.sm.SharmIPC.Statistic.TotalBytesInQueue = totalBytesInQUeue;
+
+                }//eo lock
+
+                WriterV02();
+                
+            }
+            catch (Exception ex)
+            {
+                this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.SendMessageV2", ex);
+                return false;
+            }
 
             return true;
         }
@@ -568,7 +577,7 @@ namespace tiesky.com.SharmIpcInternals
 
         }//eof
 
-
+        
         void WriterV02()
         {  
             int offset = 0;
@@ -623,23 +632,33 @@ namespace tiesky.com.SharmIpcInternals
                         }
 
                         this.sm.SharmIPC.Statistic.TotalBytesInQueue = totalBytesInQUeue;
-                    }
 
-                    
-
-                    //Setting signal ready to read
-                    ewh_Writer_ReadyToRead.Set();
-                    offset = 0;
-
-                    lock (lock_q)
-                    {
+                        offset = 0;
+                        //Setting signal ready to read
+                        ewh_Writer_ReadyToRead.Set();
                         if (q.Count() == 0)
                         {
                             toSend = null;
                             inSend = false;
                             return;
-                        }                       
-                    }
+                        }
+                    }//eo lock
+
+                    
+
+                    ////Setting signal ready to read
+                    //ewh_Writer_ReadyToRead.Set();
+                    //offset = 0;
+
+                    //lock (lock_q)
+                    //{
+                    //    if (q.Count() == 0)
+                    //    {
+                    //        toSend = null;
+                    //        inSend = false;
+                    //        return;
+                    //    }                       
+                    //}
                 }
             }//eo while
 
@@ -1093,7 +1112,7 @@ namespace tiesky.com.SharmIpcInternals
                 //constrained execution region (CER)
                 //https://msdn.microsoft.com/en-us/library/system.runtime.interopservices.safehandle.dangerousaddref(v=vs.110).aspx
 
-                this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.InitReader LE, jPos=" + jPos + "; ", ex);
+                this.sm.SharmIPC.LogException("SharmIps.ReaderWriterHandler.ReaderV02 LE, jPos=" + jPos + "; ", ex);
             }
 
 

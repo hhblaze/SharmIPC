@@ -593,7 +593,10 @@ namespace tiesky.com
 
         }
 
-
+        /// <summary>
+        /// Returns current usage statistic
+        /// </summary>
+        /// <returns></returns>
         public string UsageReport()
         {
             return this.Statistic.Report();
