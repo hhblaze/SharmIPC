@@ -190,7 +190,9 @@ namespace tiesky.com
                 //This timer is necessary for Calls based on Callbacks, calls based on WaitHandler have their own timeout,
                 //That's why for non-callback calls, timeout will be infinite
                 List<ulong> toRemove = new List<ulong>();
-                foreach (var el in df.Where(r => now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs))
+
+                //foreach (var el in df.Where(r => now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs))
+                foreach (var el in df.Where(r => now.Subtract(r.Value.created).TotalMilliseconds >= r.Value.TimeoutsMs).ToList())
                 {
                     if(el.Value.callBack != null)
                         toRemove.Add(el.Key);
