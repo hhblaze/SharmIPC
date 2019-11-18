@@ -2,13 +2,15 @@
 <package >
   <metadata>
     <id>SharmIPC</id>
-    <version>1.17.0</version>
+    <version>1.17.1</version>
     <title>SharmIPC .NET inter-process communication IPC for .NET .NETStandard .NETCore</title>
     <authors>Alex Solovyov </authors>
     <owners>hhblaze@gmail.com http://sharmipc.tiesky.com</owners>   
 	<license type="file">LICENSE.txt</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>[512 bytes package in both directions]
+    <description>Lightweight and fast inter-process communication IPC between two partners for .NET / .NETCore 2.0 / .NETStandard 2.0 / UWP. Based on Shared Memory.
+	
+[512 bytes package in both directions]
 Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 20 MB/s.
 Remote async calls without response (a la send and forget), full-duplex, with the speed of 80 MB/s.
 
