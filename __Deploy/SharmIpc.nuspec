@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SharmIPC</id>
+    <version>1.17.0</version>
+    <title>SharmIPC .NET inter-process communication IPC for .NET .NETStandard .NETCore</title>
+    <authors>Alex Solovyov </authors>
+    <owners>hhblaze@gmail.com http://sharmipc.tiesky.com</owners>   
+	<license type="file">LICENSE.txt</license>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>[512 bytes package in both directions]
+Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 20 MB/s.
+Remote async calls without response (a la send and forget), full-duplex, with the speed of 80 MB/s.
+
+[10000 bytes package in both directions]
+Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 320 MB/s.
+Remote async calls without response (a la send and forget), full-duplex, with the speed of 700 MB/s.
+
+[1 byte package in both directions]
+Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 40000 call/s.
+Remote async calls without response (a la send and forget), full-duplex, with the speed of 120000 calls/s.
+
+and if you need more speed, just add in both processes more SharmIPC instances
+
+hhblaze@gmail.com</description>
+	<summary>Lightweight and fast inter-process communication IPC between two partners for .NET / .NETCore 2.0 / .NETStandard 2.0 / UWP. Based on Shared Memory.</summary>
+    <releaseNotes>Signing assemblies</releaseNotes>
+    <copyright>© hhblaze@gmail.com http://sharmipc.tiesky.com 2015</copyright>
+    <tags> SharmIPC IPC Inter process communication .NET .NETCore NETStandard UWP </tags>
+  </metadata>
+  <files>
+  
+		<file src="Process1\SharmIpc\bin\Release\SharmIpc.dll" target="lib\net45" />
+		<file src="Process1\SharmIpc\bin\Release\SharmIpc.xml" target="lib\net45" />
+		<file src="Process1\SharmIpc\bin\Release-NET462\SharmIpc.dll" target="lib\net462" />
+		<file src="Process1\SharmIpc\bin\Release-NET462\SharmIpc.xml" target="lib\net462" />
+		<file src="Process1\SharmIpc\bin\Release-NET472\SharmIpc.dll" target="lib\net472" />
+		<file src="Process1\SharmIpc\bin\Release-NET472\SharmIpc.xml" target="lib\net472" />
+		
+		<file src="Process1\SharmIpcNetStandard20\bin\Release\netstandard2.0\SharmIpc.dll" target="lib\netstandard2" />
+		<file src="Process1\SharmIpcNetStandard20\bin\Release\netstandard2.0\SharmIpc.xml" target="lib\netstandard2" />
+		
+		<file src="licenses\LICENSE.txt" />
+    </files>
+</package>

@@ -20,17 +20,27 @@
             <param name="responseMsgId"></param>
             <returns></returns>
         </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.SendMessageV2(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[],System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="msgType"></param>
+            <param name="msgId"></param>
+            <param name="msg"></param>
+            <param name="responseMsgId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.WriterV01">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.InitReader">
             <summary>
             
             </summary>
         </member>
-        <member name="T:tiesky.com.SharmIpcInternals.eProtocolVersion">
-            <summary>
-            Both peers must have the same version implementation
-            </summary>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32,tiesky.com.SharmIpcInternals.eProtocolVersion)">
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32,tiesky.com.SharmIpc.eProtocolVersion)">
             <summary>
             
             </summary>
@@ -76,6 +86,11 @@
             https://github.com/hhblaze/SharmIPC or http://sharmipc.tiesky.com
             </summary>
         </member>
+        <member name="T:tiesky.com.SharmIpc.eProtocolVersion">
+            <summary>
+            Both peers must have the same version implementation
+            </summary>
+        </member>
         <member name="F:tiesky.com.SharmIpc.AsyncRemoteCallHandler">
             <summary>
             If we don't want to answer in sync way via remoteCallHandler
@@ -92,7 +107,24 @@
             Not SLIM version must be used (it works faster for longer delay which RPCs are)
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
+        <member name="M:tiesky.com.SharmIpc.ResponseCrate.Init_AMRE">
+            <summary>
+            Works faster with timer than WaitOneAsync
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.ResponseCrate.WaitOneAsync(System.Int32)">
+            <summary>
+            Works slower than amre (AsyncManualResetEvent) with the timer
+            </summary>
+            <param name="timeouts"></param>
+            <returns></returns>
+        </member>
+        <member name="P:tiesky.com.SharmIpc.ProtocolVersion">
+            <summary>
+            Communication protocol, must be the same for both peers. Can be setup via constructor
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -103,7 +135,7 @@
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
             <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -145,12 +177,11 @@
             <param name="timeoutMs">Default 30 sec</param>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
+        <member name="M:tiesky.com.SharmIpc.RemoteRequestAsync(System.Byte[],System.Int32)">
             <summary>
             Usage var x = await RemoteRequestAsync(...);
             </summary>
-            <param name="args">payload which must be send to remote partner</param>
-            <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
+            <param name="args">payload which must be send to remote partner</param>        
             <param name="timeoutMs">Default 30 sec</param>
             <returns></returns>
         </member>
@@ -165,6 +196,12 @@
             <summary>
             
             </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.UsageReport">
+            <summary>
+            Returns current usage statistic
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:tiesky.com.WaitHandleAsyncFactory">
             <summary>
