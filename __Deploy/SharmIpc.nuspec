@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>SharmIPC</id>
-    <version>1.17.1</version>
+    <version>1.18.0</version>
     <title>SharmIPC .NET inter-process communication IPC for .NET .NETStandard .NETCore</title>
     <authors>Alex Solovyov </authors>
     <owners>hhblaze@gmail.com http://sharmipc.tiesky.com</owners>   
@@ -26,7 +26,7 @@ and if you need more speed, just add in both processes more SharmIPC instances
 
 hhblaze@gmail.com</description>
 	<summary>Lightweight and fast inter-process communication IPC between two partners for .NET / .NETCore 2.0 / .NETStandard 2.0 / UWP. Based on Shared Memory.</summary>
-    <releaseNotes>Signing assemblies</releaseNotes>
+    <releaseNotes>More controls over messages as described in https://github.com/hhblaze/SharmIPC/issues/6</releaseNotes>
     <copyright>© hhblaze@gmail.com http://sharmipc.tiesky.com 2015</copyright>
     <tags> SharmIPC IPC Inter process communication .NET .NETCore NETStandard UWP </tags>
   </metadata>

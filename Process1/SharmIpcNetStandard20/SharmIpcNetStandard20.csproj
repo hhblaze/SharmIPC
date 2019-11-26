@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Version>1.17.2017.1002</Version>
-    <FileVersion>1.17.2017.1002</FileVersion>
+    <FileVersion>1.19.2019.1126</FileVersion>
     <AssemblyName>SharmIpc</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>sharmipckey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyVersion>1.19.2019.1126</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

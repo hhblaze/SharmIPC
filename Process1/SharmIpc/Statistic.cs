@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace tiesky.com.SharmIpcInternals
 {
     internal class Statistic
-    {
+    { 
+
         internal SharmIpc ipc = null;        
         DateTime _ready2writeSignal_Start = DateTime.MinValue;
         long _ready2writeSignal_Last = -1;

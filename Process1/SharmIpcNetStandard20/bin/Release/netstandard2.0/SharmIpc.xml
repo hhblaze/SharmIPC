@@ -124,7 +124,14 @@
             Communication protocol, must be the same for both peers. Can be setup via constructor
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion)">
+        <member name="F:tiesky.com.SharmIpc.ExternalProcessing">
+            <summary>
+            Default is false. Descibed in https://github.com/hhblaze/SharmIPC/issues/6
+            <para>Gives ability to parse packages in the same receiving thread before processing them in another thread</para>
+            <para>Programmer is responsible for the returning control back ASAP from RemoteCallHandler via Task.Run(()=>process(msg))</para>
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion,System.Boolean)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -134,8 +141,9 @@
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
             <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
+            <param name="externalProcessing">Gives ability to parse packages in the same receiving thread before processing them in another thread</param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion)">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion,System.Boolean)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -145,6 +153,7 @@
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
             <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
+            <param name="externalProcessing">Gives ability to parse packages in the same receiving thread before processing them in another thread</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.LogException(System.String,System.Exception)">
             <summary>
