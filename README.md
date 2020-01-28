@@ -7,7 +7,7 @@
 [![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
 
 Inter-process communication (IPC engine) between 2 partner processes of one OS:
-<br>- .NET 4.5 > /.NETCore 2.0 / .NETStandard 2.0 / UWP. Based on memory-mapped files
+<br>- .NET 4.5 > /.NETCore 2.0 / .NETStandard 2.0 . Based on memory-mapped files
 <br>- Written on C#
 <br>- Fast and lightweight
 <br>- Sync and Async calls with timeouts
