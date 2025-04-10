@@ -18,6 +18,7 @@
     <Compile Include="..\SharmIpc\SharedMemory.cs" Link="SharedMemory.cs" />
     <Compile Include="..\SharmIpc\SharmIpc.cs" Link="SharmIpc.cs" />
     <Compile Include="..\SharmIpc\SharmNpc.cs" Link="SharmNpc.cs" />
+    <Compile Include="..\SharmIpc\SharmNpc.Internals.cs" Link="SharmNpc.Internals.cs" />
     <Compile Include="..\SharmIpc\Statistic.cs" Link="Statistic.cs" />
     <Compile Include="..\SharmIpc\Utils.cs" Link="Utils.cs" />
     <Compile Include="..\SharmIpc\WaitHandleAsyncFactory.cs" Link="WaitHandleAsyncFactory.cs" />

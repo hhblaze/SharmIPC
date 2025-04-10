@@ -144,6 +144,10 @@ namespace tiesky.com
             get { return this.sm.ProtocolVersion; }
         }
 
+        public int CommunicationProtocolVersion { 
+            get { return (int)this.sm.ProtocolVersion; } 
+        }
+
         /// <summary>
         /// Default is false. Descibed in https://github.com/hhblaze/SharmIPC/issues/6
         /// <para>Gives ability to parse packages in the same receiving thread before processing them in another thread</para>

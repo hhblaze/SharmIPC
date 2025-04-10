@@ -14,5 +14,6 @@ namespace tiesky.com
         Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000);
         Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000);
         void Dispose();
+        int CommunicationProtocolVersion { get; }
     }
 }

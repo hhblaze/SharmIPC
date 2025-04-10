@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace tiesky.com
+namespace tiesky.com.SharmIpcInternals
 {
     /// <summary>
     /// Provides interop utilities for <see cref="WaitHandle"/> types.

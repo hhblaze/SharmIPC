@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Threading;
 
 
-namespace tiesky.com
+namespace tiesky.com.SharmIpcInternals
 {
 
     public class AsyncManualResetEvent
