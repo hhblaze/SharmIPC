@@ -6,7 +6,6 @@
     <FileVersion>1.19.2019.1126</FileVersion>
     <AssemblyName>SharmIpc</AssemblyName>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>sharmipckey.pfx</AssemblyOriginatorKeyFile>
     <AssemblyVersion>1.19.2019.1126</AssemblyVersion>
   </PropertyGroup>
 
@@ -28,7 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="sharmipckey.pfx" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs" Link="AsyncManualResetEvent.cs" />
+    <Compile Include="..\SharmIpc\ISharm.cs" Link="ISharm.cs" />
     <Compile Include="..\SharmIpc\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
     <Compile Include="..\SharmIpc\SharedMemory.cs" Link="SharedMemory.cs" />
     <Compile Include="..\SharmIpc\SharmIpc.cs" Link="SharmIpc.cs" />

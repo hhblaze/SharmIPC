@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETStandard,Version=v2.0/",
-    "signature": "16400183d3ba1751f082cb71a1bb0978a1ed36de"
+    "signature": ""
   },
   "compilationOptions": {},
   "targets": {
@@ -9,7 +9,7 @@
     ".NETStandard,Version=v2.0/": {
       "SharmIpc/1.17.2017.1002": {
         "dependencies": {
-          "NETStandard.Library": "2.0.0",
+          "NETStandard.Library": "2.0.3",
           "System.IO.MemoryMappedFiles": "4.3.0"
         },
         "runtime": {
@@ -18,7 +18,7 @@
       },
       "Microsoft.NETCore.Platforms/1.1.0": {},
       "Microsoft.NETCore.Targets/1.1.0": {},
-      "NETStandard.Library/2.0.0": {
+      "NETStandard.Library/2.0.3": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
@@ -38,7 +38,10 @@
           "System.Threading": "4.3.0"
         },
         "runtime": {
-          "lib/netstandard1.1/System.Buffers.dll": {}
+          "lib/netstandard1.1/System.Buffers.dll": {
+            "assemblyVersion": "4.0.1.0",
+            "fileVersion": "4.6.24705.1"
+          }
         }
       },
       "System.Diagnostics.Debug/4.3.0": {
@@ -88,7 +91,10 @@
           "System.Runtime": "4.3.0"
         },
         "runtime": {
-          "lib/netstandard1.3/System.IO.FileSystem.Primitives.dll": {}
+          "lib/netstandard1.3/System.IO.FileSystem.Primitives.dll": {
+            "assemblyVersion": "4.0.2.0",
+            "fileVersion": "4.6.24705.1"
+          }
         }
       },
       "System.IO.MemoryMappedFiles/4.3.0": {
@@ -121,7 +127,10 @@
           "System.Threading.Tasks": "4.3.0"
         },
         "runtime": {
-          "lib/netstandard1.3/System.IO.UnmanagedMemoryStream.dll": {}
+          "lib/netstandard1.3/System.IO.UnmanagedMemoryStream.dll": {
+            "assemblyVersion": "4.0.2.0",
+            "fileVersion": "4.6.24705.1"
+          }
         }
       },
       "System.Reflection/4.3.0": {
@@ -192,7 +201,10 @@
           "System.Threading.Tasks": "4.3.0"
         },
         "runtime": {
-          "lib/netstandard1.3/System.Threading.dll": {}
+          "lib/netstandard1.3/System.Threading.dll": {
+            "assemblyVersion": "4.0.12.0",
+            "fileVersion": "4.6.24705.1"
+          }
         }
       },
       "System.Threading.Tasks/4.3.0": {
@@ -224,12 +236,12 @@
       "path": "microsoft.netcore.targets/1.1.0",
       "hashPath": "microsoft.netcore.targets.1.1.0.nupkg.sha512"
     },
-    "NETStandard.Library/2.0.0": {
+    "NETStandard.Library/2.0.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-7jnbRU+L08FXKMxqUflxEXtVymWvNOrS8yHgu9s6EM8Anr6T/wIX4nZ08j/u3Asz+tCufp3YVwFSEvFTPYmBPA==",
-      "path": "netstandard.library/2.0.0",
-      "hashPath": "netstandard.library.2.0.0.nupkg.sha512"
+      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+      "path": "netstandard.library/2.0.3",
+      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
     },
     "runtime.native.System/4.3.0": {
       "type": "package",

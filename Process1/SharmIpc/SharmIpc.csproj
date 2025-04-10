@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SharmIpc</RootNamespace>
     <AssemblyName>SharmIpc</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -32,36 +32,35 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Release\SharmIpc.xml</DocumentationFile>
-  </PropertyGroup>  
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-NET462|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-NET462|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release-NET462\</OutputPath>
-	<TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <DefineConstants>TRACE;FULLNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Release-NET462\SharmIpc.xml</DocumentationFile>
   </PropertyGroup>
-  
-      <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-NET472|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-NET472|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release-NET472\</OutputPath>
-	<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <DefineConstants>TRACE;FULLNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>bin\Release-NET472\SharmIpc.xml</DocumentationFile>
-  </PropertyGroup>  
-  
+  </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>sharmipckey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -74,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncManualResetEvent.cs" />
+    <Compile Include="ISharm.cs" />
     <Compile Include="SharmIpc.cs" />
     <Compile Include="ReaderWriterHandler.cs" />
     <Compile Include="SharedMemory.cs" />
@@ -81,9 +81,6 @@
     <Compile Include="Statistic.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WaitHandleAsyncFactory.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sharmipckey.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

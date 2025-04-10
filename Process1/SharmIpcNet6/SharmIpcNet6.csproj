@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PackageId>SharmIpc</PackageId>
+    <AssemblyVersion>1.19.2019.1126</AssemblyVersion>
+    <AssemblyName>SharmIpc</AssemblyName>
+    <FileVersion>1.19.2019.1126</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs" Link="AsyncManualResetEvent.cs" />
+    <Compile Include="..\SharmIpc\ISharm.cs" Link="ISharm.cs" />
+    <Compile Include="..\SharmIpc\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
+    <Compile Include="..\SharmIpc\SharedMemory.cs" Link="SharedMemory.cs" />
+    <Compile Include="..\SharmIpc\SharmIpc.cs" Link="SharmIpc.cs" />
+    <Compile Include="..\SharmIpc\SharmNpc.cs" Link="SharmNpc.cs" />
+    <Compile Include="..\SharmIpc\Statistic.cs" Link="Statistic.cs" />
+    <Compile Include="..\SharmIpc\Utils.cs" Link="Utils.cs" />
+    <Compile Include="..\SharmIpc\WaitHandleAsyncFactory.cs" Link="WaitHandleAsyncFactory.cs" />
+  </ItemGroup>
+
+</Project>

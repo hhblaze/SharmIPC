@@ -15,7 +15,7 @@ namespace tiesky.com
     /// Inter-process communication handler. IPC for .NET
     /// https://github.com/hhblaze/SharmIPC or http://sharmipc.tiesky.com
     /// </summary>
-    public class SharmIpc:IDisposable
+    public class SharmIpc: ISharm, IDisposable
     {
         /// <summary>
         /// Both peers must have the same version implementation
