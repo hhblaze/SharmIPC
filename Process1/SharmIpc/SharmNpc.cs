@@ -1,7 +1,7 @@
 ﻿#pragma warning disable CA1416 // Validate platform compatibility - Suppressed as PipeOptions.CurrentUserOnly aims for Linux/macOS safety where possible
 
 using System;
-using System.Buffers.Binary;
+//using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -282,12 +282,18 @@ namespace tiesky.com
                 // Potential security: Add PipeSecurity for Windows ACLs if needed
                 );
 
-                using var connectTimeoutCts = new CancellationTokenSource(_serverConnectTimeout);
-                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token);
+                //using var connectTimeoutCts = new CancellationTokenSource(_serverConnectTimeout);
+                //using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token);
 
-                // Asynchronously wait for a client connection
-                //await serverStream.WaitForConnectionAsync(token).ConfigureAwait(false);
-                await serverStream.WaitForConnectionAsync(linkedCts.Token).ConfigureAwait(false);
+                //// Asynchronously wait for a client connection
+                ////await serverStream.WaitForConnectionAsync(token).ConfigureAwait(false);
+                //await serverStream.WaitForConnectionAsync(linkedCts.Token).ConfigureAwait(false);
+
+                using (var connectTimeoutCts = new CancellationTokenSource(_serverConnectTimeout))
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token))
+                {
+                    await serverStream.WaitForConnectionAsync(linkedCts.Token).ConfigureAwait(false);
+                }
 
                 LogInfo("Server connected to client.");
                 await HandleNewConnection(serverStream, token).ConfigureAwait(false);
@@ -322,10 +328,16 @@ namespace tiesky.com
                         PipeSecurityOptions);
 
                     // Use a connection timeout
-                    using var connectTimeoutCts = new CancellationTokenSource(_connectTimeout);
-                    using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token);
+                    //using var connectTimeoutCts = new CancellationTokenSource(_connectTimeout);
+                    //using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token);
 
-                    await clientStream.ConnectAsync(linkedCts.Token).ConfigureAwait(false);
+                    //await clientStream.ConnectAsync(linkedCts.Token).ConfigureAwait(false);
+
+                    using (var connectTimeoutCts = new CancellationTokenSource(_serverConnectTimeout))
+                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token))
+                    {
+                        await clientStream.ConnectAsync(linkedCts.Token).ConfigureAwait(false);
+                    }
 
                     LogInfo("Client connected to server.");
                     await HandleNewConnection(clientStream, token).ConfigureAwait(false);
@@ -498,8 +510,14 @@ namespace tiesky.com
                     }
                     if (totalBytesRead < 4) break; // Loop exit condition met
 
-
-                    int messageLength = BinaryPrimitives.ReadInt32LittleEndian(lengthBuffer);
+                    int messageLength = lengthBuffer[0] | (lengthBuffer[1] << 8) | (lengthBuffer[2] << 16) | (lengthBuffer[3] << 24);
+                    //int messageLength = BinaryPrimitives.ReadInt32LittleEndian(lengthBuffer);
+                    /*
+                     lengthPrefix[0] = (byte)messageTotalBytes;          // Least significant byte
+lengthPrefix[1] = (byte)(messageTotalBytes >> 8);
+lengthPrefix[2] = (byte)(messageTotalBytes >> 16);
+lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
+                     */
 
                     if (messageLength < 0 || messageLength > _maxQueueSizeInBytes * 2) // Sanity check length (allow slightly larger than max queue for safety)
                     {
@@ -856,7 +874,11 @@ namespace tiesky.com
 
                 // Frame the message (Length Prefix + Serialized Data)
                 byte[] lengthPrefix = new byte[4];
-                BinaryPrimitives.WriteInt32LittleEndian(lengthPrefix, messageTotalBytes);
+                lengthPrefix[0] = (byte)messageTotalBytes;          // Least significant byte
+                lengthPrefix[1] = (byte)(messageTotalBytes >> 8);
+                lengthPrefix[2] = (byte)(messageTotalBytes >> 16);
+                lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
+                //BinaryPrimitives.WriteInt32LittleEndian(lengthPrefix, messageTotalBytes);
 
                 byte[] framedMessage = new byte[4 + messageTotalBytes];
                 Buffer.BlockCopy(lengthPrefix, 0, framedMessage, 0, 4);

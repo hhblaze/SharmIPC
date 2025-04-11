@@ -80,22 +80,26 @@ namespace tiesky.com.SharmNpcInternals
 
             if (waitTask.IsCompleted) return true; // Already set
 
-            using var timeoutCts = new CancellationTokenSource();
-            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-            var completedTask = await Task.WhenAny(waitTask, Task.Delay(timeout, linkedCts.Token)).ConfigureAwait(false);
-
-            if (completedTask == waitTask)
+            //using var timeoutCts = new CancellationTokenSource();
+            using (var timeoutCts = new CancellationTokenSource())
             {
-                linkedCts.Cancel(); // Cancel timeout delay task
-                return true; // Event was set
+                var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+                var completedTask = await Task.WhenAny(waitTask, Task.Delay(timeout, linkedCts.Token)).ConfigureAwait(false);
+
+                if (completedTask == waitTask)
+                {
+                    linkedCts.Cancel(); // Cancel timeout delay task
+                    return true; // Event was set
+                }
+                else
+                {
+                    // Timeout occurred or external cancellation
+                    // We don't cancel the original TCS task, just return false for timeout
+                    return false;
+                }
             }
-            else
-            {
-                // Timeout occurred or external cancellation
-                // We don't cancel the original TCS task, just return false for timeout
-                return false;
-            }
+              
         }
 
 
