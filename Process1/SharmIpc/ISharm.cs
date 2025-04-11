@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace tiesky.com
 {
-    interface ISharm
+    public interface ISharm
     {
         string UsageReport();
         void AsyncAnswerOnRemoteCall(ulong msgId, Tuple<bool, byte[]> res);

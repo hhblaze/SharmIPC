@@ -101,7 +101,7 @@ namespace tiesky.com
         /// <summary>
         /// Fired when a connection to the peer is successfully established.
         /// </summary>
-        public event Action PeerConnected;
+        public Action PeerConnected;
 
         /// <summary>
         /// Fired when the connection to the peer is lost or closed.
@@ -380,8 +380,11 @@ namespace tiesky.com
             _receiveTask = Task.Run(() => ReceiveLoopAsync(token), token);
             //_sendTask = Task.Run(() => SendLoopAsync(token), token);
             _sendTask = Task.Run(() => SendLoopAsync(), token);
-
             _readerIsReady = true;
+
+            await Task.Delay(200, token);
+
+            
             // Notify listeners
             PeerConnected?.Invoke();
             LogInfo("Peer connection established and loops started.");
@@ -941,7 +944,7 @@ namespace tiesky.com
                     {
                         while (!_readerIsReady && !_connectionCts.Token.IsCancellationRequested)
                         {
-                            await Task.Delay(100);
+                            await Task.Delay(10);
                         }
                     }
 
