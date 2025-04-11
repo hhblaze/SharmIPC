@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-//using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
@@ -199,8 +199,8 @@ namespace tiesky.com
             if (baseName.Contains("/") || baseName.Contains("\\"))
                 throw new ArgumentException("Base pipe name should not contain path separators.", nameof(baseName));
 
-            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            if(System.OperatingSystem.IsWindows())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            //if(System.OperatingSystem.IsWindows())
             {
                 return $@"\\.\pipe\{baseName}";
                 return baseName; // On Windows, "." is implicit for local pipes
@@ -288,8 +288,8 @@ namespace tiesky.com
 
 
                 //if(!String.IsNullOrEmpty(ClientOsUserName) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                if(System.OperatingSystem.IsWindows())
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                //if(System.OperatingSystem.IsWindows())
                 {
                     PipeSecurity pipeSecurity = new PipeSecurity();
                     //var currentUser = WindowsIdentity.GetCurrent().User;
@@ -309,13 +309,29 @@ namespace tiesky.com
                         PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize,// | PipeAccessRights.CreateNewInstance,
                         //PipeAccessRights.FullControl,
                         AccessControlType.Allow));
-
+#if NET472
+                        serverStream = new NamedPipeServerStream(
+                                              //_pipeName,
+                                              _pipeName,
+                                              PipeDirection.InOut,
+                                              1, // Max connections = 1 (peer-to-peer)
+                                              PipeTransmissionMode.Byte,
+                                              PipeSecurityOptions
+                                           );
+#else
                         serverStream = NamedPipeServerStreamAcl.Create(
                             _pipeName,
                             PipeDirection.InOut,
                             1, // Max connections = 1 (peer-to-peer)
                             PipeTransmissionMode.Byte,
                             PipeSecurityOptions, 0, 0, pipeSecurity);
+#endif
+                        //serverStream = NamedPipeServerStreamAcl.Create(
+                        //    _pipeName,
+                        //    PipeDirection.InOut,
+                        //    1, // Max connections = 1 (peer-to-peer)
+                        //    PipeTransmissionMode.Byte,
+                        //    PipeSecurityOptions, 0, 0, pipeSecurity);
 
                     }
                     catch (Exception ex)
