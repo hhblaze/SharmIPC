@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime.InteropServices;
+//using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,7 +99,7 @@ namespace tiesky.com
 
         #endregion
 
-        #region Public Events
+        #region Public Properties
 
         /// <summary>
         /// Fired when a connection to the peer is successfully established.
@@ -110,6 +112,11 @@ namespace tiesky.com
         public Action PeerDisconnected;
 
         public bool Verbose=false;
+
+        ///// <summary>
+        ///// In case if client will be connected from the process running under another user credentials (same machine)
+        ///// </summary>
+        //public string ClientOsUserName = String.Empty;
 
         #endregion
 
@@ -192,8 +199,10 @@ namespace tiesky.com
             if (baseName.Contains("/") || baseName.Contains("\\"))
                 throw new ArgumentException("Base pipe name should not contain path separators.", nameof(baseName));
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if(System.OperatingSystem.IsWindows())
             {
+                return $@"\\.\pipe\{baseName}";
                 return baseName; // On Windows, "." is implicit for local pipes
             }
             else
@@ -272,15 +281,65 @@ namespace tiesky.com
             NamedPipeServerStream serverStream = null;
             try
             {
+
+
                 // Consider buffer sizes? PipeTransmissionMode.Byte is good.
-                serverStream = new NamedPipeServerStream(
-                   _pipeName,
-                   PipeDirection.InOut,
-                   1, // Max connections = 1 (peer-to-peer)
-                   PipeTransmissionMode.Byte,
-                   PipeSecurityOptions
-                // Potential security: Add PipeSecurity for Windows ACLs if needed
-                );
+
+
+
+                //if(!String.IsNullOrEmpty(ClientOsUserName) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if(System.OperatingSystem.IsWindows())
+                {
+                    PipeSecurity pipeSecurity = new PipeSecurity();
+                    //var currentUser = WindowsIdentity.GetCurrent().User;
+                    //pipeSecurity.SetOwner(currentUser);
+                    //var targetUser = new NTAccount(ClientOsUserName); //"DOMAIN\\Username"
+
+                    try
+                    {
+                        // Attempt to translate to SID
+                        //NTAccount targetUser = new NTAccount(Environment.MachineName, ClientOsUserName);
+                        //var sid = (SecurityIdentifier)targetUser.Translate(typeof(SecurityIdentifier));
+
+                        var sid = new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null);
+
+                        pipeSecurity.AddAccessRule(new PipeAccessRule(                        
+                        sid,
+                        PipeAccessRights.ReadWrite | PipeAccessRights.Synchronize,// | PipeAccessRights.CreateNewInstance,
+                        //PipeAccessRights.FullControl,
+                        AccessControlType.Allow));
+
+                        serverStream = NamedPipeServerStreamAcl.Create(
+                            _pipeName,
+                            PipeDirection.InOut,
+                            1, // Max connections = 1 (peer-to-peer)
+                            PipeTransmissionMode.Byte,
+                            PipeSecurityOptions, 0, 0, pipeSecurity);
+
+                    }
+                    catch (Exception ex)
+                    {                        
+                        LogExceptionInternal($"Server failed to create serverStream", ex);
+                        serverStream?.Dispose();
+                        // Do not set _isConnected = false here, let HandleDisconnection do it
+                        HandleDisconnection(); // Ensure cleanup on failure
+                        return;
+                    }
+                    
+                }
+                else
+                {//LINUX or when client process owner is not defined
+                    serverStream = new NamedPipeServerStream(
+                       //_pipeName,
+                       _pipeName,
+                       PipeDirection.InOut,
+                       1, // Max connections = 1 (peer-to-peer)
+                       PipeTransmissionMode.Byte,
+                       PipeSecurityOptions                   
+                    );
+                }
+
 
                 //using var connectTimeoutCts = new CancellationTokenSource(_serverConnectTimeout);
                 //using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token);
