@@ -72,6 +72,7 @@ namespace tiesky.com
         private PipeStream _pipeStream = null;
         private CancellationTokenSource _connectionCts = null; // Manages the lifetime of connection and loops
         private readonly TimeSpan _connectTimeout = TimeSpan.FromSeconds(5); // Timeout for client connection attempts
+        private readonly TimeSpan _serverConnectTimeout = TimeSpan.FromSeconds(30); // Timeout for waiting client to connect
         private readonly TimeSpan _reconnectDelay = TimeSpan.FromSeconds(2); // Delay before client reconnect attempts
         private volatile bool _isConnected = false;
         private volatile bool _isConnecting = false; // Prevent overlapping connection attempts
@@ -107,6 +108,8 @@ namespace tiesky.com
         /// Fired when the connection to the peer is lost or closed.
         /// </summary>
         public Action PeerDisconnected;
+
+        public bool Verbose=false;
 
         #endregion
 
@@ -279,8 +282,12 @@ namespace tiesky.com
                 // Potential security: Add PipeSecurity for Windows ACLs if needed
                 );
 
+                using var connectTimeoutCts = new CancellationTokenSource(_serverConnectTimeout);
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCts.Token);
+
                 // Asynchronously wait for a client connection
-                await serverStream.WaitForConnectionAsync(token).ConfigureAwait(false);
+                //await serverStream.WaitForConnectionAsync(token).ConfigureAwait(false);
+                await serverStream.WaitForConnectionAsync(linkedCts.Token).ConfigureAwait(false);
 
                 LogInfo("Server connected to client.");
                 await HandleNewConnection(serverStream, token).ConfigureAwait(false);
@@ -414,7 +421,10 @@ namespace tiesky.com
                 // Dispose stream safely
                 var stream = _pipeStream;
                 _pipeStream = null; // Nullify before Dispose to prevent race conditions
-                try { stream?.Dispose(); } catch (Exception ex) { LogExceptionInternal("Error disposing pipe stream", ex); }
+                try { stream?.Dispose(); } catch (Exception ex) { 
+                    if(Verbose)
+                        LogExceptionInternal("Error disposing pipe stream", ex); 
+                }
 
                 // Stop loops (ReceiveLoopAsync and SendLoopAsync should detect closure and exit)
                 // Signal send loop to wake up and exit if it's waiting
@@ -444,7 +454,8 @@ namespace tiesky.com
                     }
                     catch (Exception ex)
                     {
-                        LogExceptionInternal("Error cancelling pending request during disconnect", ex);
+                        if(Verbose)
+                            LogExceptionInternal("Error cancelling pending request during disconnect", ex);
                     }
                 }
 
@@ -525,12 +536,14 @@ namespace tiesky.com
             }
             catch (Exception ex) when (ex is IOException || ex is ObjectDisposedException || ex is InvalidOperationException || ex is InvalidDataException)
             {
-                LogExceptionInternal("Receive loop terminated due to pipe error", ex);
+                if(Verbose)
+                    LogExceptionInternal("Receive loop terminated due to pipe error", ex);
                 // Pipe likely broken, trigger disconnection
             }
             catch (Exception ex)
             {
-                LogExceptionInternal("Receive loop terminated unexpectedly", ex);
+                if (Verbose)
+                    LogExceptionInternal("Receive loop terminated unexpectedly", ex);
             }
             finally
             {
@@ -1401,7 +1414,8 @@ namespace tiesky.com
         {
             // Simple console log, replace with your preferred logging mechanism
             // Console.WriteLine($"[NamedPipesIPC:{_role}:{_pipeName}] INFO: {message}");
-            ExternalExceptionHandler?.Invoke($"[NamedPipesIPC:{_role}] INFO: {message}", null);
+            if(Verbose)
+                ExternalExceptionHandler?.Invoke($"[NamedPipesIPC:{_role}] INFO: {message}", null);
 
         }
 
