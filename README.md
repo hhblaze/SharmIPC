@@ -19,25 +19,6 @@ Inter-process communication (IPC engine) between 2 partner processes of one OS:
 =====================
 *Usage example:* 
 ```C#
-//Added SharmNPC that works under .NET6> on Linux (named MemoryMappedFiles are not supported there).
-//Both versions are included and usable. SharmNPC is based on Named Pipes and represents a complete drop-in replacement.
-//In SharmNPC case one process becomes server and another client.
-//Before we made
-tiesky.com.SharmIpc sm = null;
-//Now we can change 
-tiesky.com.ISharm sm = null;
-//and use any of it SharmIpc (Win) or SharmNPC (Win, Linux).
-//server listener
-sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall);
-//or 
-//client listener
-sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler);
-//the rest is the same - drop-in.
-//Note, currently there is a connection timeout (when server or client waits longer than 30 seconds of the connection, it stops). 
-//Also after established communication, when one of peers Disconnects - the other doesn't restore listening/connecting behaviour.
-//All that is possible, but these are just different behavior strategies.
-//In this first version of SharmNpc we don't give much flexibility for that setup - later or by request.
-
 // Added SharmNpc which works under .NET 6+ on Linux (Named MemoryMappedFiles are not supported there).
 // Both versions are included and usable. SharmNpc is based on Named Pipes and serves as a complete drop-in replacement.
 // With SharmNpc, one process becomes the server and another becomes the client.
