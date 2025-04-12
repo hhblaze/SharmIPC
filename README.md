@@ -33,7 +33,7 @@ sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Serve
 // Client connector
 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler);
 //or
-ipc = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server,
+sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server,
     this.AsyncRemoteCallHandler,
     50000, 100000000,
     (descr, excep) =>
