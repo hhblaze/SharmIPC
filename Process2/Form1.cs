@@ -21,7 +21,7 @@ namespace mmf2client
             button1_Click(null,null);
         }
 
-        tiesky.com.SharmIpc sm = null;
+        tiesky.com.ISharm sm = null;
    
 
         Tuple<bool, byte[]> RemoteCall(byte[] data)
@@ -68,7 +68,10 @@ namespace mmf2client
         {
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                //sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.RemoteCall, externalProcessing: false);
+                sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler, externalProcessing: false);
+
+                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
             }
 

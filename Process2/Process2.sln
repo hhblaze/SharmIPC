@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Process2", "Process2.csproj", "{EC16C423-4E85-4EE6-8FBB-966CB69A6E8D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharmIpc", "..\Process1\SharmIpc\SharmIpc.csproj", "{398FFB3B-91DA-4021-943B-979F9D23DEFE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharmIpcNet6", "..\Process1\SharmIpcNet6\SharmIpcNet6.csproj", "{12B3DBA3-32EC-49EB-A97B-5877C8E6AE3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{398FFB3B-91DA-4021-943B-979F9D23DEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{398FFB3B-91DA-4021-943B-979F9D23DEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{398FFB3B-91DA-4021-943B-979F9D23DEFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12B3DBA3-32EC-49EB-A97B-5877C8E6AE3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12B3DBA3-32EC-49EB-A97B-5877C8E6AE3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12B3DBA3-32EC-49EB-A97B-5877C8E6AE3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12B3DBA3-32EC-49EB-A97B-5877C8E6AE3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

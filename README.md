@@ -1,13 +1,14 @@
 **SharmIPC .NET**
 =====================
-![Image of Build](https://img.shields.io/badge/SharmIPC.NET-stable%20v1.18-4BA2AD.svg) 
+![Image of Build](https://img.shields.io/badge/SharmIPC.NET-stable%20v1.20-4BA2AD.svg) 
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg) 
 ![Image of Build](https://img.shields.io/badge/Roadmap-completed-33CC33.svg)
 [![NuGet Badge](https://buildstats.info/nuget/SharmIPC)](https://www.nuget.org/packages/SharmIPC/)
+[![NuGet Badge](https://img.shields.io/nuget/dt/SharmIPC?color=blue&label=Nuget%20downloads)](https://www.nuget.org/packages/SharmIPC/)
 [![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
 
 Inter-process communication (IPC engine) between 2 partner processes of one OS:
-<br>- .NET 4.5 > /.NETCore 2.0 / .NETStandard 2.0 . Based on memory-mapped files
+<br>- .NET Framework 4.5 > /.NETCore 2.0 / .NETStandard 2.0 / .NET 6> . Based on memory-mapped files and on NamedPipes
 <br>- Written on C#
 <br>- Fast and lightweight
 <br>- Sync and Async calls with timeouts
@@ -18,6 +19,26 @@ Inter-process communication (IPC engine) between 2 partner processes of one OS:
 
 =====================
 *Usage example:* 
+```C#
+//Added SharmNPC that works under .NET6> on Linux (named MemoryMappedFiles are not supported there).
+//Both versions are included and usable. SharmNPC is based on Named Pipes and represents a complete drop-in replacement.
+//In SharmNPC case one process becomes server and another client.
+//Before we made
+tiesky.com.SharmIpc sm = null;
+//Now we can change 
+tiesky.com.ISharm sm = null;
+//and use any of it SharmIpc (Win) or SharmNPC (Win, Linux).
+//server listener
+sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall);
+//or 
+//client listener
+sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler);
+//the rest is the same - drop-in.
+//Note, currently there is a connection timeout (when server or client waits longer than 30 seconds of the connection, it stops). 
+//Also after established communication, when one of peers Disconnects - the other doesn't restore listening/connecting behaviour.
+//All that is possible, but these are just different behavior strategies.
+//In this first version of SharmNpc we don't give much flexibility for that setup - later or by request.
+```
 
 ```C#
 //Process 1 and Process2

@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+
 
 namespace MemoryMappedFile
 {
@@ -19,7 +23,7 @@ namespace MemoryMappedFile
             button1_Click(null, null);
         }
 
-        tiesky.com.SharmIpc sm = null;
+        tiesky.com.ISharm sm = null;
         int z = 0;
         System.Diagnostics.Stopwatch swNonBlockingCall = new System.Diagnostics.Stopwatch();
 
@@ -79,7 +83,8 @@ namespace MemoryMappedFile
 
             if (sm == null)
             {
-                sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall, externalProcessing: false);
+                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
                 //or to get ability to answer to remote partner in async way
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
@@ -105,28 +110,44 @@ namespace MemoryMappedFile
             //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
             //return;
 
-            //Parallel.For(0, 100, async (aii) => {
+            //Parallel.For(0, 100, async (aii) =>
+            //{
             //    for (int j = 0; j < 1000; j++)
             //    {
             //        //var tor = sm.RemoteRequest(new byte[50]);
-            //        var tor = await sm.RemoteRequestAsync(new byte[50], null);
+            //        var tor = await sm.RemoteRequestAsync(new byte[50]);
             //        //Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss.ms") + "> masterRes " +tor.Item1 + " " + tor.Item2.Length);
             //    }
             //});
 
-
+            int totalSentAndReceivedbytes=0;
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            for (int j = 0; j < 10000; j++)
-            {
-                //var tor = sm.RemoteRequest(new byte[1]);
-                var tor = await sm.RemoteRequestAsync(new byte[1] { 17 });
-                //mll.Add(tor.Item2);
 
-            }
+            await Parallel.ForEachAsync(Enumerable.Range(0, 20), 
+                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (aii, cancellationToken) =>
+            {
+                for (int j = 0; j < 2000; j++)
+                {
+                    var dataToSend = new byte[1];
+                    var tor = await sm.RemoteRequestAsync(dataToSend);
+                    Interlocked.Add(ref totalSentAndReceivedbytes, dataToSend.Length + tor.Item2.Length);
+                }
+            });           
+
+
+            //for (int j = 0; j < 10000; j++)
+            //{
+            //    //var tor = sm.RemoteRequest(new byte[1]);
+            //    var tor = await sm.RemoteRequestAsync(new byte[1] { 17 });
+            //    //mll.Add(tor.Item2);
+            //}
+
             sw.Stop();
-            Console.WriteLine("ELAPS: " + sw.ElapsedMilliseconds);
-            MessageBox.Show("ELAPS: " + sw.ElapsedMilliseconds);
+            string showStr = $"Elapse: {sw.ElapsedMilliseconds}; Totalbyte: {totalSentAndReceivedbytes}";
+            Console.WriteLine(showStr);
+            Debug.WriteLine(showStr);
+            MessageBox.Show(showStr);
 
             return;
 

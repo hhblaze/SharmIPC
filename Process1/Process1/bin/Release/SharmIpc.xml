@@ -4,10 +4,157 @@
         <name>SharmIpc</name>
     </assembly>
     <members>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.GetMessageId">
+            <summary>
+            To get new Id this function must be used
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.SendMessage(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[],System.UInt64)">
+            <summary>
+            Returns false if buffer threshold is reached
+            </summary>
+            <param name="msgType"></param>
+            <param name="msgId"></param>
+            <param name="msg"></param>
+            <param name="responseMsgId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.SendMessageV2(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[],System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="msgType"></param>
+            <param name="msgId"></param>
+            <param name="msg"></param>
+            <param name="responseMsgId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.WriterV01">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.InitReader">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32,tiesky.com.SharmIpc.eProtocolVersion)">
+            <summary>
+            
+            </summary>
+            <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
+            <param name="SharmIPC">SharmIPC instance</param>
+            <param name="bufferCapacity"></param>
+            <param name="maxQueueSizeInBytes"></param>     
+            <param name="protocolVersion"></param> 
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.Dispose">
+            <summary>
+            Disposing
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.Substring(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Substring int-dimensional byte arrays
+            </summary>
+            <param name="ar"></param>
+            <param name="startIndex"></param>
+            <param name="length"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.ToProtoBytes(System.UInt64)">
+            <summary>
+            Uses protobuf concepts
+            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.FromProtoBytes(System.Byte[])">
+            <summary>
+            Uses protobuf concepts
+            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
+            </summary>
+            <param name="bytes"></param>        
+            <returns></returns>
+        </member>
+        <member name="T:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory">
+            <summary>
+            Provides interop utilities for <see cref="T:System.Threading.WaitHandle"/> types.
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task"/>. When the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned <see cref="T:System.Threading.Tasks.Task"/> is completed. If the handle is already signalled, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.TimeSpan)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is completed with a <c>true</c> result. If the observation times out, the returned task is completed with a <c>false</c> result. If the handle is already signalled or the timeout is zero, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+            <param name="timeout">The timeout after which the <see cref="T:System.Threading.WaitHandle"/> is no longer observed.</param>
+        </member>
+        <member name="M:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.Threading.CancellationToken)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is (successfully) completed. If the observation is cancelled, the returned task is cancelled. If the handle is already signalled or the cancellation token is already cancelled, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+            <param name="token">The cancellation token that cancels observing the <see cref="T:System.Threading.WaitHandle"/>.</param>
+        </member>
+        <member name="T:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants">
+            <summary>
+            Provides completed task constants.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants.BooleanTrue">
+            <summary>
+            A task that has been completed with the value <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants.BooleanFalse">
+            <summary>
+            A task that has been completed with the value <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants.Int32Zero">
+            <summary>
+            A task that has been completed with the value <c>0</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants.Int32NegativeOne">
+            <summary>
+            A task that has been completed with the value <c>-1</c>.
+            </summary>
+        </member>
+        <member name="P:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants.Canceled">
+            <summary>
+            A task that has been canceled.
+            </summary>
+        </member>
+        <member name="T:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants`1">
+            <summary>
+            Provides completed task constants.
+            </summary>
+            <typeparam name="T">The type of the task result.</typeparam>
+        </member>
+        <member name="P:tiesky.com.SharmIpcInternals.WaitHandleAsyncFactory.TaskConstants`1.Default">
+            <summary>
+            A task that has been completed with the default value of <typeparamref name="T"/>.
+            </summary>
+        </member>
         <member name="T:tiesky.com.SharmIpc">
             <summary>
             Inter-process communication handler. IPC for .NET
             https://github.com/hhblaze/SharmIPC or http://sharmipc.tiesky.com
+            </summary>
+        </member>
+        <member name="T:tiesky.com.SharmIpc.eProtocolVersion">
+            <summary>
+            Both peers must have the same version implementation
             </summary>
         </member>
         <member name="F:tiesky.com.SharmIpc.AsyncRemoteCallHandler">
@@ -38,7 +185,19 @@
             <param name="timeouts"></param>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
+        <member name="P:tiesky.com.SharmIpc.ProtocolVersion">
+            <summary>
+            Communication protocol, must be the same for both peers. Can be setup via constructor
+            </summary>
+        </member>
+        <member name="F:tiesky.com.SharmIpc.ExternalProcessing">
+            <summary>
+            Default is false. Descibed in https://github.com/hhblaze/SharmIPC/issues/6
+            <para>Gives ability to parse packages in the same receiving thread before processing them in another thread</para>
+            <para>Programmer is responsible for the returning control back ASAP from RemoteCallHandler via Task.Run(()=>process(msg))</para>
+            </summary>
+        </member>
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion,System.Boolean)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -48,8 +207,9 @@
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
             <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
+            <param name="externalProcessing">Gives ability to parse packages in the same receiving thread before processing them in another thread</param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpcInternals.eProtocolVersion)">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion,System.Boolean)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -59,6 +219,7 @@
             <param name="maxQueueSizeInBytes">If remote partner is temporary not available, messages are accumulated in the sending buffer. This value sets the upper threshold of the buffer in bytes.</param>
             <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
             <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
+            <param name="externalProcessing">Gives ability to parse packages in the same receiving thread before processing them in another thread</param>
         </member>
         <member name="M:tiesky.com.SharmIpc.LogException(System.String,System.Exception)">
             <summary>
@@ -111,136 +272,126 @@
             
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.GetMessageId">
+        <member name="M:tiesky.com.SharmIpc.UsageReport">
             <summary>
-            To get new Id this function must be used
+            Returns current usage statistic
             </summary>
             <returns></returns>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.SendMessage(tiesky.com.SharmIpcInternals.eMsgType,System.UInt64,System.Byte[],System.UInt64)">
+        <member name="T:tiesky.com.SharmNpc">
             <summary>
-            Returns false if buffer threshold is reached
-            </summary>
-            <param name="msgType"></param>
-            <param name="msgId"></param>
-            <param name="msg"></param>
-            <param name="responseMsgId"></param>
-            <returns></returns>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.ReaderWriterHandler.InitReader">
-            <summary>
-            
+            Inter-process communication handler using Named Pipes. Aims to be a drop-in replacement for SharmIPC.
             </summary>
         </member>
-        <member name="T:tiesky.com.SharmIpcInternals.eProtocolVersion">
+        <member name="P:tiesky.com.SharmNpc.RemoteCallHandler">
             <summary>
-            Both peers must have the same version implementation
+            Handler for synchronous RPC requests from the remote peer.
+            Must return a Tuple indicating success and the response payload.
+            Mutually exclusive with AsyncRemoteCallHandler.
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.#ctor(System.String,tiesky.com.SharmIpc,System.Int64,System.Int32,tiesky.com.SharmIpcInternals.eProtocolVersion)">
+        <member name="P:tiesky.com.SharmNpc.AsyncRemoteCallHandler">
             <summary>
-            
-            </summary>
-            <param name="uniqueHandlerName">Can be name of APP, both syncronized processes must use the same name and it must be unique among the OS</param>
-            <param name="SharmIPC">SharmIPC instance</param>
-            <param name="bufferCapacity"></param>
-            <param name="maxQueueSizeInBytes"></param>     
-            <param name="protocolVersion"></param> 
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.SharedMemory.Dispose">
-            <summary>
-            Disposing
+            Handler for asynchronous requests (Request) or RPC requests (RpcRequest) from the remote peer.
+            For RpcRequest, the response MUST be sent back using AsyncAnswerOnRemoteCall.
+            Mutually exclusive with RemoteCallHandler.
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.Substring(System.Byte[],System.Int32,System.Int32)">
+        <member name="P:tiesky.com.SharmNpc.ExternalProcessing">
             <summary>
-            Substring int-dimensional byte arrays
-            </summary>
-            <param name="ar"></param>
-            <param name="startIndex"></param>
-            <param name="length"></param>
-            <returns></returns>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.ToProtoBytes(System.UInt64)">
-            <summary>
-            Uses protobuf concepts
-            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:tiesky.com.SharmIpcInternals.BytesProcessing.FromProtoBytes(System.Byte[])">
-            <summary>
-            Uses protobuf concepts
-            //https://github.com/topas/VarintBitConverter/blob/master/src/VarintBitConverter/VarintBitConverter.cs
-            </summary>
-            <param name="bytes"></param>        
-            <returns></returns>
-        </member>
-        <member name="T:tiesky.com.WaitHandleAsyncFactory">
-            <summary>
-            Provides interop utilities for <see cref="T:System.Threading.WaitHandle"/> types.
+            If true, user handlers (RemoteCallHandler/AsyncRemoteCallHandler) are invoked directly
+            on the receiving thread. The user is responsible for returning control quickly (e.g., using Task.Run).
+            If false (default), handlers are invoked via Task.Run automatically.
             </summary>
         </member>
-        <member name="M:tiesky.com.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle)">
+        <member name="P:tiesky.com.SharmNpc.ExternalExceptionHandler">
             <summary>
-            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task"/>. When the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned <see cref="T:System.Threading.Tasks.Task"/> is completed. If the handle is already signalled, this method acts synchronously.
-            </summary>
-            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
-        </member>
-        <member name="M:tiesky.com.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.TimeSpan)">
-            <summary>
-            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is completed with a <c>true</c> result. If the observation times out, the returned task is completed with a <c>false</c> result. If the handle is already signalled or the timeout is zero, this method acts synchronously.
-            </summary>
-            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
-            <param name="timeout">The timeout after which the <see cref="T:System.Threading.WaitHandle"/> is no longer observed.</param>
-        </member>
-        <member name="M:tiesky.com.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.Threading.CancellationToken)">
-            <summary>
-            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is (successfully) completed. If the observation is cancelled, the returned task is cancelled. If the handle is already signalled or the cancellation token is already cancelled, this method acts synchronously.
-            </summary>
-            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
-            <param name="token">The cancellation token that cancels observing the <see cref="T:System.Threading.WaitHandle"/>.</param>
-        </member>
-        <member name="T:tiesky.com.WaitHandleAsyncFactory.TaskConstants">
-            <summary>
-            Provides completed task constants.
+            Optional handler for logging internal exceptions. Provides a description and the Exception.
             </summary>
         </member>
-        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.BooleanTrue">
+        <member name="F:tiesky.com.SharmNpc.PeerConnected">
             <summary>
-            A task that has been completed with the value <c>true</c>.
+            Fired when a connection to the peer is successfully established.
             </summary>
         </member>
-        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.BooleanFalse">
+        <member name="F:tiesky.com.SharmNpc.PeerDisconnected">
             <summary>
-            A task that has been completed with the value <c>false</c>.
+            Fired when the connection to the peer is lost or closed.
             </summary>
         </member>
-        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.Int32Zero">
+        <member name="P:tiesky.com.SharmNpc.IsConnected">
             <summary>
-            A task that has been completed with the value <c>0</c>.
+            Gets a value indicating whether a connection to the peer is currently established.
             </summary>
         </member>
-        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.Int32NegativeOne">
+        <member name="M:tiesky.com.SharmNpc.#ctor(System.String,tiesky.com.SharmNpcInternals.PipeRole,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},System.Boolean)">
             <summary>
-            A task that has been completed with the value <c>-1</c>.
+            Creates a NamedPipesIPC instance.
+            </summary>
+            <param name="uniquePipeName">A unique name for the pipe (OS-wide). Both processes must use the same name.</param>
+            <param name="role">Whether this instance acts as the Server (listens) or Client (connects).</param>
+            <param name="remoteCallHandler">Synchronous handler for incoming RPC requests.</param>
+            <param name="bufferCapacity">Approximation for internal buffer sizes (less critical than MMF version). Default: 50000.</param>
+            <param name="maxQueueSizeInBytes">Maximum total size of messages allowed in the send queue before rejecting new messages. Default: 20MB.</param>
+            <param name="externalExceptionHandler">Handler for internal exceptions.</param>
+            <param name="externalProcessing">If false (default), handlers are invoked via Task.Run automatically on the receiving thread</param>
+        </member>
+        <member name="M:tiesky.com.SharmNpc.#ctor(System.String,tiesky.com.SharmNpcInternals.PipeRole,System.Action{System.UInt64,System.Byte[]},System.Int64,System.Int32,System.Action{System.String,System.Exception},System.Boolean)">
+            <summary>
+            Creates a NamedPipesIPC instance.
+            </summary>
+            <param name="uniquePipeName">A unique name for the pipe (OS-wide). Both processes must use the same name.</param>
+            <param name="role">Whether this instance acts as the Server (listens) or Client (connects).</param>
+            <param name="asyncRemoteCallHandler">Asynchronous handler for incoming requests.</param>
+            <param name="bufferCapacity">Approximation for internal buffer sizes (less critical than MMF version). Default: 50000.</param>
+            <param name="maxQueueSizeInBytes">Maximum total size of messages allowed in the send queue before rejecting new messages. Default: 20MB.</param>
+            <param name="externalExceptionHandler">Handler for internal exceptions.</param>
+            <param name="externalProcessing">If false (default), handlers are invoked via Task.Run automatically on the receiving thread</param>
+        </member>
+        <member name="P:tiesky.com.SharmNpc.CommunicationProtocolVersion">
+            <summary>
+            Current 0
             </summary>
         </member>
-        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants.Canceled">
+        <member name="M:tiesky.com.SharmNpc.RemoteRequest(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
             <summary>
-            A task that has been canceled.
+            Sends an RPC request and waits synchronously for a response.
+            </summary>
+            <param name="args">Payload to send.</param>
+            <param name="callBack">If provided, the response is returned asynchronously via this callback. The method returns immediately with (true, null).</param>
+            <param name="timeoutMs">Timeout in milliseconds to wait for a response (only applicable if callBack is null). Default: 30000.</param>
+            <returns>If callBack is null: Tuple(success, responseBytes). If callBack is provided: Tuple(true, null) if queued, Tuple(false, null) if error.</returns>
+        </member>
+        <member name="M:tiesky.com.SharmNpc.RemoteRequestAsync(System.Byte[],System.Int32)">
+            <summary>
+            Sends an RPC request and returns an awaitable Task for the response.
+            </summary>
+            <param name="args">Payload to send.</param>
+            <param name="timeoutMs">Timeout in milliseconds to wait for a response. Default: 30000.</param>
+            <returns>A Task that resolves to Tuple(success, responseBytes).</returns>
+        </member>
+        <member name="M:tiesky.com.SharmNpc.RemoteRequestWithoutResponse(System.Byte[])">
+            <summary>
+            Sends a request without expecting or waiting for a response. Fire-and-forget.
+            </summary>
+            <param name="args">Payload to send.</param>
+            <returns>True if the message was successfully queued for sending, false otherwise.</returns>
+        </member>
+        <member name="M:tiesky.com.SharmNpc.AsyncAnswerOnRemoteCall(System.UInt64,System.Tuple{System.Boolean,System.Byte[]})">
+            <summary>
+            Sends a response back for a request that was handled by AsyncRemoteCallHandler.
+            </summary>
+            <param name="originalMsgId">The message ID received in AsyncRemoteCallHandler.</param>
+            <param name="response">Tuple indicating success and the response payload.</param>
+        </member>
+        <member name="M:tiesky.com.SharmNpc.UsageReport">
+            <summary>
+            Returns a string with current usage statistics.
             </summary>
         </member>
-        <member name="T:tiesky.com.WaitHandleAsyncFactory.TaskConstants`1">
+        <member name="M:tiesky.com.SharmNpc.Dispose">
             <summary>
-            Provides completed task constants.
-            </summary>
-            <typeparam name="T">The type of the task result.</typeparam>
-        </member>
-        <member name="P:tiesky.com.WaitHandleAsyncFactory.TaskConstants`1.Default">
-            <summary>
-            A task that has been completed with the default value of <typeparamref name="T"/>.
+            Disposes resources used by the NamedPipesIPC instance.
             </summary>
         </member>
     </members>
