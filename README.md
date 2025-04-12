@@ -3,7 +3,6 @@
 ![Image of Build](https://img.shields.io/badge/SharmIPC.NET-stable%20v1.20-4BA2AD.svg) 
 ![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg) 
 ![Image of Build](https://img.shields.io/badge/Roadmap-completed-33CC33.svg)
-[![NuGet Badge](https://buildstats.info/nuget/SharmIPC)](https://www.nuget.org/packages/SharmIPC/)
 [![NuGet Badge](https://img.shields.io/nuget/dt/SharmIPC?color=blue&label=Nuget%20downloads)](https://www.nuget.org/packages/SharmIPC/)
 [![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
 
@@ -38,6 +37,28 @@ sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Clien
 //Also after established communication, when one of peers Disconnects - the other doesn't restore listening/connecting behaviour.
 //All that is possible, but these are just different behavior strategies.
 //In this first version of SharmNpc we don't give much flexibility for that setup - later or by request.
+
+// Added SharmNpc which works under .NET 6+ on Linux (Named MemoryMappedFiles are not supported there).
+// Both versions are included and usable. SharmNpc is based on Named Pipes and serves as a complete drop-in replacement.
+// With SharmNpc, one process becomes the server and another becomes the client.
+// Previously, we used:
+tiesky.com.SharmIpc sm = null;
+// Now we can change to:
+tiesky.com.ISharm sm = null;
+// and use either SharmIpc (Windows) or SharmNpc (Windows/Linux).
+
+// Server listener
+sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall);
+// Client connector
+sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler);
+
+// The rest remains the same - it's a drop-in replacement.
+// Note: Currently there's a connection timeout (if server or client waits longer than 30 seconds for connection establishment, it aborts).
+// Also, after establishing communication, if one peer disconnects, the other doesn't automatically restore listening/connecting behavior.
+// These behaviors can be customized, but represent different implementation strategies.
+// In this initial SharmNpc version, we don't provide configuration flexibility for these scenarios - this may be added in future updates or by request.
+
+//Check Process1 and Process2 folder for the examples.
 ```
 
 ```C#
