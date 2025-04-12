@@ -174,7 +174,7 @@ void AsyncRemoteCallHandler(ulong msgId, byte[] data)
 =====================
 *Benchmarks:*
 ```txt
-[DLL size is 15 KB]
+[DLL size is 65 KB] (SharmNpc works 20-30% faster than SharmIpc)
 
 [512 bytes package in both directions]
 Remote async and sync calls with response (a la RPC), full-duplex, with the speed of 20 MB/s.
