@@ -32,7 +32,24 @@ tiesky.com.ISharm sm = null;
 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall);
 // Client connector
 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler);
-
+//or
+ipc = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server,
+    this.AsyncRemoteCallHandler,
+    50000, 100000000,
+    (descr, excep) =>
+    {
+       
+    })
+	{
+		 Verbose = false,
+		 PeerDisconnected = () => {
+			 
+		 },
+		 PeerConnected = () =>
+		 {
+			 
+		 }
+	};
 // The rest remains the same - it's a drop-in replacement.
 // Note: Currently there's a connection timeout (if server or client waits longer than 30 seconds for connection establishment, it aborts).
 // Also, after establishing communication, if one peer disconnects, the other doesn't automatically restore listening/connecting behavior.
