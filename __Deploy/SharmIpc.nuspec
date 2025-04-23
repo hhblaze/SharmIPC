@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>SharmIPC</id>
-    <version>1.20.0</version>
+    <version>1.21.0</version>
     <title>SharmIPC .NET inter-process communication IPC for .NET Framework / .NET 6> / .NETStandard 2.0</title>
     <authors>Alex Solovyov </authors>
     <owners>hhblaze@gmail.com http://sharmipc.tiesky.com</owners>   
