@@ -85,6 +85,8 @@ namespace MemoryMappedFile
             {
                 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall, externalProcessing: false);
                 //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+
                 //or to get ability to answer to remote partner in async way
                 //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
@@ -99,16 +101,18 @@ namespace MemoryMappedFile
             List<byte[]> mll = new List<byte[]>();
 
 
-            //var uzuz = sm.RemoteRequest(new byte[] { 50 }, (Tuple<bool, byte[]> myres1) => 
+            //var uzuz = sm.RemoteRequest(new byte[] { 50 }, (Tuple<bool, byte[]> myres1) =>
             //{
-            //    Console.WriteLine("received");
+            //    Debug.WriteLine("received");
             //}, timeoutMs: 10000);
 
 
             //return;
 
             //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
-            //return;
+            //var uzuz = await sm.RemoteRequestAsync(null);
+            var uzuz = await sm.RemoteRequestAsync(new byte[0]);
+            return;
 
             //Parallel.For(0, 100, async (aii) =>
             //{

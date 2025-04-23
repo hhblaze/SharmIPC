@@ -686,13 +686,20 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                     // Read Payload
                     if (iPayLoadLen > 0)
                     {
-                        if (ms.Position + iPayLoadLen > ms.Length) throw new InvalidDataException("Payload length exceeds buffer bounds.");
-                        payload = new byte[iPayLoadLen];
-                        ms.Read(payload, 0, iPayLoadLen);
+                        if(iPayLoadLen == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1) //handling new byte[0]
+                        {
+                            payload = Array.Empty<byte>();
+                        }
+                        else
+                        {
+                            if (ms.Position + iPayLoadLen > ms.Length) throw new InvalidDataException("Payload length exceeds buffer bounds.");
+                            payload = new byte[iPayLoadLen];
+                            ms.Read(payload, 0, iPayLoadLen);
+                        }                        
                     }
-                    else if (iPayLoadLen == 0)
+                    else if (iPayLoadLen == 0) //handlilng null
                     {
-                        payload = Array.Empty<byte>(); // Represent empty payload consistently
+                        payload = Array.Empty<byte>(); // Represent empty payload consistently                        
                     }
                     else // iPayLoadLen < 0 is invalid
                     {
@@ -742,7 +749,20 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                             byte[] finalPayload;
                             if (chunksCollected == null) // Single chunk message
                             {
-                                finalPayload = payload ?? Array.Empty<byte>();
+                                switch(iPayLoadLen)
+                                {
+                                    case 0:
+                                        finalPayload = null;
+                                        break;
+                                    case Int32.MaxValue:
+                                        finalPayload = Array.Empty<byte>();
+                                        break;
+                                    default:
+                                        finalPayload = payload ?? Array.Empty<byte>();
+                                        break;
+
+                                }
+                                //finalPayload = payload ?? Array.Empty<byte>();
                             }
                             else // Multi-chunk message completed
                             {
@@ -1008,7 +1028,8 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                 // Build header parts
                 messageParts.Add(((ulong)msgType).ToProtoBytes());
                 messageParts.Add(msgId.ToProtoBytes());
-                messageParts.Add(((ulong)currentChunkLen).ToProtoBytes()); // Actual payload length for this chunk
+                //messageParts.Add(((ulong)currentChunkLen).ToProtoBytes()); // Actual payload length for this chunk
+                messageParts.Add(((ulong)((msg != null && msg.Length == 0) ? Int32.MaxValue : currentChunkLen)).ToProtoBytes()); // Actual payload length for this chunk
                 messageParts.Add(((ulong)currentChunk).ToProtoBytes());
                 messageParts.Add(((ulong)totalChunks).ToProtoBytes());
                 messageParts.Add(responseMsgId.ToProtoBytes());
