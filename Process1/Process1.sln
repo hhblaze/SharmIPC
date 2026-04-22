@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Process1", "Process1\Process1.csproj", "{2D8630EC-5FFD-4BC2-9671-A6F83C233E7D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Process1", "Process1\Process1.csproj", "{2D8630EC-5FFD-4BC2-9671-A6F83C233E7D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharmIpc", "SharmIpc\SharmIpc.csproj", "{398FFB3B-91DA-4021-943B-979F9D23DEFE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharmIpcNetStandard20", "SharmIpcNetStandard20\SharmIpcNetStandard20.csproj", "{E15ACC9F-C24A-4B95-909C-95DB8BCC9C8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharmIpcNet6", "SharmIpcNet6\SharmIpcNet6.csproj", "{A4E209A2-1D04-4F54-9ECD-FD45F25DC6F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharmIpcNet6", "SharmIpcNet6\SharmIpcNet6.csproj", "{A4E209A2-1D04-4F54-9ECD-FD45F25DC6F4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharmIpcNet8", "SharmIpcNet8\SharmIpcNet8.csproj", "{49DF5946-8068-4634-A8B7-1020F2141ECA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,6 +89,22 @@ Global
 		{A4E209A2-1D04-4F54-9ECD-FD45F25DC6F4}.Release|x64.Build.0 = Release|Any CPU
 		{A4E209A2-1D04-4F54-9ECD-FD45F25DC6F4}.Release|x86.ActiveCfg = Release|Any CPU
 		{A4E209A2-1D04-4F54-9ECD-FD45F25DC6F4}.Release|x86.Build.0 = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|ARM.Build.0 = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|x64.Build.0 = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Debug|x86.Build.0 = Debug|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|ARM.ActiveCfg = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|ARM.Build.0 = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|x64.ActiveCfg = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|x64.Build.0 = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|x86.ActiveCfg = Release|Any CPU
+		{49DF5946-8068-4634-A8B7-1020F2141ECA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
