@@ -128,7 +128,7 @@ namespace MemoryMappedFile
             int totalCallsq = 0;
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            var dataToSend = new byte[1000000];
+            var dataToSend = new byte[1];
             int parDeg = 1; //Environment.ProcessorCount 
 
             await Parallel.ForEachAsync(Enumerable.Range(0, 20), 
