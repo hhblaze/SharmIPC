@@ -197,7 +197,7 @@
             <para>Programmer is responsible for the returning control back ASAP from RemoteCallHandler via Task.Run(()=>process(msg))</para>
             </summary>
         </member>
-        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.Tuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion,System.Boolean)">
+        <member name="M:tiesky.com.SharmIpc.#ctor(System.String,System.Func{System.Byte[],System.ValueTuple{System.Boolean,System.Byte[]}},System.Int64,System.Int32,System.Action{System.String,System.Exception},tiesky.com.SharmIpc.eProtocolVersion,System.Boolean)">
             <summary>
             SharmIpc constructor
             </summary>
@@ -228,7 +228,7 @@
             <param name="description"></param>
             <param name="ex"></param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.AsyncAnswerOnRemoteCall(System.UInt64,System.Tuple{System.Boolean,System.Byte[]})">
+        <member name="M:tiesky.com.SharmIpc.AsyncAnswerOnRemoteCall(System.UInt64,System.ValueTuple{System.Boolean,System.Byte[]})">
             <summary>
             In case if asyncRemoteCallHandler != null
             </summary>
@@ -243,7 +243,7 @@
             <param name="msgId"></param>
             <param name="bt"></param>
         </member>
-        <member name="M:tiesky.com.SharmIpc.RemoteRequest(System.Byte[],System.Action{System.Tuple{System.Boolean,System.Byte[]}},System.Int32)">
+        <member name="M:tiesky.com.SharmIpc.RemoteRequest(System.Byte[],System.Action{System.ValueTuple{System.Boolean,System.Byte[]}},System.Int32)">
             <summary>
             
             </summary>
