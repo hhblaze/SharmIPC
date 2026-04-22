@@ -40,7 +40,7 @@ namespace tiesky.com
         /// Must return a Tuple indicating success and the response payload.
         /// Mutually exclusive with AsyncRemoteCallHandler.
         /// </summary>
-        public Func<byte[], Tuple<bool, byte[]>> RemoteCallHandler { get; set; } = null;
+        public Func<byte[], (bool, byte[])> RemoteCallHandler { get; set; } = null;
 
         /// <summary>
         /// Handler for asynchronous requests (Request) or RPC requests (RpcRequest) from the remote peer.
@@ -159,7 +159,7 @@ namespace tiesky.com
         /// <param name="maxQueueSizeInBytes">Maximum total size of messages allowed in the send queue before rejecting new messages. Default: 20MB.</param>
         /// <param name="externalExceptionHandler">Handler for internal exceptions.</param>
         /// <param name="externalProcessing">If false (default), handlers are invoked via Task.Run automatically on the receiving thread</param>
-        public SharmNpc(string uniquePipeName, PipeRole role, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000,
+        public SharmNpc(string uniquePipeName, PipeRole role, Func<byte[], (bool, byte[])> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000,
             Action<string, System.Exception> externalExceptionHandler = null, bool externalProcessing = false)
             : this(uniquePipeName, role, bufferCapacity, maxQueueSizeInBytes, externalExceptionHandler, externalProcessing)
         {
@@ -551,7 +551,7 @@ namespace tiesky.com
                         if (crate.callBack != null)
                         {
                             // Execute callback asynchronously
-                            Task.Run(() => crate.callBack(new Tuple<bool, byte[]>(false, null)));
+                            Task.Run(() => crate.callBack((false, null)));
                         }
                         else
                         {
@@ -1151,7 +1151,7 @@ namespace tiesky.com
                                 {
                                     try
                                     {
-                                        removedCrate.callBack(new Tuple<bool, byte[]>(removedCrate.IsRespOk, removedCrate.res));
+                                        removedCrate.callBack((removedCrate.IsRespOk, removedCrate.res));
                                     }
                                     catch (Exception ex)
                                     {
@@ -1248,6 +1248,94 @@ namespace tiesky.com
         //    }
         //}
 
+        //private bool SendMessageInternal(eMsgType msgType, ulong msgId, byte[] data, ulong responseMsgId = 0)
+        //{
+        //    if (!IsConnected || Interlocked.Read(ref _disposed) == 1)
+        //    {
+        //        LogInfo($"SendMessageInternal failed: Not connected or disposed. MsgType: {msgType}, MsgId: {msgId}");
+        //        return false;
+        //    }
+
+        //    try
+        //    {
+        //        int payloadLength = data?.Length ?? 0;
+        //        int chunkSize = 1000000; // Increased to ~1MB as requested
+        //        int totalChunks = payloadLength == 0 ? 1 : (int)Math.Ceiling((double)payloadLength / chunkSize);
+
+        //        // Pre-calculate worst case size to check queue limit BEFORE processing
+        //        // 4 (len) + ~60 (worst case headers) + payload
+        //        long estimatedTotalBytes = (totalChunks * 64L) + payloadLength;
+        //        if (Interlocked.Read(ref _currentQueueSize) + estimatedTotalBytes > _maxQueueSizeInBytes)
+        //        {
+        //            LogExceptionInternal("Send queue max size reached", new Exception($"Queue limit {_maxQueueSizeInBytes} exceeded."));
+        //            Statistic.Error();
+        //            return false;
+        //        }
+
+        //        int currentDataOffset = 0;
+        //        int leftToProcess = payloadLength;
+
+        //        for (int chunkIndex = 1; chunkIndex <= totalChunks; chunkIndex++)
+        //        {
+        //            int currentChunkLen = Math.Min(leftToProcess, chunkSize);
+
+        //            // Calculate exact header sizes (assuming ToProtoBytes is VarInt encoding)
+        //            ulong payloadLenIndicator = (data != null && data.Length == 0) ? Int32.MaxValue : (ulong)currentChunkLen;
+
+        //            int headersSize =
+        //                GetVarIntSize((ulong)msgType) +
+        //                GetVarIntSize(msgId) +
+        //                GetVarIntSize(payloadLenIndicator) +
+        //                GetVarIntSize((ulong)chunkIndex) +
+        //                GetVarIntSize((ulong)totalChunks) +
+        //                GetVarIntSize(responseMsgId);
+
+        //            int frameSize = headersSize + currentChunkLen;
+        //            int totalMessageBytes = frameSize + 4; // +4 for length prefix
+
+        //            // 1. Rent a buffer from the pool (NO ALLOCATION)
+        //            byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(totalMessageBytes);
+        //            Span<byte> span = rentedBuffer.AsSpan();
+
+        //            // 2. Write Length Prefix (4 bytes, Little Endian)
+        //            BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), frameSize);
+        //            int pos = 4;
+
+        //            // 3. Write Headers directly to the buffer (NO ALLOCATION)
+        //            pos += WriteVarInt(span.Slice(pos), (ulong)msgType);
+        //            pos += WriteVarInt(span.Slice(pos), msgId);
+        //            pos += WriteVarInt(span.Slice(pos), payloadLenIndicator);
+        //            pos += WriteVarInt(span.Slice(pos), (ulong)chunkIndex);
+        //            pos += WriteVarInt(span.Slice(pos), (ulong)totalChunks);
+        //            pos += WriteVarInt(span.Slice(pos), responseMsgId);
+
+        //            // 4. Write Payload (Single copy)
+        //            if (currentChunkLen > 0 && data != null)
+        //            {
+        //                data.AsSpan(currentDataOffset, currentChunkLen).CopyTo(span.Slice(pos));
+        //                pos += currentChunkLen;
+        //            }
+
+        //            // 5. Enqueue
+        //            _sendQueue.Enqueue(new QueuedFrame(rentedBuffer, totalMessageBytes));
+        //            Interlocked.Add(ref _currentQueueSize, totalMessageBytes);
+
+        //            currentDataOffset += currentChunkLen;
+        //            leftToProcess -= currentChunkLen;
+        //        }
+
+        //        // Fire and forget send loop
+        //        _ = SendLoopAsync();
+
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogExceptionInternal("Error serializing or queuing message", ex);
+        //        return false;
+        //    }
+        //}
+
         private bool SendMessageInternal(eMsgType msgType, ulong msgId, byte[] data, ulong responseMsgId = 0)
         {
             if (!IsConnected || Interlocked.Read(ref _disposed) == 1)
@@ -1259,27 +1347,16 @@ namespace tiesky.com
             try
             {
                 int payloadLength = data?.Length ?? 0;
-                int chunkSize = 1000000; // Increased to ~1MB as requested
+                int chunkSize = 1000000; // Up to 1MB chunks as requested
                 int totalChunks = payloadLength == 0 ? 1 : (int)Math.Ceiling((double)payloadLength / chunkSize);
 
-                // Pre-calculate worst case size to check queue limit BEFORE processing
-                // 4 (len) + ~60 (worst case headers) + payload
-                long estimatedTotalBytes = (totalChunks * 64L) + payloadLength;
-                if (Interlocked.Read(ref _currentQueueSize) + estimatedTotalBytes > _maxQueueSizeInBytes)
-                {
-                    LogExceptionInternal("Send queue max size reached", new Exception($"Queue limit {_maxQueueSizeInBytes} exceeded."));
-                    Statistic.Error();
-                    return false;
-                }
-
-                int currentDataOffset = 0;
+                // 1. FIRST PASS: Calculate EXACT total size required for all chunks combined
+                int totalMessageBytes = 0;
                 int leftToProcess = payloadLength;
 
                 for (int chunkIndex = 1; chunkIndex <= totalChunks; chunkIndex++)
                 {
                     int currentChunkLen = Math.Min(leftToProcess, chunkSize);
-
-                    // Calculate exact header sizes (assuming ToProtoBytes is VarInt encoding)
                     ulong payloadLenIndicator = (data != null && data.Length == 0) ? Int32.MaxValue : (ulong)currentChunkLen;
 
                     int headersSize =
@@ -1290,18 +1367,37 @@ namespace tiesky.com
                         GetVarIntSize((ulong)totalChunks) +
                         GetVarIntSize(responseMsgId);
 
-                    int frameSize = headersSize + currentChunkLen;
-                    int totalMessageBytes = frameSize + 4; // +4 for length prefix
+                    totalMessageBytes += headersSize + currentChunkLen;
+                    leftToProcess -= currentChunkLen;
+                }
 
-                    // 1. Rent a buffer from the pool (NO ALLOCATION)
-                    byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(totalMessageBytes);
-                    Span<byte> span = rentedBuffer.AsSpan();
+                // Check queue limit BEFORE renting
+                if (Interlocked.Read(ref _currentQueueSize) + totalMessageBytes > _maxQueueSizeInBytes)
+                {
+                    LogExceptionInternal("Send queue max size reached", new Exception($"Queue limit {_maxQueueSizeInBytes} exceeded."));
+                    Statistic.Error();
+                    return false;
+                }
 
-                    // 2. Write Length Prefix (4 bytes, Little Endian)
-                    BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), frameSize);
-                    int pos = 4;
+                // 2. Rent ONE buffer for the ENTIRE multi-chunk message (+4 for length prefix)
+                // ArrayPool easily supports pooling huge multi-megabyte arrays in .NET 8
+                int totalFrameSize = totalMessageBytes + 4;
+                byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(totalFrameSize);
+                Span<byte> span = rentedBuffer.AsSpan();
 
-                    // 3. Write Headers directly to the buffer (NO ALLOCATION)
+                // 3. Write Length Prefix (4 bytes, Little Endian)
+                BinaryPrimitives.WriteInt32LittleEndian(span.Slice(0, 4), totalMessageBytes);
+                int pos = 4;
+
+                // 4. SECOND PASS: Write all chunks contiguously into the single buffer
+                leftToProcess = payloadLength;
+                int currentDataOffset = 0;
+
+                for (int chunkIndex = 1; chunkIndex <= totalChunks; chunkIndex++)
+                {
+                    int currentChunkLen = Math.Min(leftToProcess, chunkSize);
+                    ulong payloadLenIndicator = (data != null && data.Length == 0) ? Int32.MaxValue : (ulong)currentChunkLen;
+
                     pos += WriteVarInt(span.Slice(pos), (ulong)msgType);
                     pos += WriteVarInt(span.Slice(pos), msgId);
                     pos += WriteVarInt(span.Slice(pos), payloadLenIndicator);
@@ -1309,20 +1405,19 @@ namespace tiesky.com
                     pos += WriteVarInt(span.Slice(pos), (ulong)totalChunks);
                     pos += WriteVarInt(span.Slice(pos), responseMsgId);
 
-                    // 4. Write Payload (Single copy)
                     if (currentChunkLen > 0 && data != null)
                     {
                         data.AsSpan(currentDataOffset, currentChunkLen).CopyTo(span.Slice(pos));
                         pos += currentChunkLen;
                     }
 
-                    // 5. Enqueue
-                    _sendQueue.Enqueue(new QueuedFrame(rentedBuffer, totalMessageBytes));
-                    Interlocked.Add(ref _currentQueueSize, totalMessageBytes);
-
                     currentDataOffset += currentChunkLen;
                     leftToProcess -= currentChunkLen;
                 }
+
+                // 5. Enqueue the single frame containing all chunks
+                _sendQueue.Enqueue(new QueuedFrame(rentedBuffer, totalFrameSize));
+                Interlocked.Add(ref _currentQueueSize, totalFrameSize);
 
                 // Fire and forget send loop
                 _ = SendLoopAsync();
@@ -1335,6 +1430,7 @@ namespace tiesky.com
                 return false;
             }
         }
+
 
         private int GetVarIntSize(ulong value)
         {
@@ -1612,10 +1708,10 @@ namespace tiesky.com
         /// <param name="callBack">If provided, the response is returned asynchronously via this callback. The method returns immediately with (true, null).</param>
         /// <param name="timeoutMs">Timeout in milliseconds to wait for a response (only applicable if callBack is null). Default: 30000.</param>
         /// <returns>If callBack is null: Tuple(success, responseBytes). If callBack is provided: Tuple(true, null) if queued, Tuple(false, null) if error.</returns>
-        public Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
+        public (bool, byte[]) RemoteRequest(byte[] args, Action<(bool, byte[])> callBack = null, int timeoutMs = 30000)
         {
-            if (Interlocked.Read(ref _disposed) == 1) return new Tuple<bool, byte[]>(false, null);
-            if (!IsConnected) return new Tuple<bool, byte[]>(false, null);
+            if (Interlocked.Read(ref _disposed) == 1) return (false, null);
+            if (!IsConnected) return (false, null);
 
             ulong msgId = GetNextMessageId();
             var crate = new ResponseCrate();
@@ -1629,7 +1725,7 @@ namespace tiesky.com
                 if (!_pendingRequests.TryAdd(msgId, crate))
                 {
                     LogExceptionInternal("Failed to add callback request to dictionary (duplicate msgId?)", new Exception($"MsgId collision: {msgId}"));
-                    return new Tuple<bool, byte[]>(false, null); // Should be rare
+                    return (false, null); // Should be rare
                 }
                 Statistic.UpdatePending(_pendingRequests.Count);
 
@@ -1640,12 +1736,12 @@ namespace tiesky.com
                     _pendingRequests.TryRemove(msgId, out _);
                     Statistic.UpdatePending(_pendingRequests.Count);
                     // Invoke callback immediately with failure
-                    Task.Run(() => callBack(new Tuple<bool, byte[]>(false, null)));
-                    return new Tuple<bool, byte[]>(false, null); // Indicate queuing failed
+                    Task.Run(() => callBack((false, null)));
+                    return (false, null); // Indicate queuing failed
                 }
 
                 // Message queued successfully, callback will be invoked later
-                return new Tuple<bool, byte[]>(true, null);
+                return (true, null);
             }
             else // Synchronous wait
             {
@@ -1656,17 +1752,17 @@ namespace tiesky.com
                 {
                     LogExceptionInternal("Failed to add sync request to dictionary (duplicate msgId?)", new Exception($"MsgId collision: {msgId}"));
                     crate.Dispose_MRE_AMRE();
-                    return new Tuple<bool, byte[]>(false, null);
+                    return (false, null);
                 }
                 Statistic.UpdatePending(_pendingRequests.Count);
 
-                Tuple<bool, byte[]> result = null;
+                (bool, byte[]) result;
                 try
                 {
                     if (!SendMessageInternal(eMsgType.RpcRequest, msgId, args))
                     {
                         // Failed to send/queue
-                        result = new Tuple<bool, byte[]>(false, null);
+                        result = (false, null);
                     }
                     else
                     {
@@ -1675,12 +1771,12 @@ namespace tiesky.com
                         {
                             // Timeout
                             Statistic.Timeout();
-                            result = new Tuple<bool, byte[]>(false, null); // Indicate timeout
+                            result = (false, null); // Indicate timeout
                         }
                         else
                         {
                             // Got response (or ErrorInRpc)
-                            result = new Tuple<bool, byte[]>(crate.IsRespOk, crate.res);
+                            result = (crate.IsRespOk, crate.res);
                         }
                     }
                 }
@@ -1698,7 +1794,7 @@ namespace tiesky.com
                         crate.Dispose_MRE_AMRE();
                     }
                 }
-                return result ?? new Tuple<bool, byte[]>(false, null); // Fallback
+                return result; // Fallback
             }
         }
 
@@ -1708,10 +1804,11 @@ namespace tiesky.com
         /// <param name="args">Payload to send.</param>
         /// <param name="timeoutMs">Timeout in milliseconds to wait for a response. Default: 30000.</param>
         /// <returns>A Task that resolves to Tuple(success, responseBytes).</returns>
-        public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
+        //public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
+        public async Task<(bool, byte[])> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
         {
-            if (Interlocked.Read(ref _disposed) == 1) return new Tuple<bool, byte[]>(false, null);
-            if (!IsConnected) return new Tuple<bool, byte[]>(false, null);
+            if (Interlocked.Read(ref _disposed) == 1) return (false, null);
+            if (!IsConnected) return (false, null);
 
             ulong msgId = GetNextMessageId();
             var crate = new ResponseCrate();
@@ -1722,53 +1819,55 @@ namespace tiesky.com
             {
                 LogExceptionInternal("Failed to add async request to dictionary (duplicate msgId?)", new Exception($"MsgId collision: {msgId}"));
                 crate.Dispose_MRE_AMRE(); // Dispose the AMRE we created
-                return new Tuple<bool, byte[]>(false, null);
+                return (false, null);
             }
             Statistic.UpdatePending(_pendingRequests.Count);
 
 
-            Tuple<bool, byte[]> result = null;
-            CancellationTokenSource timeoutCts = null;
+            (bool, byte[]) result;
+            //CancellationTokenSource timeoutCts = null;
             try
             {
                 if (!SendMessageInternal(eMsgType.RpcRequest, msgId, args))
                 {
                     // Failed to send/queue
-                    result = new Tuple<bool, byte[]>(false, null);
+                    result = (false, null);
                 }
                 else
                 {
                     // Wait for response or timeout using AMRE's built-in timeout wait
-                    timeoutCts = new CancellationTokenSource(timeoutMs);
-                    if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, timeoutCts.Token).ConfigureAwait(false))
+                    //timeoutCts = new CancellationTokenSource(timeoutMs);
+                    if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, CancellationToken.None).ConfigureAwait(false))
                     {
-                        // Timeout or Canceled
-                        if (!timeoutCts.IsCancellationRequested) // Check if it was timeout vs external cancellation
-                        {
-                            Statistic.Timeout();
-                            LogInfo($"Async request {msgId} timed out after {timeoutMs} ms.");
-                        }
-                        else
-                        {
-                            LogInfo($"Async request {msgId} cancelled before timeout.");
-                        }
-                        result = new Tuple<bool, byte[]>(false, null);
+                        //// Timeout or Canceled
+                        //if (!timeoutCts.IsCancellationRequested) // Check if it was timeout vs external cancellation
+                        //{
+                        //    Statistic.Timeout();
+                        //    LogInfo($"Async request {msgId} timed out after {timeoutMs} ms.");
+                        //}
+                        //else
+                        //{
+                        //    LogInfo($"Async request {msgId} cancelled before timeout.");
+                        //}
+                        Statistic.Timeout();
+                        LogInfo($"Async request {msgId} timed out after {timeoutMs} ms.");
+                        result = (false, null);
                     }
                     else
                     {
                         // Got response signal
-                        result = new Tuple<bool, byte[]>(crate.IsRespOk, crate.res);
+                        result = (crate.IsRespOk, crate.res);
                     }
                 }
             }
             catch (OperationCanceledException)
             {
                 LogInfo($"Async request {msgId} cancelled during await.");
-                result = new Tuple<bool, byte[]>(false, null);
+                result = (false, null);
             }
             finally
             {
-                timeoutCts?.Dispose();
+                //timeoutCts?.Dispose();
                 // Always remove from dictionary and dispose crate after async wait completes or fails
                 if (_pendingRequests.TryRemove(msgId, out var removedCrate))
                 {
@@ -1782,7 +1881,7 @@ namespace tiesky.com
                 }
             }
 
-            return result ?? new Tuple<bool, byte[]>(false, null); // Fallback
+            return result; // Fallback
         }
 
 
@@ -1806,20 +1905,21 @@ namespace tiesky.com
         /// </summary>
         /// <param name="originalMsgId">The message ID received in AsyncRemoteCallHandler.</param>
         /// <param name="response">Tuple indicating success and the response payload.</param>
-        public void AsyncAnswerOnRemoteCall(ulong originalMsgId, Tuple<bool, byte[]> response)
+        public void AsyncAnswerOnRemoteCall(ulong originalMsgId, (bool, byte[]) response)
         {
             if (Interlocked.Read(ref _disposed) == 1) return;
             if (!IsConnected) return;
 
-            if (response != null)
-            {
-                SendMessageInternal(response.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), response.Item2, originalMsgId);
-            }
-            else
-            {
-                // Send error if response is null? Or just do nothing? Sending error is safer.
-                SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, originalMsgId);
-            }
+            SendMessageInternal(response.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), response.Item2, originalMsgId);
+            //if (response != null)
+            //{
+            //    SendMessageInternal(response.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), response.Item2, originalMsgId);
+            //}
+            //else
+            //{
+            //    // Send error if response is null? Or just do nothing? Sending error is safer.
+            //    SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, originalMsgId);
+            //}
         }
 
         /// <summary>
@@ -1877,7 +1977,7 @@ namespace tiesky.com
                             // Run callback async with failure
                             Task.Run(() =>
                             {
-                                try { timedOutCrate.callBack(new Tuple<bool, byte[]>(false, null)); }
+                                try { timedOutCrate.callBack((false, null)); }
                                 catch (Exception ex) { LogExceptionInternal("Exception in timeout callback", ex); }
                                 finally { timedOutCrate.Dispose_MRE_AMRE(); } // Dispose after callback
                             });
@@ -1978,7 +2078,7 @@ namespace tiesky.com
 
 
             // --- Callback ---
-            public Action<Tuple<bool, byte[]>> callBack = null;
+            public Action<(bool, byte[])> callBack = null;
 
             // --- Result ---
             public byte[] res = null;

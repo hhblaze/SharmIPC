@@ -36,7 +36,7 @@ namespace tiesky.com
         /// Must return a Tuple indicating success and the response payload.
         /// Mutually exclusive with AsyncRemoteCallHandler.
         /// </summary>
-        public Func<byte[], Tuple<bool, byte[]>> RemoteCallHandler { get; set; } = null;
+        public Func<byte[], (bool, byte[])> RemoteCallHandler { get; set; } = null;
 
         /// <summary>
         /// Handler for asynchronous requests (Request) or RPC requests (RpcRequest) from the remote peer.
@@ -141,7 +141,7 @@ namespace tiesky.com
         /// <param name="maxQueueSizeInBytes">Maximum total size of messages allowed in the send queue before rejecting new messages. Default: 20MB.</param>
         /// <param name="externalExceptionHandler">Handler for internal exceptions.</param>
         /// <param name="externalProcessing">If false (default), handlers are invoked via Task.Run automatically on the receiving thread</param>
-        public SharmNpc(string uniquePipeName, PipeRole role, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000,
+        public SharmNpc(string uniquePipeName, PipeRole role, Func<byte[], (bool, byte[])> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000,
             Action<string, System.Exception> externalExceptionHandler = null, bool externalProcessing = false)
             : this(uniquePipeName, role, bufferCapacity, maxQueueSizeInBytes, externalExceptionHandler, externalProcessing)
         {
@@ -531,7 +531,7 @@ namespace tiesky.com
                         if (crate.callBack != null)
                         {
                             // Execute callback asynchronously
-                            Task.Run(() => crate.callBack(new Tuple<bool, byte[]>(false, null)));
+                            Task.Run(() => crate.callBack((false, null)));
                         }
                         else
                         {
@@ -904,7 +904,7 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                                 {
                                     try
                                     {
-                                        removedCrate.callBack(new Tuple<bool, byte[]>(removedCrate.IsRespOk, removedCrate.res));
+                                        removedCrate.callBack((removedCrate.IsRespOk, removedCrate.res));
                                     }
                                     catch (Exception ex)
                                     {
@@ -1195,10 +1195,10 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
         /// <param name="callBack">If provided, the response is returned asynchronously via this callback. The method returns immediately with (true, null).</param>
         /// <param name="timeoutMs">Timeout in milliseconds to wait for a response (only applicable if callBack is null). Default: 30000.</param>
         /// <returns>If callBack is null: Tuple(success, responseBytes). If callBack is provided: Tuple(true, null) if queued, Tuple(false, null) if error.</returns>
-        public Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
+        public (bool, byte[]) RemoteRequest(byte[] args, Action<(bool, byte[])> callBack = null, int timeoutMs = 30000)
         {
-            if (Interlocked.Read(ref _disposed) == 1) return new Tuple<bool, byte[]>(false, null);
-            if (!IsConnected) return new Tuple<bool, byte[]>(false, null);
+            if (Interlocked.Read(ref _disposed) == 1) return (false, null);
+            if (!IsConnected) return (false, null);
 
             ulong msgId = GetNextMessageId();
             var crate = new ResponseCrate();
@@ -1212,7 +1212,7 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                 if (!_pendingRequests.TryAdd(msgId, crate))
                 {
                     LogExceptionInternal("Failed to add callback request to dictionary (duplicate msgId?)", new Exception($"MsgId collision: {msgId}"));
-                    return new Tuple<bool, byte[]>(false, null); // Should be rare
+                    return (false, null); // Should be rare
                 }
                 Statistic.UpdatePending(_pendingRequests.Count);
 
@@ -1223,12 +1223,12 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                     _pendingRequests.TryRemove(msgId, out _);
                     Statistic.UpdatePending(_pendingRequests.Count);
                     // Invoke callback immediately with failure
-                    Task.Run(() => callBack(new Tuple<bool, byte[]>(false, null)));
-                    return new Tuple<bool, byte[]>(false, null); // Indicate queuing failed
+                    Task.Run(() => callBack((false, null)));
+                    return (false, null); // Indicate queuing failed
                 }
 
                 // Message queued successfully, callback will be invoked later
-                return new Tuple<bool, byte[]>(true, null);
+                return (true, null);
             }
             else // Synchronous wait
             {
@@ -1239,17 +1239,17 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                 {
                     LogExceptionInternal("Failed to add sync request to dictionary (duplicate msgId?)", new Exception($"MsgId collision: {msgId}"));
                     crate.Dispose_MRE_AMRE();
-                    return new Tuple<bool, byte[]>(false, null);
+                    return (false, null);
                 }
                 Statistic.UpdatePending(_pendingRequests.Count);
 
-                Tuple<bool, byte[]> result = null;
+                (bool, byte[]) result;
                 try
                 {
                     if (!SendMessageInternal(eMsgType.RpcRequest, msgId, args))
                     {
                         // Failed to send/queue
-                        result = new Tuple<bool, byte[]>(false, null);
+                        result = (false, null);
                     }
                     else
                     {
@@ -1258,12 +1258,12 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                         {
                             // Timeout
                             Statistic.Timeout();
-                            result = new Tuple<bool, byte[]>(false, null); // Indicate timeout
+                            result = (false, null); // Indicate timeout
                         }
                         else
                         {
                             // Got response (or ErrorInRpc)
-                            result = new Tuple<bool, byte[]>(crate.IsRespOk, crate.res);
+                            result = (crate.IsRespOk, crate.res);
                         }
                     }
                 }
@@ -1281,7 +1281,7 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                         crate.Dispose_MRE_AMRE();
                     }
                 }
-                return result ?? new Tuple<bool, byte[]>(false, null); // Fallback
+                return result; // Fallback
             }
         }
 
@@ -1291,10 +1291,10 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
         /// <param name="args">Payload to send.</param>
         /// <param name="timeoutMs">Timeout in milliseconds to wait for a response. Default: 30000.</param>
         /// <returns>A Task that resolves to Tuple(success, responseBytes).</returns>
-        public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
+        public async Task<(bool, byte[])> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
         {
-            if (Interlocked.Read(ref _disposed) == 1) return new Tuple<bool, byte[]>(false, null);
-            if (!IsConnected) return new Tuple<bool, byte[]>(false, null);
+            if (Interlocked.Read(ref _disposed) == 1) return (false, null);
+            if (!IsConnected) return (false, null);
 
             ulong msgId = GetNextMessageId();
             var crate = new ResponseCrate();
@@ -1305,53 +1305,56 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
             {
                 LogExceptionInternal("Failed to add async request to dictionary (duplicate msgId?)", new Exception($"MsgId collision: {msgId}"));
                 crate.Dispose_MRE_AMRE(); // Dispose the AMRE we created
-                return new Tuple<bool, byte[]>(false, null);
+                return (false, null);
             }
             Statistic.UpdatePending(_pendingRequests.Count);
 
 
-            Tuple<bool, byte[]> result = null;
-            CancellationTokenSource timeoutCts = null;
+            (bool, byte[]) result;
+            //CancellationTokenSource timeoutCts = null;
             try
             {
                 if (!SendMessageInternal(eMsgType.RpcRequest, msgId, args))
                 {
                     // Failed to send/queue
-                    result = new Tuple<bool, byte[]>(false, null);
+                    result = (false, null);
                 }
                 else
                 {
                     // Wait for response or timeout using AMRE's built-in timeout wait
-                    timeoutCts = new CancellationTokenSource(timeoutMs);
-                    if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, timeoutCts.Token).ConfigureAwait(false))
+                    //timeoutCts = new CancellationTokenSource(timeoutMs);
+                    
+                    if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, CancellationToken.None).ConfigureAwait(false))
                     {
                         // Timeout or Canceled
-                        if (!timeoutCts.IsCancellationRequested) // Check if it was timeout vs external cancellation
-                        {
-                            Statistic.Timeout();
-                            LogInfo($"Async request {msgId} timed out after {timeoutMs} ms.");
-                        }
-                        else
-                        {
-                            LogInfo($"Async request {msgId} cancelled before timeout.");
-                        }
-                        result = new Tuple<bool, byte[]>(false, null);
+                        //if (!timeoutCts.IsCancellationRequested) // Check if it was timeout vs external cancellation
+                        //{
+                        //    Statistic.Timeout();
+                        //    LogInfo($"Async request {msgId} timed out after {timeoutMs} ms.");
+                        //}
+                        //else
+                        //{
+                        //    LogInfo($"Async request {msgId} cancelled before timeout.");
+                        //}
+                        Statistic.Timeout();
+                        LogInfo($"Async request {msgId} timed out after {timeoutMs} ms.");
+                        result = (false, null);
                     }
                     else
                     {
                         // Got response signal
-                        result = new Tuple<bool, byte[]>(crate.IsRespOk, crate.res);
+                        result = (crate.IsRespOk, crate.res);
                     }
                 }
             }
             catch (OperationCanceledException)
             {
                 LogInfo($"Async request {msgId} cancelled during await.");
-                result = new Tuple<bool, byte[]>(false, null);
+                result = (false, null);
             }
             finally
             {
-                timeoutCts?.Dispose();
+                //timeoutCts?.Dispose();
                 // Always remove from dictionary and dispose crate after async wait completes or fails
                 if (_pendingRequests.TryRemove(msgId, out var removedCrate))
                 {
@@ -1365,7 +1368,7 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                 }
             }
 
-            return result ?? new Tuple<bool, byte[]>(false, null); // Fallback
+            return result; // Fallback
         }
 
 
@@ -1389,20 +1392,22 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
         /// </summary>
         /// <param name="originalMsgId">The message ID received in AsyncRemoteCallHandler.</param>
         /// <param name="response">Tuple indicating success and the response payload.</param>
-        public void AsyncAnswerOnRemoteCall(ulong originalMsgId, Tuple<bool, byte[]> response)
+        public void AsyncAnswerOnRemoteCall(ulong originalMsgId, (bool, byte[]) response)
         {
             if (Interlocked.Read(ref _disposed) == 1) return;
             if (!IsConnected) return;
 
-            if (response != null)
-            {
-                SendMessageInternal(response.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), response.Item2, originalMsgId);
-            }
-            else
-            {
-                // Send error if response is null? Or just do nothing? Sending error is safer.
-                SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, originalMsgId);
-            }
+            SendMessageInternal(response.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), response.Item2, originalMsgId);
+
+            //if (response != null)
+            //{
+            //    SendMessageInternal(response.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), response.Item2, originalMsgId);
+            //}
+            //else
+            //{
+            //    // Send error if response is null? Or just do nothing? Sending error is safer.
+            //    SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, originalMsgId);
+            //}
         }
 
         /// <summary>
@@ -1460,7 +1465,7 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
                             // Run callback async with failure
                             Task.Run(() =>
                             {
-                                try { timedOutCrate.callBack(new Tuple<bool, byte[]>(false, null)); }
+                                try { timedOutCrate.callBack((false, null)); }
                                 catch (Exception ex) { LogExceptionInternal("Exception in timeout callback", ex); }
                                 finally { timedOutCrate.Dispose_MRE_AMRE(); } // Dispose after callback
                             });
@@ -1561,7 +1566,7 @@ lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
 
 
             // --- Callback ---
-            public Action<Tuple<bool, byte[]>> callBack = null;
+            public Action<(bool, byte[])> callBack = null;
 
             // --- Result ---
             public byte[] res = null;

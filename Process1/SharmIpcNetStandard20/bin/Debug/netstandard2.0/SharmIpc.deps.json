@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.0": {},
     ".NETStandard,Version=v2.0/": {
-      "SharmIpc/1.17.2017.1002": {
+      "SharmIpc/1.20.2025.0412": {
         "dependencies": {
           "NETStandard.Library": "2.0.3",
           "System.IO.MemoryMappedFiles": "4.3.0"
@@ -217,7 +217,7 @@
     }
   },
   "libraries": {
-    "SharmIpc/1.17.2017.1002": {
+    "SharmIpc/1.20.2025.0412": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

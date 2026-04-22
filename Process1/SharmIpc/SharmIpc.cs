@@ -26,7 +26,7 @@ namespace tiesky.com
             V2 = 2
         }
 
-        Func<byte[], Tuple<bool, byte[]>> remoteCallHandler = null;
+        Func<byte[], (bool, byte[])> remoteCallHandler = null;
         /// <summary>
         /// If we don't want to answer in sync way via remoteCallHandler
         /// msgId and data, msgId must be returned back with AsyncAnswerOnRemoteCall
@@ -50,7 +50,7 @@ namespace tiesky.com
             /// </summary>
             public ManualResetEvent mre = null;
             public byte[] res = null;
-            public Action<Tuple<bool, byte[]>> callBack = null;
+            public Action<(bool, byte[])> callBack = null;
             public bool IsRespOk = false;
 
             public AsyncManualResetEvent amre = null;
@@ -165,7 +165,7 @@ namespace tiesky.com
         /// <param name="ExternalExceptionHandler">External exception handler can be supplied, will be returned Description from SharmIPC, like class.method name and handeled exception</param>
         /// <param name="protocolVersion">Version of communication protocol. Must be the same for both communicating peers</param>
         /// <param name="externalProcessing">Gives ability to parse packages in the same receiving thread before processing them in another thread</param>
-        public SharmIpc(string uniqueHandlerName, Func<byte[], Tuple<bool, byte[]>> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, 
+        public SharmIpc(string uniqueHandlerName, Func<byte[], (bool, byte[])> remoteCallHandler, long bufferCapacity = 50000, int maxQueueSizeInBytes = 20000000, 
             Action<string, System.Exception> ExternalExceptionHandler = null, eProtocolVersion protocolVersion = eProtocolVersion.V1, bool externalProcessing = false)
             :this(uniqueHandlerName,bufferCapacity,maxQueueSizeInBytes,ExternalExceptionHandler, protocolVersion, externalProcessing)
         {
@@ -218,7 +218,7 @@ namespace tiesky.com
                 foreach(var el in toRemove)
                 {
                     if(df.TryRemove(el, out rc))
-                        rc.callBack(new Tuple<bool, byte[]>(false, null));  //timeout
+                        rc.callBack((false, null));  //timeout
                 }
 
             }), null, 10000, 10000);
@@ -247,10 +247,11 @@ namespace tiesky.com
         /// </summary>
         /// <param name="msgId"></param>
         /// <param name="res"></param>
-        public void AsyncAnswerOnRemoteCall(ulong msgId, Tuple<bool, byte[]> res)
+        public void AsyncAnswerOnRemoteCall(ulong msgId, (bool, byte[]) res)
         {
-            if (res != null && sm != null)
-                sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+            sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
+            //if (res != null && sm != null)
+            //    sm.SendMessage(res.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, sm.GetMessageId(), res.Item2, msgId);
         }
 
         //async Task CallAsyncRemoteHandler(ulong msgId, byte[] bt)
@@ -340,7 +341,7 @@ namespace tiesky.com
                             //Calling callback in parallel thread, quicly to return to ReaderWriterhandler.Reader procedure
                             Task.Run(() =>
                             {
-                                rsp.callBack(new Tuple<bool, byte[]>(rsp.IsRespOk, bt));
+                                rsp.callBack((rsp.IsRespOk, bt));
                             });
                         }
                     }
@@ -439,7 +440,7 @@ namespace tiesky.com
         /// <param name="callBack">if specified then response for the request will be returned into callBack (async). Default is sync.</param>
         /// <param name="timeoutMs">Default 30 sec</param>
         /// <returns></returns>
-        public Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000)
+        public (bool, byte[]) RemoteRequest(byte[] args, Action<(bool, byte[])> callBack = null, int timeoutMs = 30000)
         {
        
             ulong msgId = sm.GetMessageId();
@@ -456,11 +457,11 @@ namespace tiesky.com
                 if (!sm.SendMessage(eMsgType.RpcRequest, msgId, args))
                 {
                     df.TryRemove(msgId, out resp);
-                    callBack(new Tuple<bool, byte[]>(false, null));
-                    return new Tuple<bool, byte[]>(false, null);
+                    callBack((false, null));
+                    return (false, null);
                 }
 
-                return new Tuple<bool, byte[]>(true, null);
+                return (true, null);
             }
 
             resp.TimeoutsMs = Int32.MaxValue; //using timeout of the wait handle (not the timer)
@@ -478,7 +479,7 @@ namespace tiesky.com
                 //    resp.mre.Dispose();
                 //resp.mre = null;
                 df.TryRemove(msgId, out resp);
-                return new Tuple<bool, byte[]>(false, null);
+                return (false, null);
             }
             //else if (!resp.mre.WaitOne(timeoutMs))
             else if (!resp.WaitOne_MRE(timeoutMs))
@@ -491,7 +492,7 @@ namespace tiesky.com
                 //resp.mre = null;
                 resp.Dispose_MRE();
                 df.TryRemove(msgId, out resp);
-                return new Tuple<bool, byte[]>(false, null);
+                return (false, null);
             }
 
             //if (resp.mre != null)
@@ -501,10 +502,10 @@ namespace tiesky.com
 
             if (df.TryRemove(msgId, out resp))
             {
-                return new Tuple<bool, byte[]>(resp.IsRespOk, resp.res);
+                return (resp.IsRespOk, resp.res);
             }
 
-            return new Tuple<bool, byte[]>(false, null);
+            return (false, null);
         }
 
 
@@ -514,10 +515,10 @@ namespace tiesky.com
         /// <param name="args">payload which must be send to remote partner</param>        
         /// <param name="timeoutMs">Default 30 sec</param>
         /// <returns></returns>
-        public async Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
+        public async Task<(bool, byte[])> RemoteRequestAsync(byte[] args, int timeoutMs = 30000)
         {
             if (Interlocked.Read(ref Disposed) == 1)
-                return new Tuple<bool, byte[]>(false, null);
+                return (false, null);
 
             ulong msgId = sm.GetMessageId();
             var resp = new ResponseCrate();
@@ -537,7 +538,7 @@ namespace tiesky.com
                 //    resp.mre.Dispose();
                 //resp.mre = null;
                 df.TryRemove(msgId, out resp);
-                return new Tuple<bool, byte[]>(false, null);
+                return (false, null);
             }
                         
             //await resp.mre.AsTask(TimeSpan.FromMilliseconds(timeoutMs));        //enable for mre
@@ -548,10 +549,10 @@ namespace tiesky.com
 
             if (df.TryRemove(msgId, out resp))
             {
-                return new Tuple<bool, byte[]>(resp.IsRespOk, resp.res);
+                return (resp.IsRespOk, resp.res);
             }
 
-            return new Tuple<bool, byte[]>(false, null);
+            return (false, null);
         }
 
 

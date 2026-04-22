@@ -32,7 +32,7 @@ namespace MemoryMappedFile
         {
             Task.Run(() =>
                 {                    
-                    sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
+                    sm.AsyncAnswerOnRemoteCall(msgId, (true, new byte[] { 5 }));
                 });
         }
         /// <summary>
@@ -40,9 +40,9 @@ namespace MemoryMappedFile
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        Tuple<bool,byte[]> RemoteCall(byte[] data)
+        (bool,byte[]) RemoteCall(byte[] data)
         {
-            return new Tuple<bool, byte[]>(true, new byte[10]);   
+            return (true, new byte[10]);   
 
 
             if (z == 0)
@@ -62,7 +62,7 @@ namespace MemoryMappedFile
                 swNonBlockingCall.Reset();
             }
             //Console.WriteLine("Received: {0} bytes", (data == null ? 0 : data.Length));
-            return new Tuple<bool, byte[]>(true, new byte[] { 5, 6, 7 });            
+            return (true, new byte[] { 5, 6, 7 });            
         }
 
 
@@ -128,7 +128,7 @@ namespace MemoryMappedFile
             int totalCallsq = 0;
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            var dataToSend = new byte[0];
+            var dataToSend = new byte[1000000];
             int parDeg = 1; //Environment.ProcessorCount 
 
             await Parallel.ForEachAsync(Enumerable.Range(0, 20), 

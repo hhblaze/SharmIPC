@@ -39,7 +39,7 @@ namespace mmf2client
 
             //System.Threading.Thread.Sleep(40000);
             //sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[1]));
-            sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, data));
+            sm.AsyncAnswerOnRemoteCall(msgId, (true, data));
 
             //if(data != null && data.Length>0)
             //{

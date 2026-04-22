@@ -9,10 +9,10 @@ namespace tiesky.com
     public interface ISharm
     {
         string UsageReport();
-        void AsyncAnswerOnRemoteCall(ulong msgId, Tuple<bool, byte[]> res);
+        void AsyncAnswerOnRemoteCall(ulong msgId, (bool, byte[]) res);
         bool RemoteRequestWithoutResponse(byte[] args);
-        Tuple<bool, byte[]> RemoteRequest(byte[] args, Action<Tuple<bool, byte[]>> callBack = null, int timeoutMs = 30000);
-        Task<Tuple<bool, byte[]>> RemoteRequestAsync(byte[] args, int timeoutMs = 30000);
+        (bool, byte[]) RemoteRequest(byte[] args, Action<(bool, byte[])> callBack = null, int timeoutMs = 30000);
+        Task<(bool, byte[])> RemoteRequestAsync(byte[] args, int timeoutMs = 30000);
         void Dispose();
         int CommunicationProtocolVersion { get; }
     }
