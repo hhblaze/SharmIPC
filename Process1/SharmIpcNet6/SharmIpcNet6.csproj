@@ -6,19 +6,19 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageId>SharmIpc</PackageId>
-    <AssemblyVersion>1.20.2025.0412</AssemblyVersion>
+    <AssemblyVersion>1.22.2026.0422</AssemblyVersion>
     <AssemblyName>SharmIpc</AssemblyName>
-    <FileVersion>1.20.2025.0412</FileVersion>
+    <FileVersion>1.22.2026.0422</FileVersion>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\SharmIpcNet8\SharmNpc.cs" Link="SharmNpc.cs" />
     <Compile Include="..\SharmIpc\AsyncManualResetEvent.cs" Link="AsyncManualResetEvent.cs" />
     <Compile Include="..\SharmIpc\ISharm.cs" Link="ISharm.cs" />
     <Compile Include="..\SharmIpc\ReaderWriterHandler.cs" Link="ReaderWriterHandler.cs" />
     <Compile Include="..\SharmIpc\SharedMemory.cs" Link="SharedMemory.cs" />
     <Compile Include="..\SharmIpc\SharmIpc.cs" Link="SharmIpc.cs" />
-    <Compile Include="..\SharmIpc\SharmNpc.cs" Link="SharmNpc.cs" />
     <Compile Include="..\SharmIpc\SharmNpc.Internals.cs" Link="SharmNpc.Internals.cs" />
     <Compile Include="..\SharmIpc\Statistic.cs" Link="Statistic.cs" />
     <Compile Include="..\SharmIpc\Utils.cs" Link="Utils.cs" />

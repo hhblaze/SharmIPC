@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>SharmIPC</id>
-    <version>1.21.0</version>
+    <version>1.22.0</version>
     <title>SharmIPC .NET inter-process communication IPC for .NET Framework / .NET 6> / .NETStandard 2.0</title>
     <authors>Alex Solovyov </authors>
     <owners>hhblaze@gmail.com http://sharmipc.tiesky.com</owners>   
@@ -41,6 +41,9 @@ hhblaze@gmail.com</description>
 
 		<file src="Process1\SharmIpcNet6\bin\Release\net6.0\SharmIpc.dll" target="lib\net6.0" />
 		<file src="Process1\SharmIpcNet6\bin\Release\net6.0\SharmIpc.xml" target="lib\net6.0" />
+
+		<file src="Process1\SharmIpcNet8\bin\Release\net8.0\SharmIpc.dll" target="lib\net8.0" />
+		<file src="Process1\SharmIpcNet8\bin\Release\net8.0\SharmIpc.xml" target="lib\net8.0" />
 		
 		<file src="licenses\LICENSE.txt" />
 		<file src="README.md" />

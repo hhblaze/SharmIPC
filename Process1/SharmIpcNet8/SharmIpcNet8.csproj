@@ -6,9 +6,9 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageId>SharmIpc</PackageId>
-    <AssemblyVersion>1.20.2025.0412</AssemblyVersion>
+    <AssemblyVersion>1.22.2026.0422</AssemblyVersion>
     <AssemblyName>SharmIpc</AssemblyName>
-    <FileVersion>1.20.2025.0412</FileVersion>
+    <FileVersion>1.22.2026.0422</FileVersion>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 

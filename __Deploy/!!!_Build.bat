@@ -9,4 +9,6 @@ rem %MSBUILD_PATH% "%~dp0..\Process1\SharmIpc\SharmIpc.csproj" /t:rebuild /p:Con
 
 %MSBUILD_PATH% "%~dp0..\Process1\SharmIpcNet6\SharmIpcNet6.csproj" /t:rebuild /p:Configuration=Release
 
+%MSBUILD_PATH% "%~dp0..\Process1\SharmIpcNet8\SharmIpcNet8.csproj" /t:rebuild /p:Configuration=Release
+
 "%~dp0nuget.exe" pack "%~dp0SharmIpc.nuspec" -BasePath "%~dp0.." -OutputDirectory "%~dp0..\__Deploy"
