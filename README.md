@@ -95,18 +95,18 @@ void Dispose()
   	}
 }
 
-Tuple<bool,byte[]> RemoteCall(byte[] data)
+(bool,byte[]) RemoteCall(byte[] data)
 {
 		//This will be called async when remote partner makes any request
 		
 		//This is a response to remote partner
-		return new Tuple<bool,byte[]>(true,new byte[] {1,2,3,4});	
+		return (true,new byte[] {1,2,3,4});	
 }
 
 void MakeRemoteRequestWithResponse()
 {
 	 //Making remote request (a la RPC). SYNC
-	 Tuple<bool,byte[]> res = sm.RemoteRequest(new byte[512]);
+	 (bool,byte[]) res = sm.RemoteRequest(new byte[512]);
 	 //or with callback
 	 //var res = sm.RemoteRequest(data, (par) => { },30000);
 	 
@@ -125,7 +125,7 @@ async void MakeRemoteRequestWithResponse()
 {
 	 //Making remote request (a la RPC). SYNC
 	 //Non-blocking current thread construction!
-	 Tuple<bool,byte[]> res = await sm.RemoteRequestAsync(new byte[512]);
+	 (bool,byte[]) res = await sm.RemoteRequestAsync(new byte[512]);
 	 //or with callback way
 	 //var res = await sm.RemoteRequestAsync(data, (par) => { },30000);
 	 
@@ -142,7 +142,7 @@ async void MakeRemoteRequestWithResponse()
 void MakeRemoteRequestWithoutResponse()
 {
 	 //Making remote request (a la send and forget)
-	 Tuple<bool,byte[]> res = sm.RemoteRequestWithoutResponse(new byte[512]);
+	 (bool,byte[]) res = sm.RemoteRequestWithoutResponse(new byte[512]);
 	 
 	 if(!res.Item1)
 	 {
@@ -164,7 +164,7 @@ void AsyncRemoteCallHandler(ulong msgId, byte[] data)
         //data is received from remote partner
         
         //answer to remote partner:
-        sm.AsyncAnswerOnRemoteCall(msgId, new Tuple<bool, byte[]>(true, new byte[] { 5 }));
+        sm.AsyncAnswerOnRemoteCall(msgId, (true, new byte[] { 5 }));
          
        
 }
