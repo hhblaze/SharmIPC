@@ -68,11 +68,12 @@ namespace mmf2client
         {
             if (sm == null)
             {
-                //sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.RemoteCall, externalProcessing: false);
+                    //sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.RemoteCall, externalProcessing: false);
                 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Client, this.AsyncRemoteCallHandler, externalProcessing: false);
 
-                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
-                //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
+                    //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                    //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                    //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.RemoteCall);
             }
 
         }

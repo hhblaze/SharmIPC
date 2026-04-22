@@ -84,11 +84,11 @@ namespace MemoryMappedFile
             if (sm == null)
             {
                 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall, externalProcessing: false);
-                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
-                //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                    //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
+                    //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
 
                 //or to get ability to answer to remote partner in async way
-                //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
+                    //sm = new tiesky.com.SharmIpc("Global/MyNewSharmIpc", this.AsyncRemoteCallHandler);                
             }
 
             //System.Threading.ThreadPool.SetMinThreads(100, 100);
@@ -111,8 +111,8 @@ namespace MemoryMappedFile
 
             //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
             //var uzuz = await sm.RemoteRequestAsync(null);
-            var uzuz = await sm.RemoteRequestAsync(new byte[0]);
-            return;
+            //var uzuz = await sm.RemoteRequestAsync(new byte[0]);
+            //return;
 
             //Parallel.For(0, 100, async (aii) =>
             //{
@@ -124,18 +124,22 @@ namespace MemoryMappedFile
             //    }
             //});
 
-            int totalSentAndReceivedbytes=0;
+            long totalSentAndReceivedbytes=0;
+            int totalCallsq = 0;
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
+            var dataToSend = new byte[0];
+            int parDeg = 1; //Environment.ProcessorCount 
 
             await Parallel.ForEachAsync(Enumerable.Range(0, 20), 
-                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (aii, cancellationToken) =>
+                new ParallelOptions { MaxDegreeOfParallelism = parDeg }, async (aii, cancellationToken) =>
             {
                 for (int j = 0; j < 2000; j++)
                 {
-                    var dataToSend = new byte[1];
+                   
                     var tor = await sm.RemoteRequestAsync(dataToSend);
                     Interlocked.Add(ref totalSentAndReceivedbytes, dataToSend.Length + tor.Item2.Length);
+                    Interlocked.Increment(ref totalCallsq);
                 }
             });           
 
@@ -148,7 +152,7 @@ namespace MemoryMappedFile
             //}
 
             sw.Stop();
-            string showStr = $"Elapse: {sw.ElapsedMilliseconds}; Totalbyte: {totalSentAndReceivedbytes}";
+            string showStr = $"Elapse: {sw.ElapsedMilliseconds}; Totalbyte: {totalSentAndReceivedbytes}; TotalCalls: {totalCallsq}; speed: {((totalSentAndReceivedbytes / (sw.ElapsedMilliseconds/1000)) / 1000000) } MB/s ";
             Console.WriteLine(showStr);
             Debug.WriteLine(showStr);
             MessageBox.Show(showStr);

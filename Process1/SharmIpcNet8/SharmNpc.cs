@@ -585,262 +585,489 @@ namespace tiesky.com
 
         #region Receive Loop and Processing
 
+        private class MessageAssembler
+        {
+            public ushort LastChunkReceived;
+            public int TotalPayloadSize;
+            public List<byte[]> Chunks = new List<byte[]>();
+        }
+
+        // Dictionary to track messages being assembled.
+        // Note: Since ReceiveLoopAsync processes sequentially, a standard Dictionary is safe here.
+        private readonly Dictionary<ulong, MessageAssembler> _assemblingMessages = new Dictionary<ulong, MessageAssembler>();
+
+        //        private async Task ReceiveLoopAsync_OLD(CancellationToken token)
+        //        {
+        //            LogInfo("Receive loop started.");
+        //            byte[] lengthBuffer = new byte[4]; // To read the 4-byte length prefix
+        //            MemoryStream messageStream = new MemoryStream(); // To accumulate message chunks
+
+        //            try
+        //            {
+        //                while (_isConnected && !token.IsCancellationRequested)
+        //                {
+        //                    // 1. Read the 4-byte length prefix
+        //                    int totalBytesRead = 0;
+        //                    while (totalBytesRead < 4 && _isConnected && !token.IsCancellationRequested)
+        //                    {
+        //                        int bytesRead = await _pipeStream.ReadAsync(lengthBuffer, totalBytesRead, 4 - totalBytesRead, token).ConfigureAwait(false);
+        //                        if (bytesRead == 0) throw new IOException("Pipe closed while reading message length."); // Peer disconnected
+        //                        totalBytesRead += bytesRead;
+        //                    }
+        //                    if (totalBytesRead < 4) break; // Loop exit condition met
+
+        //                    int messageLength = lengthBuffer[0] | (lengthBuffer[1] << 8) | (lengthBuffer[2] << 16) | (lengthBuffer[3] << 24);
+        //                    //int messageLength = BinaryPrimitives.ReadInt32LittleEndian(lengthBuffer);
+        //                    /*
+        //                     lengthPrefix[0] = (byte)messageTotalBytes;          // Least significant byte
+        //lengthPrefix[1] = (byte)(messageTotalBytes >> 8);
+        //lengthPrefix[2] = (byte)(messageTotalBytes >> 16);
+        //lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
+        //                     */
+
+        //                    if (messageLength < 0 || messageLength > _maxQueueSizeInBytes * 2) // Sanity check length (allow slightly larger than max queue for safety)
+        //                    {
+        //                        throw new InvalidDataException($"Invalid message length received: {messageLength}");
+        //                    }
+        //                    if (messageLength == 0)
+        //                    {
+        //                        LogInfo("Received zero-length message (potentially keep-alive?). Skipping.");
+        //                        continue;
+        //                    }
+
+
+        //                    // 2. Read the message data
+        //                    byte[] messageBuffer = new byte[messageLength]; // Consider ArrayPool later
+        //                    totalBytesRead = 0;
+        //                    while (totalBytesRead < messageLength && _isConnected && !token.IsCancellationRequested)
+        //                    {
+        //                        int bytesRead = await _pipeStream.ReadAsync(messageBuffer, totalBytesRead, messageLength - totalBytesRead, token).ConfigureAwait(false);
+        //                        if (bytesRead == 0) throw new IOException("Pipe closed while reading message data."); // Peer disconnected
+        //                        totalBytesRead += bytesRead;
+        //                    }
+        //                    if (totalBytesRead < messageLength) break; // Loop exit condition met
+
+        //                    Statistic.MessageReceived(messageLength + 4);
+
+        //                    // 3. Process the complete message (V2 Deserialization)
+        //                    DeserializeAndProcessMessage(messageBuffer);
+
+        //                } // End while connected
+        //            }
+        //            catch (OperationCanceledException)
+        //            {
+        //                LogInfo("Receive loop canceled.");
+        //            }
+        //            catch (Exception ex) when (ex is IOException || ex is ObjectDisposedException || ex is InvalidOperationException || ex is InvalidDataException)
+        //            {
+        //                if (Verbose)
+        //                    LogExceptionInternal("Receive loop terminated due to pipe error", ex);
+        //                // Pipe likely broken, trigger disconnection
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                if (Verbose)
+        //                    LogExceptionInternal("Receive loop terminated unexpectedly", ex);
+        //            }
+        //            finally
+        //            {
+        //                LogInfo("Receive loop finished.");
+        //                HandleDisconnection(); // Ensure cleanup and state change if loop exits
+        //            }
+        //        }
+
+        //        // --- V2 Deserialization Logic (Adapted from SharmIPC.ReaderWriterHandler.ReaderV02) ---
+        //        private void DeserializeAndProcessMessage(byte[] messageData)
+        //        {
+        //            MemoryStream ms = new MemoryStream(messageData);
+        //            byte[] payload = null;
+        //            byte[] ret = null;
+        //            ushort iCurChunk = 0;
+        //            ushort iTotChunk = 0;
+        //            ulong iMsgId = 0;
+        //            int iPayLoadLen = 0; // Use int for payload length matching V1/V2 intent
+        //            ulong iResponseMsgId = 0;
+        //            eMsgType msgType = eMsgType.Request; // Default
+
+        //            byte[] chunksCollected = null; // Track chunks for multi-part messages
+        //            ushort lastReceivedChunk = 0; // Track last received chunk number
+
+        //            try
+        //            {
+        //                while (ms.Position < ms.Length) // Process all messages within the buffer
+        //                {
+        //                    // Reset for next message part in buffer
+        //                    payload = null;
+        //                    iCurChunk = 0;
+        //                    iTotChunk = 0;
+        //                    iMsgId = 0;
+        //                    iPayLoadLen = 0;
+        //                    iResponseMsgId = 0;
+
+        //                    int bytesRead;
+        //                    msgType = (eMsgType)BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
+        //                    iMsgId = BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
+        //                    iPayLoadLen = (int)BytesProcessing.ReadProtoUInt64(ms, out bytesRead); // Expecting payload length
+        //                    iCurChunk = (ushort)BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
+        //                    iTotChunk = (ushort)BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
+        //                    iResponseMsgId = BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
+
+        //                    if (iPayLoadLen < 0) throw new InvalidDataException($"Invalid payload length: {iPayLoadLen}");
+
+        //                    // Read Payload
+        //                    if (iPayLoadLen > 0)
+        //                    {
+        //                        if (iPayLoadLen == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1) //handling new byte[0]
+        //                        {
+        //                            payload = Array.Empty<byte>();
+        //                        }
+        //                        else
+        //                        {
+        //                            if (ms.Position + iPayLoadLen > ms.Length) throw new InvalidDataException("Payload length exceeds buffer bounds.");
+        //                            payload = new byte[iPayLoadLen];
+        //                            ms.Read(payload, 0, iPayLoadLen);
+        //                        }
+        //                    }
+        //                    else if (iPayLoadLen == 0) //handlilng null
+        //                    {
+        //                        payload = Array.Empty<byte>(); // Represent empty payload consistently                        
+        //                    }
+        //                    else // iPayLoadLen < 0 is invalid
+        //                    {
+        //                        throw new InvalidDataException($"Invalid payload length: {iPayLoadLen}");
+        //                    }
+
+
+        //                    // --- Process the received chunk ---
+        //                    if (msgType == eMsgType.ErrorInRpc)
+        //                    {
+        //                        InternalDataArrived(msgType, iResponseMsgId, null); // ResponseMsgId is the key here
+        //                        lastReceivedChunk = 0; // Reset chunk tracking
+        //                        chunksCollected = null;
+        //                    }
+        //                    else if (msgType == eMsgType.RpcResponse || msgType == eMsgType.RpcRequest || msgType == eMsgType.Request)
+        //                    {
+        //                        // Chunk Assembly Logic (Similar to SharmIPC)
+        //                        if (iCurChunk == 1)
+        //                        {
+        //                            chunksCollected = null; // Start of a new message
+        //                            lastReceivedChunk = 0;
+        //                        }
+        //                        else if (iCurChunk != lastReceivedChunk + 1)
+        //                        {
+        //                            // Out-of-order chunk detected! This indicates a problem.
+        //                            LogExceptionInternal($"Chunk order error. Expected {lastReceivedChunk + 1}, got {iCurChunk}. MsgId: {iMsgId}, RespId: {iResponseMsgId}", new InvalidDataException("Chunk order mismatch"));
+        //                            // Handle error: Could try to notify sender (ErrorInRpc), or just discard.
+        //                            // Discarding is simpler for now.
+        //                            chunksCollected = null;
+        //                            lastReceivedChunk = 0;
+
+        //                            // If it was a response we were waiting for, signal failure
+        //                            if (msgType == eMsgType.RpcResponse && _pendingRequests.TryGetValue(iResponseMsgId, out var crate))
+        //                            {
+        //                                crate.IsRespOk = false;
+        //                                crate.res = null;
+        //                                crate.Set_MRE_AMRE();
+        //                                // Let the original caller handle removal from dictionary
+        //                            }
+        //                            continue; // Skip processing this broken message part
+        //                        }
+
+        //                        lastReceivedChunk = iCurChunk; // Update last received chunk
+
+        //                        if (iTotChunk == iCurChunk) // Last chunk
+        //                        {
+        //                            byte[] finalPayload;
+        //                            if (chunksCollected == null) // Single chunk message
+        //                            {
+        //                                switch (iPayLoadLen)
+        //                                {
+        //                                    case 0:
+        //                                        finalPayload = null;
+        //                                        break;
+        //                                    case Int32.MaxValue:
+        //                                        finalPayload = Array.Empty<byte>();
+        //                                        break;
+        //                                    default:
+        //                                        finalPayload = payload ?? Array.Empty<byte>();
+        //                                        break;
+
+        //                                }
+        //                                //finalPayload = payload ?? Array.Empty<byte>();
+        //                            }
+        //                            else // Multi-chunk message completed
+        //                            {
+        //                                // Combine collected chunks with the final payload
+        //                                finalPayload = new byte[chunksCollected.Length + (payload?.Length ?? 0)];
+        //                                Buffer.BlockCopy(chunksCollected, 0, finalPayload, 0, chunksCollected.Length);
+        //                                if (payload != null)
+        //                                {
+        //                                    Buffer.BlockCopy(payload, 0, finalPayload, chunksCollected.Length, payload.Length);
+        //                                }
+        //                            }
+
+        //                            // Process the fully assembled message
+        //                            InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId, finalPayload);
+
+        //                            // Reset for next potential message
+        //                            chunksCollected = null;
+        //                            lastReceivedChunk = 0;
+        //                        }
+        //                        else // Intermediate chunk
+        //                        {
+        //                            if (chunksCollected == null)
+        //                            {
+        //                                chunksCollected = payload ?? Array.Empty<byte>();
+        //                            }
+        //                            else
+        //                            {
+        //                                // Append payload to collected chunks
+        //                                byte[] combined = new byte[chunksCollected.Length + (payload?.Length ?? 0)];
+        //                                Buffer.BlockCopy(chunksCollected, 0, combined, 0, chunksCollected.Length);
+        //                                if (payload != null)
+        //                                {
+        //                                    Buffer.BlockCopy(payload, 0, combined, chunksCollected.Length, payload.Length);
+        //                                }
+        //                                chunksCollected = combined;
+        //                            }
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        LogInfo($"Received unknown message type: {msgType}");
+        //                        // Discard unknown message types
+        //                        chunksCollected = null;
+        //                        lastReceivedChunk = 0;
+        //                    }
+
+        //                } // End while processing stream
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                LogExceptionInternal("Error deserializing or processing message", ex);
+        //                // Potentially trigger disconnect if data seems corrupted
+        //                HandleDisconnection();
+        //            }
+        //            finally
+        //            {
+        //                ms.Dispose();
+        //            }
+        //        }
+
         private async Task ReceiveLoopAsync(CancellationToken token)
         {
             LogInfo("Receive loop started.");
-            byte[] lengthBuffer = new byte[4]; // To read the 4-byte length prefix
-            MemoryStream messageStream = new MemoryStream(); // To accumulate message chunks
+
+            // Allocate length buffer exactly once per connection
+            byte[] lengthBuffer = new byte[4];
 
             try
             {
-                while (_isConnected && !token.IsCancellationRequested)
+                while (IsConnected && !token.IsCancellationRequested)
                 {
                     // 1. Read the 4-byte length prefix
                     int totalBytesRead = 0;
-                    while (totalBytesRead < 4 && _isConnected && !token.IsCancellationRequested)
+                    while (totalBytesRead < 4 && IsConnected && !token.IsCancellationRequested)
                     {
-                        int bytesRead = await _pipeStream.ReadAsync(lengthBuffer, totalBytesRead, 4 - totalBytesRead, token).ConfigureAwait(false);
-                        if (bytesRead == 0) throw new IOException("Pipe closed while reading message length."); // Peer disconnected
+                        // .NET 8 optimization: Use Memory<byte> overload
+                        int bytesRead = await _pipeStream.ReadAsync(lengthBuffer.AsMemory(totalBytesRead, 4 - totalBytesRead), token).ConfigureAwait(false);
+                        if (bytesRead == 0) throw new IOException("Pipe closed while reading message length.");
                         totalBytesRead += bytesRead;
                     }
-                    if (totalBytesRead < 4) break; // Loop exit condition met
+                    if (totalBytesRead < 4) break;
 
-                    int messageLength = lengthBuffer[0] | (lengthBuffer[1] << 8) | (lengthBuffer[2] << 16) | (lengthBuffer[3] << 24);
-                    //int messageLength = BinaryPrimitives.ReadInt32LittleEndian(lengthBuffer);
-                    /*
-                     lengthPrefix[0] = (byte)messageTotalBytes;          // Least significant byte
-lengthPrefix[1] = (byte)(messageTotalBytes >> 8);
-lengthPrefix[2] = (byte)(messageTotalBytes >> 16);
-lengthPrefix[3] = (byte)(messageTotalBytes >> 24);   // Most significant byte
-                     */
+                    // Use fast intrinsic to parse length
+                    int messageLength = BinaryPrimitives.ReadInt32LittleEndian(lengthBuffer);
 
-                    if (messageLength < 0 || messageLength > _maxQueueSizeInBytes * 2) // Sanity check length (allow slightly larger than max queue for safety)
-                    {
+                    if (messageLength < 0 || messageLength > _maxQueueSizeInBytes * 2)
                         throw new InvalidDataException($"Invalid message length received: {messageLength}");
-                    }
+
                     if (messageLength == 0)
                     {
-                        LogInfo("Received zero-length message (potentially keep-alive?). Skipping.");
+                        LogInfo("Received zero-length message. Skipping.");
                         continue;
                     }
 
+                    // 2. Rent a buffer from the pool (NO ALLOCATION)
+                    byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(messageLength);
 
-                    // 2. Read the message data
-                    byte[] messageBuffer = new byte[messageLength]; // Consider ArrayPool later
-                    totalBytesRead = 0;
-                    while (totalBytesRead < messageLength && _isConnected && !token.IsCancellationRequested)
+                    try
                     {
-                        int bytesRead = await _pipeStream.ReadAsync(messageBuffer, totalBytesRead, messageLength - totalBytesRead, token).ConfigureAwait(false);
-                        if (bytesRead == 0) throw new IOException("Pipe closed while reading message data."); // Peer disconnected
-                        totalBytesRead += bytesRead;
+                        totalBytesRead = 0;
+                        while (totalBytesRead < messageLength && IsConnected && !token.IsCancellationRequested)
+                        {
+                            int bytesRead = await _pipeStream.ReadAsync(rentedBuffer.AsMemory(totalBytesRead, messageLength - totalBytesRead), token).ConfigureAwait(false);
+                            if (bytesRead == 0) throw new IOException("Pipe closed while reading message data.");
+                            totalBytesRead += bytesRead;
+                        }
+                        if (totalBytesRead < messageLength) break;
+
+                        Statistic.MessageReceived(messageLength + 4);
+
+                        // 3. Process the complete message using zero-copy Span
+                        DeserializeAndProcessMessage(rentedBuffer.AsSpan(0, messageLength));
                     }
-                    if (totalBytesRead < messageLength) break; // Loop exit condition met
-
-                    Statistic.MessageReceived(messageLength + 4);
-
-                    // 3. Process the complete message (V2 Deserialization)
-                    DeserializeAndProcessMessage(messageBuffer);
-
-                } // End while connected
+                    finally
+                    {
+                        // ALWAYS return the buffer to the pool
+                        ArrayPool<byte>.Shared.Return(rentedBuffer);
+                    }
+                }
             }
-            catch (OperationCanceledException)
-            {
-                LogInfo("Receive loop canceled.");
-            }
+            catch (OperationCanceledException) { LogInfo("Receive loop canceled."); }
             catch (Exception ex) when (ex is IOException || ex is ObjectDisposedException || ex is InvalidOperationException || ex is InvalidDataException)
             {
-                if (Verbose)
-                    LogExceptionInternal("Receive loop terminated due to pipe error", ex);
-                // Pipe likely broken, trigger disconnection
+                if (Verbose) LogExceptionInternal("Receive loop terminated due to pipe error", ex);
             }
             catch (Exception ex)
             {
-                if (Verbose)
-                    LogExceptionInternal("Receive loop terminated unexpectedly", ex);
+                if (Verbose) LogExceptionInternal("Receive loop terminated unexpectedly", ex);
             }
             finally
             {
                 LogInfo("Receive loop finished.");
-                HandleDisconnection(); // Ensure cleanup and state change if loop exits
+                HandleDisconnection();
             }
         }
 
-        // --- V2 Deserialization Logic (Adapted from SharmIPC.ReaderWriterHandler.ReaderV02) ---
-        private void DeserializeAndProcessMessage(byte[] messageData)
+        private void DeserializeAndProcessMessage(ReadOnlySpan<byte> messageSpan)
         {
-            MemoryStream ms = new MemoryStream(messageData);
-            byte[] payload = null;
-            byte[] ret = null;
-            ushort iCurChunk = 0;
-            ushort iTotChunk = 0;
-            ulong iMsgId = 0;
-            int iPayLoadLen = 0; // Use int for payload length matching V1/V2 intent
-            ulong iResponseMsgId = 0;
-            eMsgType msgType = eMsgType.Request; // Default
-
-            byte[] chunksCollected = null; // Track chunks for multi-part messages
-            ushort lastReceivedChunk = 0; // Track last received chunk number
+            int offset = 0;
 
             try
             {
-                while (ms.Position < ms.Length) // Process all messages within the buffer
+                while (offset < messageSpan.Length)
                 {
-                    // Reset for next message part in buffer
-                    payload = null;
-                    iCurChunk = 0;
-                    iTotChunk = 0;
-                    iMsgId = 0;
-                    iPayLoadLen = 0;
-                    iResponseMsgId = 0;
+                    // Parse headers directly from the rented span (Zero allocation)
+                    eMsgType msgType = (eMsgType)ReadVarInt(messageSpan.Slice(offset), out int read); offset += read;
+                    ulong iMsgId = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+                    ulong payloadLenIndicator = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+                    ushort iCurChunk = (ushort)ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+                    ushort iTotChunk = (ushort)ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+                    ulong iResponseMsgId = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
 
-                    int bytesRead;
-                    msgType = (eMsgType)BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
-                    iMsgId = BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
-                    iPayLoadLen = (int)BytesProcessing.ReadProtoUInt64(ms, out bytesRead); // Expecting payload length
-                    iCurChunk = (ushort)BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
-                    iTotChunk = (ushort)BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
-                    iResponseMsgId = BytesProcessing.ReadProtoUInt64(ms, out bytesRead);
+                    // Determine tracking ID
+                    ulong trackingId = (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId;
 
-                    if (iPayLoadLen < 0) throw new InvalidDataException($"Invalid payload length: {iPayLoadLen}");
+                    // Resolve Payload
+                    ReadOnlySpan<byte> payloadSpan = ReadOnlySpan<byte>.Empty;
 
-                    // Read Payload
-                    if (iPayLoadLen > 0)
+                    if (payloadLenIndicator == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1)
                     {
-                        if (iPayLoadLen == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1) //handling new byte[0]
-                        {
-                            payload = Array.Empty<byte>();
-                        }
-                        else
-                        {
-                            if (ms.Position + iPayLoadLen > ms.Length) throw new InvalidDataException("Payload length exceeds buffer bounds.");
-                            payload = new byte[iPayLoadLen];
-                            ms.Read(payload, 0, iPayLoadLen);
-                        }
+                        // Handled natively as empty span
                     }
-                    else if (iPayLoadLen == 0) //handlilng null
+                    else if (payloadLenIndicator > 0 && payloadLenIndicator < Int32.MaxValue)
                     {
-                        payload = Array.Empty<byte>(); // Represent empty payload consistently                        
-                    }
-                    else // iPayLoadLen < 0 is invalid
-                    {
-                        throw new InvalidDataException($"Invalid payload length: {iPayLoadLen}");
+                        int len = (int)payloadLenIndicator;
+                        payloadSpan = messageSpan.Slice(offset, len);
+                        offset += len;
                     }
 
-
-                    // --- Process the received chunk ---
+                    // --- Chunk Assembly Logic ---
                     if (msgType == eMsgType.ErrorInRpc)
                     {
-                        InternalDataArrived(msgType, iResponseMsgId, null); // ResponseMsgId is the key here
-                        lastReceivedChunk = 0; // Reset chunk tracking
-                        chunksCollected = null;
+                        _assemblingMessages.Remove(trackingId); // Discard any pending chunks
+                        InternalDataArrived(msgType, trackingId, null);
+                        continue;
                     }
-                    else if (msgType == eMsgType.RpcResponse || msgType == eMsgType.RpcRequest || msgType == eMsgType.Request)
+
+                    if (iTotChunk == 1) // Fast path: Single chunk message
                     {
-                        // Chunk Assembly Logic (Similar to SharmIPC)
-                        if (iCurChunk == 1)
-                        {
-                            chunksCollected = null; // Start of a new message
-                            lastReceivedChunk = 0;
-                        }
-                        else if (iCurChunk != lastReceivedChunk + 1)
-                        {
-                            // Out-of-order chunk detected! This indicates a problem.
-                            LogExceptionInternal($"Chunk order error. Expected {lastReceivedChunk + 1}, got {iCurChunk}. MsgId: {iMsgId}, RespId: {iResponseMsgId}", new InvalidDataException("Chunk order mismatch"));
-                            // Handle error: Could try to notify sender (ErrorInRpc), or just discard.
-                            // Discarding is simpler for now.
-                            chunksCollected = null;
-                            lastReceivedChunk = 0;
-
-                            // If it was a response we were waiting for, signal failure
-                            if (msgType == eMsgType.RpcResponse && _pendingRequests.TryGetValue(iResponseMsgId, out var crate))
-                            {
-                                crate.IsRespOk = false;
-                                crate.res = null;
-                                crate.Set_MRE_AMRE();
-                                // Let the original caller handle removal from dictionary
-                            }
-                            continue; // Skip processing this broken message part
-                        }
-
-                        lastReceivedChunk = iCurChunk; // Update last received chunk
-
-                        if (iTotChunk == iCurChunk) // Last chunk
-                        {
-                            byte[] finalPayload;
-                            if (chunksCollected == null) // Single chunk message
-                            {
-                                switch (iPayLoadLen)
-                                {
-                                    case 0:
-                                        finalPayload = null;
-                                        break;
-                                    case Int32.MaxValue:
-                                        finalPayload = Array.Empty<byte>();
-                                        break;
-                                    default:
-                                        finalPayload = payload ?? Array.Empty<byte>();
-                                        break;
-
-                                }
-                                //finalPayload = payload ?? Array.Empty<byte>();
-                            }
-                            else // Multi-chunk message completed
-                            {
-                                // Combine collected chunks with the final payload
-                                finalPayload = new byte[chunksCollected.Length + (payload?.Length ?? 0)];
-                                Buffer.BlockCopy(chunksCollected, 0, finalPayload, 0, chunksCollected.Length);
-                                if (payload != null)
-                                {
-                                    Buffer.BlockCopy(payload, 0, finalPayload, chunksCollected.Length, payload.Length);
-                                }
-                            }
-
-                            // Process the fully assembled message
-                            InternalDataArrived(msgType, (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId, finalPayload);
-
-                            // Reset for next potential message
-                            chunksCollected = null;
-                            lastReceivedChunk = 0;
-                        }
-                        else // Intermediate chunk
-                        {
-                            if (chunksCollected == null)
-                            {
-                                chunksCollected = payload ?? Array.Empty<byte>();
-                            }
-                            else
-                            {
-                                // Append payload to collected chunks
-                                byte[] combined = new byte[chunksCollected.Length + (payload?.Length ?? 0)];
-                                Buffer.BlockCopy(chunksCollected, 0, combined, 0, chunksCollected.Length);
-                                if (payload != null)
-                                {
-                                    Buffer.BlockCopy(payload, 0, combined, chunksCollected.Length, payload.Length);
-                                }
-                                chunksCollected = combined;
-                            }
-                        }
+                        // We MUST ToArray() here because the rented buffer will be recycled!
+                        byte[] finalPayload = payloadSpan.Length > 0 ? payloadSpan.ToArray() : Array.Empty<byte>();
+                        InternalDataArrived(msgType, trackingId, finalPayload);
                     }
-                    else
+                    else // Multi-chunk message
                     {
-                        LogInfo($"Received unknown message type: {msgType}");
-                        // Discard unknown message types
-                        chunksCollected = null;
-                        lastReceivedChunk = 0;
+                        ProcessMultiPartChunk(msgType, trackingId, iCurChunk, iTotChunk, payloadSpan);
                     }
-
-                } // End while processing stream
+                }
             }
             catch (Exception ex)
             {
-                LogExceptionInternal("Error deserializing or processing message", ex);
-                // Potentially trigger disconnect if data seems corrupted
+                LogExceptionInternal("Error deserializing message", ex);
                 HandleDisconnection();
             }
-            finally
+        }
+
+        private void ProcessMultiPartChunk(eMsgType msgType, ulong trackingId, ushort curChunk, ushort totChunk, ReadOnlySpan<byte> payloadSpan)
+        {
+            if (!_assemblingMessages.TryGetValue(trackingId, out var assembler))
             {
-                ms.Dispose();
+                assembler = new MessageAssembler();
+                _assemblingMessages[trackingId] = assembler;
             }
+
+            if (curChunk == 1)
+            {
+                assembler.Chunks.Clear();
+                assembler.LastChunkReceived = 0;
+                assembler.TotalPayloadSize = 0;
+            }
+            else if (curChunk != assembler.LastChunkReceived + 1)
+            {
+                LogExceptionInternal($"Chunk order error. Expected {assembler.LastChunkReceived + 1}, got {curChunk}.", new InvalidDataException("Chunk mismatch"));
+                _assemblingMessages.Remove(trackingId); // Discard broken message
+
+                // Signal failure for pending requests
+                if (msgType == eMsgType.RpcResponse && _pendingRequests.TryGetValue(trackingId, out var crate))
+                {
+                    crate.IsRespOk = false;
+                    crate.res = null;
+                    crate.Set_MRE_AMRE();
+                }
+                return;
+            }
+
+            assembler.LastChunkReceived = curChunk;
+
+            if (payloadSpan.Length > 0)
+            {
+                byte[] chunkData = payloadSpan.ToArray(); // Copy out of the rented buffer
+                assembler.Chunks.Add(chunkData);
+                assembler.TotalPayloadSize += chunkData.Length;
+            }
+
+            // Is it the last chunk?
+            if (curChunk == totChunk)
+            {
+                _assemblingMessages.Remove(trackingId);
+
+                // Assemble all chunks into exactly ONE final array (No O(N^2) block copying)
+                byte[] finalPayload = new byte[assembler.TotalPayloadSize];
+                int pos = 0;
+                foreach (var chunk in assembler.Chunks)
+                {
+                    Buffer.BlockCopy(chunk, 0, finalPayload, pos, chunk.Length);
+                    pos += chunk.Length;
+                }
+
+                InternalDataArrived(msgType, trackingId, finalPayload);
+            }
+        }
+
+        // --- Ultra-Fast VarInt Reader ---        
+        public static ulong ReadVarInt(ReadOnlySpan<byte> span, out int bytesRead)
+        {
+            bytesRead = 0;
+            int shift = 0;
+            ulong result = 0;
+
+            while (shift <= 63 && bytesRead < span.Length)
+            {
+                byte byteValue = span[bytesRead];
+                bytesRead++;
+                ulong tmp = byteValue & 0x7fUL;
+                result |= tmp << shift;
+
+                if ((byteValue & 0x80) != 0x80)
+                {
+                    return result;
+                }
+                shift += 7;
+            }
+
+            throw new InvalidDataException("Varint decoding failed or exceeded maximum size.");
         }
 
         // InternalDataArrived: Almost identical to SharmIPC
