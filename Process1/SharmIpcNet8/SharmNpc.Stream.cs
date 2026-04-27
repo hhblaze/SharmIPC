@@ -10,6 +10,11 @@ using tiesky.com.SharmNpcInternals;
 
 namespace tiesky.com
 {
+    /*
+     In the new implementation, the library takes ownership of the Streams you pass to it. 
+    Once the SharmNpc finishes sending a stream over the pipe, it will automatically call .Dispose() on that stream. 
+    Therefore, you do not need to wrap your outgoing streams in using blocks!
+     */
     public partial class SharmNpc
     {
         // Define virtual message types extending your existing eMsgType enum.

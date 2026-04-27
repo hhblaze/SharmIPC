@@ -95,7 +95,7 @@ namespace Process1
             }
 
             Debug.WriteLine("\n--- Tests Complete. Press any key to exit. ---");
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
         // =========================================================================
