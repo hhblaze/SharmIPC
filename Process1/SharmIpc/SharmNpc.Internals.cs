@@ -25,6 +25,8 @@ namespace tiesky.com.SharmNpcInternals
         RpcResponse = 2,
         ErrorInRpc = 3,
         Request = 4,
+        //20-23 are reserved for streams
+        // We use numbers starting from 20 to avoid collisions with Request(0), RpcRequest(1), etc.
     }
 
     // --- Statistic Class (Simplified for brevity) ---

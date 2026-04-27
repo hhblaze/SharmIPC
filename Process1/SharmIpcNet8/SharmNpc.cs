@@ -30,7 +30,7 @@ namespace tiesky.com
     /// <summary>
     /// Inter-process communication handler using Named Pipes. Aims to be a drop-in replacement for SharmIPC.
     /// </summary>
-    public class SharmNpc : ISharm, IDisposable
+    public partial class SharmNpc : ISharm, IDisposable
     {
         #region SharmIPC Compatibility Fields & Properties
 
@@ -522,6 +522,7 @@ namespace tiesky.com
                 LogInfo("Handling disconnection...");
                 _isConnected = false;
 
+                AbortAllStreams();
 
                 // Dispose stream safely
                 var stream = _pipeStream;
@@ -968,6 +969,12 @@ namespace tiesky.com
                     {
                         _assemblingMessages.Remove(trackingId); // Discard any pending chunks
                         InternalDataArrived(msgType, trackingId, null);
+                        continue;
+                    }
+
+                    if ((int)msgType >= 20 && (int)msgType <= 23)
+                    {
+                        HandleIncomingStreamMessage(msgType, trackingId, payloadSpan);
                         continue;
                     }
 
