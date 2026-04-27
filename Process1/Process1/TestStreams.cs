@@ -12,6 +12,39 @@ namespace Process1
 {
     internal class TestStreams
     {
+        /*Extra examples
+         * 
+         * Client Side (Asking for a download):
+         * 
+         // The client asks for a file, but sends NO stream of its own (payloadStream: null)
+var (success, meta, responseStream) = await client.RemoteRequestStreamAsync(
+    Encoding.UTF8.GetBytes("Give me the large video file"), 
+    payloadStream: null);
+
+if (success && responseStream != null)
+{
+    using var fs = File.Create("downloaded_video.mp4");
+    await responseStream.CopyToAsync(fs);
+}
+
+        //Server Side (Answering with a download):
+        server.AsyncRemoteCallHandler = (msgId, data) =>
+{
+    string request = Encoding.UTF8.GetString(data);
+    
+    if (request == "Give me the large video file")
+    {
+        // Notice we are using the new overload!
+        Stream fileStream = File.OpenRead("video.mp4");
+        server.AsyncAnswerOnRemoteCall(
+            msgId, 
+            success: true, 
+            responseMetadata: Encoding.UTF8.GetBytes("File size: 1GB"), 
+            responseStream: fileStream);
+    }
+};
+         
+         */
         static string sipctestfolder = @"D:\Temp\sharmipctest";
 
         public static async Task TestSreams(string[] args)

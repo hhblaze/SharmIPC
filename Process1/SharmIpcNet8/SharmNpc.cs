@@ -1014,7 +1014,8 @@ namespace tiesky.com
                     ushort iTotChunk = (ushort)ReadVarIntArray(messageBuffer, ref offset);
                     ulong iResponseMsgId = ReadVarIntArray(messageBuffer, ref offset);
 
-                    ulong trackingId = (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId;
+                    //ulong trackingId = (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId;
+                    ulong trackingId = (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc || msgType == MsgType_StreamRpcResponseStart) ? iResponseMsgId : iMsgId;
 
                     // Use Memory instead of Span so it can safely cross the `await` boundary
                     ReadOnlyMemory<byte> payloadMemory = ReadOnlyMemory<byte>.Empty;

@@ -35,6 +35,86 @@ namespace tiesky.com
         #region Public Stream API
 
         /// <summary>
+        /// Sends a response back for a request, including a Stream payload.
+        /// </summary>
+        /// <param name="originalMsgId">The message ID received in AsyncRemoteCallHandler.</param>
+        /// <param name="success">Whether the RPC was successful.</param>
+        /// <param name="responseMetadata">Optional metadata/header bytes to accompany the stream.</param>
+        /// <param name="responseStream">The stream to send back to the client.</param>
+        public void AsyncAnswerOnRemoteCall(ulong originalMsgId, bool success, byte[] responseMetadata, Stream responseStream)
+        {
+            if (Interlocked.Read(ref _disposed) == 1 || !IsConnected) return;
+
+            if (!success || responseStream == null)
+            {
+                // Fallback to standard byte[] response if failed or no stream provided
+                SendMessageInternal(success ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), responseMetadata, originalMsgId);
+                return;
+            }
+
+            // 1. Send the Stream Start Frame (Notice we pass originalMsgId as the ResponseMsgId so the client can map it)
+            SendStreamFrameInternal(MsgType_StreamRpcResponseStart, GetNextMessageId(), responseMetadata ?? Array.Empty<byte>(), originalMsgId);
+
+            // 2. Start pushing the stream chunks in the background
+            _ = Task.Run(() => ProcessOutgoingStreamAsync(originalMsgId, responseStream, _connectionCts.Token));
+        }
+
+        /// <summary>
+        /// Sends an RPC request with an attached stream payload.
+        /// </summary>
+        /// <param name="args">Header arguments/metadata for the request.</param>
+        /// <param name="payloadStream">The stream of data to send over the pipe.</param>
+        /// <param name="timeoutMs">Timeout to wait for the complete response.</param>
+        /// <returns>A tuple of (Success, Response Data, Optional Response Stream)</returns>
+        //public async Task<(bool success, byte[] responseData, Stream responseStream)> RemoteRequestStreamAsync(
+        //    byte[] args, Stream payloadStream, int timeoutMs = 30000)
+        //{
+        //    if (Interlocked.Read(ref _disposed) == 1 || !IsConnected) return (false, null, null);
+
+        //    ulong msgId = GetNextMessageId();
+        //    var crate = new ResponseCrate();
+        //    crate.TimeoutsMs = timeoutMs;
+        //    crate.Init_AMRE();
+
+        //    if (!_pendingRequests.TryAdd(msgId, crate))
+        //    {
+        //        crate.Dispose_MRE_AMRE();
+        //        return (false, null, null);
+        //    }
+        //    Statistic.UpdatePending(_pendingRequests.Count);
+
+        //    try
+        //    {
+        //        // 1. [streamStart] Send the header framing
+        //        if (!SendStreamFrameInternal(MsgType_StreamRpcStart, msgId, args))
+        //            return (false, null, null);
+
+        //        // 2. [data] Send the stream chunks in the background (respects backpressure)
+        //        _ = Task.Run(() => ProcessOutgoingStreamAsync(msgId, payloadStream, _connectionCts.Token));
+
+        //        // 3. Wait for the response
+        //        if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, CancellationToken.None).ConfigureAwait(false))
+        //        {
+        //            Statistic.Timeout();
+        //            return (false, null, null);
+        //        }
+
+        //        // If the response is also a stream, it will be mapped here
+        //        _activeIncomingStreams.TryGetValue(msgId, out var responseStreamObj);
+
+        //        return (crate.IsRespOk, crate.res, responseStreamObj);
+        //    }
+        //    finally
+        //    {
+        //        if (_pendingRequests.TryRemove(msgId, out var removedCrate))
+        //        {
+        //            Statistic.UpdatePending(_pendingRequests.Count);
+        //            removedCrate.Dispose_MRE_AMRE();
+        //        }
+        //    }
+        //}
+
+        /// <summary>
         /// Sends an RPC request with an attached stream payload.
         /// </summary>
         /// <param name="args">Header arguments/metadata for the request.</param>
@@ -42,7 +122,7 @@ namespace tiesky.com
         /// <param name="timeoutMs">Timeout to wait for the complete response.</param>
         /// <returns>A tuple of (Success, Response Data, Optional Response Stream)</returns>
         public async Task<(bool success, byte[] responseData, Stream responseStream)> RemoteRequestStreamAsync(
-            byte[] args, Stream payloadStream, int timeoutMs = 30000)
+    byte[] args, Stream payloadStream = null, int timeoutMs = 30000) // payloadStream defaults to null now!
         {
             if (Interlocked.Read(ref _disposed) == 1 || !IsConnected) return (false, null, null);
 
@@ -64,8 +144,15 @@ namespace tiesky.com
                 if (!SendStreamFrameInternal(MsgType_StreamRpcStart, msgId, args))
                     return (false, null, null);
 
-                // 2. [data] Send the stream chunks in the background (respects backpressure)
-                _ = Task.Run(() => ProcessOutgoingStreamAsync(msgId, payloadStream, _connectionCts.Token));
+                // 2. [data] Send the stream chunks OR immediately send End if payloadStream is null
+                if (payloadStream != null)
+                {
+                    _ = Task.Run(() => ProcessOutgoingStreamAsync(msgId, payloadStream, _connectionCts.Token));
+                }
+                else
+                {
+                    SendStreamFrameInternal(MsgType_StreamEnd, msgId, ReadOnlySpan<byte>.Empty);
+                }
 
                 // 3. Wait for the response
                 if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, CancellationToken.None).ConfigureAwait(false))
@@ -266,8 +353,10 @@ namespace tiesky.com
         /// </summary>
         private async Task ProcessOutgoingStreamAsync(ulong trackingId, Stream payloadStream, CancellationToken ct)
         {
-            // Rent a reasonably sized buffer for stream transit (512KB fits well inside typical IPC queues)
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(512 * 1024);
+            // Match the 1MB chunk size used in the standard SharmNpc sender for max throughput
+            int chunkSize = 1000000;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(chunkSize);
+           
             try
             {
                 int bytesRead;
