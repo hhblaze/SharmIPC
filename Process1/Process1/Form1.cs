@@ -265,8 +265,8 @@ namespace MemoryMappedFile
         /// <param name="e"></param>
         private async void button2_Click(object sender, EventArgs e)
         {
-            await TestStreams.TestSreams(null);
-            return;
+            //await TestStreams.TestSreams(null);
+            //return;
 
             //tiesky.com.SharmIpc.AsyncManualResetEvent mre = new tiesky.com.SharmIpc.AsyncManualResetEvent();
 
