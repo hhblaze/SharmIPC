@@ -93,33 +93,29 @@ namespace tiesky.com
 
         #region Internal Stream Processing (Receive)
 
-        /// <summary>
-        /// Bridges the synchronous receive loop to our asynchronous stream channels.
-        /// </summary>
-        internal void HandleIncomingStreamMessage(eMsgType msgType, ulong trackingId, ReadOnlySpan<byte> payloadSpan)
+        ///// <summary>
+        ///// Bridges the synchronous receive loop to our asynchronous stream channels.
+        ///// </summary>
+        internal async ValueTask HandleIncomingStreamMessageAsync(eMsgType msgType, ulong trackingId, ReadOnlyMemory<byte> payloadMemory)
         {
             switch (msgType)
             {
                 case MsgType_StreamRpcStart:
                 case MsgType_StreamRpcResponseStart:
-                    // Create a bounded receiver stream (Memory Friendly - prevents infinite buffering)
-                    var receiverStream = new IpcReceiverStream(trackingId, 64); // Max 64 buffered chunks (~32-64MB)
+                    var receiverStream = new IpcReceiverStream(trackingId, 64);
                     _activeIncomingStreams[trackingId] = receiverStream;
 
-                    byte[] args = payloadSpan.Length > 0 ? payloadSpan.ToArray() : Array.Empty<byte>();
+                    byte[] args = payloadMemory.Length > 0 ? payloadMemory.ToArray() : Array.Empty<byte>();
 
                     if (msgType == MsgType_StreamRpcStart)
                     {
                         if (AsyncStreamCallHandler != null)
                         {
-                            // Trigger the user's handler
                             Task.Run(async () =>
                             {
                                 try
                                 {
                                     var result = await AsyncStreamCallHandler(trackingId, args, receiverStream).ConfigureAwait(false);
-
-                                    // Handle Response (can be stream or byte array)
                                     if (result.Item3 != null)
                                     {
                                         SendStreamFrameInternal(MsgType_StreamRpcResponseStart, trackingId, result.Item2, trackingId);
@@ -140,7 +136,6 @@ namespace tiesky.com
                     }
                     else if (msgType == MsgType_StreamRpcResponseStart)
                     {
-                        // Signal the pending RemoteRequestStreamAsync that headers arrived, and the stream is available
                         if (_pendingRequests.TryGetValue(trackingId, out var crate))
                         {
                             crate.IsRespOk = true;
@@ -153,13 +148,13 @@ namespace tiesky.com
                 case MsgType_StreamData:
                     if (_activeIncomingStreams.TryGetValue(trackingId, out var stream))
                     {
-                        // Copy payload out of the rented array so ReceiveLoop can reuse it
-                        byte[] chunk = ArrayPool<byte>.Shared.Rent(payloadSpan.Length);
-                        payloadSpan.CopyTo(chunk);
+                        byte[] chunk = ArrayPool<byte>.Shared.Rent(payloadMemory.Length);
+                        payloadMemory.Span.CopyTo(chunk);
 
-                        // Push to channel. If channel is full, this blocks the Receive loop naturally,
-                        // which pushes backpressure directly to the OS named pipe buffer (Safe & highly efficient).
-                        stream.WriteChunk(new StreamChunk(chunk, payloadSpan.Length));
+                        // THIS IS THE MAGIC FIX: 
+                        // Await safely. If channel isn't full, ValueTask completes synchronously.
+                        // If it IS full, it releases the thread back to the ThreadPool.
+                        await stream.WriteChunkAsync(new StreamChunk(chunk, payloadMemory.Length)).ConfigureAwait(false);
                     }
                     break;
 
@@ -171,6 +166,87 @@ namespace tiesky.com
                     break;
             }
         }
+
+
+
+        ///// <summary>
+        ///// Bridges the synchronous receive loop to our asynchronous stream channels.
+        ///// </summary>
+        //internal void HandleIncomingStreamMessage(eMsgType msgType, ulong trackingId, ReadOnlySpan<byte> payloadSpan)
+        //{
+        //    switch (msgType)
+        //    {
+        //        case MsgType_StreamRpcStart:
+        //        case MsgType_StreamRpcResponseStart:
+        //            // Create a bounded receiver stream (Memory Friendly - prevents infinite buffering)
+        //            var receiverStream = new IpcReceiverStream(trackingId, 64); // Max 64 buffered chunks (~32-64MB)
+        //            _activeIncomingStreams[trackingId] = receiverStream;
+
+        //            byte[] args = payloadSpan.Length > 0 ? payloadSpan.ToArray() : Array.Empty<byte>();
+
+        //            if (msgType == MsgType_StreamRpcStart)
+        //            {
+        //                if (AsyncStreamCallHandler != null)
+        //                {
+        //                    // Trigger the user's handler
+        //                    Task.Run(async () =>
+        //                    {
+        //                        try
+        //                        {
+        //                            var result = await AsyncStreamCallHandler(trackingId, args, receiverStream).ConfigureAwait(false);
+
+        //                            // Handle Response (can be stream or byte array)
+        //                            if (result.Item3 != null)
+        //                            {
+        //                                SendStreamFrameInternal(MsgType_StreamRpcResponseStart, trackingId, result.Item2, trackingId);
+        //                                await ProcessOutgoingStreamAsync(trackingId, result.Item3, _connectionCts.Token).ConfigureAwait(false);
+        //                            }
+        //                            else
+        //                            {
+        //                                SendMessageInternal(result.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), result.Item2, trackingId);
+        //                            }
+        //                        }
+        //                        catch (Exception ex)
+        //                        {
+        //                            LogExceptionInternal("Exception in AsyncStreamCallHandler", ex);
+        //                            SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, trackingId);
+        //                        }
+        //                    });
+        //                }
+        //            }
+        //            else if (msgType == MsgType_StreamRpcResponseStart)
+        //            {
+        //                // Signal the pending RemoteRequestStreamAsync that headers arrived, and the stream is available
+        //                if (_pendingRequests.TryGetValue(trackingId, out var crate))
+        //                {
+        //                    crate.IsRespOk = true;
+        //                    crate.res = args;
+        //                    crate.Set_MRE_AMRE();
+        //                }
+        //            }
+        //            break;
+
+        //        case MsgType_StreamData:
+        //            if (_activeIncomingStreams.TryGetValue(trackingId, out var stream))
+        //            {
+        //                // Copy payload out of the rented array so ReceiveLoop can reuse it
+        //                byte[] chunk = ArrayPool<byte>.Shared.Rent(payloadSpan.Length);
+        //                payloadSpan.CopyTo(chunk);
+
+        //                // Push to channel. If channel is full, this blocks the Receive loop naturally,
+        //                // which pushes backpressure directly to the OS named pipe buffer (Safe & highly efficient).
+        //                stream.WriteChunk(new StreamChunk(chunk, payloadSpan.Length));
+        //            }
+        //            break;
+
+        //        case MsgType_StreamEnd:
+        //            if (_activeIncomingStreams.TryRemove(trackingId, out var finishingStream))
+        //            {
+        //                finishingStream.Complete();
+        //            }
+        //            break;
+        //    }
+        //}
 
         internal void AbortAllStreams()
         {
@@ -312,10 +388,15 @@ namespace tiesky.com
                 });
             }
 
-            public void WriteChunk(StreamChunk chunk)
+            //public void WriteChunk(StreamChunk chunk)
+            //{
+            //    // Synchronously block to apply backpressure to the pipe if buffer is full
+            //    _channel.Writer.WriteAsync(chunk).AsTask().GetAwaiter().GetResult();
+            //}
+
+            public ValueTask WriteChunkAsync(StreamChunk chunk)
             {
-                // Synchronously block to apply backpressure to the pipe if buffer is full
-                _channel.Writer.WriteAsync(chunk).AsTask().GetAwaiter().GetResult();
+                return _channel.Writer.WriteAsync(chunk);
             }
 
             public void Complete(Exception error = null)

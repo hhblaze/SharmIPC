@@ -906,7 +906,8 @@ namespace tiesky.com
                         Statistic.MessageReceived(messageLength + 4);
 
                         // 3. Process the complete message using zero-copy Span
-                        DeserializeAndProcessMessage(rentedBuffer.AsSpan(0, messageLength));
+                        //DeserializeAndProcessMessage(rentedBuffer.AsSpan(0, messageLength));
+                        await DeserializeAndProcessMessageAsync(rentedBuffer, messageLength).ConfigureAwait(false);
                     }
                     finally
                     {
@@ -931,62 +932,129 @@ namespace tiesky.com
             }
         }
 
-        private void DeserializeAndProcessMessage(ReadOnlySpan<byte> messageSpan)
+        //private void DeserializeAndProcessMessage(ReadOnlySpan<byte> messageSpan)
+        //{
+        //    int offset = 0;
+
+        //    try
+        //    {
+        //        while (offset < messageSpan.Length)
+        //        {
+        //            // Parse headers directly from the rented span (Zero allocation)
+        //            eMsgType msgType = (eMsgType)ReadVarInt(messageSpan.Slice(offset), out int read); offset += read;
+        //            ulong iMsgId = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+        //            ulong payloadLenIndicator = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+        //            ushort iCurChunk = (ushort)ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+        //            ushort iTotChunk = (ushort)ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+        //            ulong iResponseMsgId = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+
+        //            // Determine tracking ID
+        //            ulong trackingId = (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId;
+
+        //            // Resolve Payload
+        //            ReadOnlySpan<byte> payloadSpan = ReadOnlySpan<byte>.Empty;
+
+        //            if (payloadLenIndicator == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1)
+        //            {
+        //                // Handled natively as empty span
+        //            }
+        //            else if (payloadLenIndicator > 0 && payloadLenIndicator < Int32.MaxValue)
+        //            {
+        //                int len = (int)payloadLenIndicator;
+        //                payloadSpan = messageSpan.Slice(offset, len);
+        //                offset += len;
+        //            }
+
+        //            // --- Chunk Assembly Logic ---
+        //            if (msgType == eMsgType.ErrorInRpc)
+        //            {
+        //                _assemblingMessages.Remove(trackingId); // Discard any pending chunks
+        //                InternalDataArrived(msgType, trackingId, null);
+        //                continue;
+        //            }
+
+        //            if ((int)msgType >= 20 && (int)msgType <= 23)
+        //            {
+        //                HandleIncomingStreamMessage(msgType, trackingId, payloadSpan);
+        //                continue;
+        //            }
+
+        //            if (iTotChunk == 1) // Fast path: Single chunk message
+        //            {
+        //                // We MUST ToArray() here because the rented buffer will be recycled!
+        //                byte[] finalPayload = payloadSpan.Length > 0 ? payloadSpan.ToArray() : Array.Empty<byte>();
+        //                InternalDataArrived(msgType, trackingId, finalPayload);
+        //            }
+        //            else // Multi-chunk message
+        //            {
+        //                ProcessMultiPartChunk(msgType, trackingId, iCurChunk, iTotChunk, payloadSpan);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogExceptionInternal("Error deserializing message", ex);
+        //        HandleDisconnection();
+        //    }
+        //}
+
+        private async ValueTask DeserializeAndProcessMessageAsync(byte[] messageBuffer, int messageLength)
         {
             int offset = 0;
 
             try
             {
-                while (offset < messageSpan.Length)
+                while (offset < messageLength)
                 {
-                    // Parse headers directly from the rented span (Zero allocation)
-                    eMsgType msgType = (eMsgType)ReadVarInt(messageSpan.Slice(offset), out int read); offset += read;
-                    ulong iMsgId = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
-                    ulong payloadLenIndicator = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
-                    ushort iCurChunk = (ushort)ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
-                    ushort iTotChunk = (ushort)ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
-                    ulong iResponseMsgId = ReadVarInt(messageSpan.Slice(offset), out read); offset += read;
+                    // Parse headers using array and ref offset directly (avoids Span in async method)
+                    eMsgType msgType = (eMsgType)ReadVarIntArray(messageBuffer, ref offset);
+                    ulong iMsgId = ReadVarIntArray(messageBuffer, ref offset);
+                    ulong payloadLenIndicator = ReadVarIntArray(messageBuffer, ref offset);
+                    ushort iCurChunk = (ushort)ReadVarIntArray(messageBuffer, ref offset);
+                    ushort iTotChunk = (ushort)ReadVarIntArray(messageBuffer, ref offset);
+                    ulong iResponseMsgId = ReadVarIntArray(messageBuffer, ref offset);
 
-                    // Determine tracking ID
                     ulong trackingId = (msgType == eMsgType.RpcResponse || msgType == eMsgType.ErrorInRpc) ? iResponseMsgId : iMsgId;
 
-                    // Resolve Payload
-                    ReadOnlySpan<byte> payloadSpan = ReadOnlySpan<byte>.Empty;
+                    // Use Memory instead of Span so it can safely cross the `await` boundary
+                    ReadOnlyMemory<byte> payloadMemory = ReadOnlyMemory<byte>.Empty;
 
                     if (payloadLenIndicator == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1)
                     {
-                        // Handled natively as empty span
+                        // Empty payload
                     }
                     else if (payloadLenIndicator > 0 && payloadLenIndicator < Int32.MaxValue)
                     {
                         int len = (int)payloadLenIndicator;
-                        payloadSpan = messageSpan.Slice(offset, len);
+                        payloadMemory = new ReadOnlyMemory<byte>(messageBuffer, offset, len);
                         offset += len;
+                    }
+
+                    // --- STREAM INTERCEPT (NOW ASYNC) ---
+                    if ((int)msgType >= 20 && (int)msgType <= 23)
+                    {
+                        await HandleIncomingStreamMessageAsync(msgType, trackingId, payloadMemory).ConfigureAwait(false);
+                        continue;
                     }
 
                     // --- Chunk Assembly Logic ---
                     if (msgType == eMsgType.ErrorInRpc)
                     {
-                        _assemblingMessages.Remove(trackingId); // Discard any pending chunks
+                        _assemblingMessages.Remove(trackingId);
                         InternalDataArrived(msgType, trackingId, null);
                         continue;
                     }
 
-                    if ((int)msgType >= 20 && (int)msgType <= 23)
+                    if (iTotChunk == 1)
                     {
-                        HandleIncomingStreamMessage(msgType, trackingId, payloadSpan);
-                        continue;
-                    }
-
-                    if (iTotChunk == 1) // Fast path: Single chunk message
-                    {
-                        // We MUST ToArray() here because the rented buffer will be recycled!
-                        byte[] finalPayload = payloadSpan.Length > 0 ? payloadSpan.ToArray() : Array.Empty<byte>();
+                        // .ToArray() on Memory is safe and does not require a local Span
+                        byte[] finalPayload = payloadMemory.Length > 0 ? payloadMemory.ToArray() : Array.Empty<byte>();
                         InternalDataArrived(msgType, trackingId, finalPayload);
                     }
-                    else // Multi-chunk message
+                    else
                     {
-                        ProcessMultiPartChunk(msgType, trackingId, iCurChunk, iTotChunk, payloadSpan);
+                        // Pass Memory instead of Span
+                        ProcessMultiPartChunk(msgType, trackingId, iCurChunk, iTotChunk, payloadMemory);
                     }
                 }
             }
@@ -997,7 +1065,63 @@ namespace tiesky.com
             }
         }
 
-        private void ProcessMultiPartChunk(eMsgType msgType, ulong trackingId, ushort curChunk, ushort totChunk, ReadOnlySpan<byte> payloadSpan)
+        //private void ProcessMultiPartChunk(eMsgType msgType, ulong trackingId, ushort curChunk, ushort totChunk, ReadOnlySpan<byte> payloadSpan)
+        //{
+        //    if (!_assemblingMessages.TryGetValue(trackingId, out var assembler))
+        //    {
+        //        assembler = new MessageAssembler();
+        //        _assemblingMessages[trackingId] = assembler;
+        //    }
+
+        //    if (curChunk == 1)
+        //    {
+        //        assembler.Chunks.Clear();
+        //        assembler.LastChunkReceived = 0;
+        //        assembler.TotalPayloadSize = 0;
+        //    }
+        //    else if (curChunk != assembler.LastChunkReceived + 1)
+        //    {
+        //        LogExceptionInternal($"Chunk order error. Expected {assembler.LastChunkReceived + 1}, got {curChunk}.", new InvalidDataException("Chunk mismatch"));
+        //        _assemblingMessages.Remove(trackingId); // Discard broken message
+
+        //        // Signal failure for pending requests
+        //        if (msgType == eMsgType.RpcResponse && _pendingRequests.TryGetValue(trackingId, out var crate))
+        //        {
+        //            crate.IsRespOk = false;
+        //            crate.res = null;
+        //            crate.Set_MRE_AMRE();
+        //        }
+        //        return;
+        //    }
+
+        //    assembler.LastChunkReceived = curChunk;
+
+        //    if (payloadSpan.Length > 0)
+        //    {
+        //        byte[] chunkData = payloadSpan.ToArray(); // Copy out of the rented buffer
+        //        assembler.Chunks.Add(chunkData);
+        //        assembler.TotalPayloadSize += chunkData.Length;
+        //    }
+
+        //    // Is it the last chunk?
+        //    if (curChunk == totChunk)
+        //    {
+        //        _assemblingMessages.Remove(trackingId);
+
+        //        // Assemble all chunks into exactly ONE final array (No O(N^2) block copying)
+        //        byte[] finalPayload = new byte[assembler.TotalPayloadSize];
+        //        int pos = 0;
+        //        foreach (var chunk in assembler.Chunks)
+        //        {
+        //            Buffer.BlockCopy(chunk, 0, finalPayload, pos, chunk.Length);
+        //            pos += chunk.Length;
+        //        }
+
+        //        InternalDataArrived(msgType, trackingId, finalPayload);
+        //    }
+        //}
+
+        private void ProcessMultiPartChunk(eMsgType msgType, ulong trackingId, ushort curChunk, ushort totChunk, ReadOnlyMemory<byte> payloadMemory)
         {
             if (!_assemblingMessages.TryGetValue(trackingId, out var assembler))
             {
@@ -1014,9 +1138,8 @@ namespace tiesky.com
             else if (curChunk != assembler.LastChunkReceived + 1)
             {
                 LogExceptionInternal($"Chunk order error. Expected {assembler.LastChunkReceived + 1}, got {curChunk}.", new InvalidDataException("Chunk mismatch"));
-                _assemblingMessages.Remove(trackingId); // Discard broken message
+                _assemblingMessages.Remove(trackingId);
 
-                // Signal failure for pending requests
                 if (msgType == eMsgType.RpcResponse && _pendingRequests.TryGetValue(trackingId, out var crate))
                 {
                     crate.IsRespOk = false;
@@ -1028,19 +1151,17 @@ namespace tiesky.com
 
             assembler.LastChunkReceived = curChunk;
 
-            if (payloadSpan.Length > 0)
+            if (payloadMemory.Length > 0)
             {
-                byte[] chunkData = payloadSpan.ToArray(); // Copy out of the rented buffer
+                byte[] chunkData = payloadMemory.ToArray(); // Safe conversion from Memory
                 assembler.Chunks.Add(chunkData);
                 assembler.TotalPayloadSize += chunkData.Length;
             }
 
-            // Is it the last chunk?
             if (curChunk == totChunk)
             {
                 _assemblingMessages.Remove(trackingId);
 
-                // Assemble all chunks into exactly ONE final array (No O(N^2) block copying)
                 byte[] finalPayload = new byte[assembler.TotalPayloadSize];
                 int pos = 0;
                 foreach (var chunk in assembler.Chunks)
@@ -1054,16 +1175,38 @@ namespace tiesky.com
         }
 
         // --- Ultra-Fast VarInt Reader ---        
-        public static ulong ReadVarInt(ReadOnlySpan<byte> span, out int bytesRead)
+        //public static ulong ReadVarInt(ReadOnlySpan<byte> span, out int bytesRead)
+        //{
+        //    bytesRead = 0;
+        //    int shift = 0;
+        //    ulong result = 0;
+
+        //    while (shift <= 63 && bytesRead < span.Length)
+        //    {
+        //        byte byteValue = span[bytesRead];
+        //        bytesRead++;
+        //        ulong tmp = byteValue & 0x7fUL;
+        //        result |= tmp << shift;
+
+        //        if ((byteValue & 0x80) != 0x80)
+        //        {
+        //            return result;
+        //        }
+        //        shift += 7;
+        //    }
+
+        //    throw new InvalidDataException("Varint decoding failed or exceeded maximum size.");
+        //}
+
+        private static ulong ReadVarIntArray(byte[] buffer, ref int offset)
         {
-            bytesRead = 0;
             int shift = 0;
             ulong result = 0;
 
-            while (shift <= 63 && bytesRead < span.Length)
+            while (shift <= 63 && offset < buffer.Length)
             {
-                byte byteValue = span[bytesRead];
-                bytesRead++;
+                byte byteValue = buffer[offset];
+                offset++;
                 ulong tmp = byteValue & 0x7fUL;
                 result |= tmp << shift;
 
