@@ -38,3 +38,4 @@ Process2/.vs
 Process2/bin/Debug
 Process2/bin/Release
 Process2/obj
+/Process1/SharmIpc/bin/Debug
