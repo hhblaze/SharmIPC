@@ -1,40 +1,40 @@
-/Process1/.vs
-/Process1/Process1/.vs
-/Process1/Process1/bin/Debug
-/Process1/Process1/bin/Release
-/Process1/Process1/obj
+Process1/.vs
+Process1/Process1/.vs
+Process1/Process1/bin/Debug
+Process1/Process1/bin/Release
+Process1/Process1/obj
 
-/Process1/SharmIpc/.vs
-/Process1/SharmIpc/bin/Debug
-/Process1/SharmIpc/bin/Release
-/Process1/SharmIpc/obj
+Process1/SharmIpc/.vs
+Process1/SharmIpc/bin/Debug/*.*
+Process1/SharmIpc/bin/Release
+Process1/SharmIpc/obj
 
-/Process1/SharmIpc462/.vs
-/Process1/SharmIpc462/bin/Debug
-/Process1/SharmIpc462/bin/Release
-/Process1/SharmIpc462/obj
+Process1/SharmIpc462/.vs
+Process1/SharmIpc462/bin/Debug
+Process1/SharmIpc462/bin/Release
+Process1/SharmIpc462/obj
 
-/Process1/SharmIpcNet6/.vs
-/Process1/SharmIpcNet6/bin/Debug
-/Process1/SharmIpcNet6/bin/Release
-/Process1/SharmIpcNet6/obj
+Process1/SharmIpcNet6/.vs
+Process1/SharmIpcNet6/bin/Debug
+Process1/SharmIpcNet6/bin/Release
+Process1/SharmIpcNet6/obj
 
-/Process1/SharmIpcNet8/.vs
-/Process1/SharmIpcNet8/bin/Debug
-/Process1/SharmIpcNet8/bin/Release
-/Process1/SharmIpcNet8/obj
+Process1/SharmIpcNet8/.vs
+Process1/SharmIpcNet8/bin/Debug
+Process1/SharmIpcNet8/bin/Release
+Process1/SharmIpcNet8/obj
 
-/Process1/SharmIpcNetCore462/.vs
-/Process1/SharmIpcNetCore462/bin/Debug
-/Process1/SharmIpcNetCore462/bin/Release
-/Process1/SharmIpcNetCore462/obj
+Process1/SharmIpcNetCore462/.vs
+Process1/SharmIpcNetCore462/bin/Debug
+Process1/SharmIpcNetCore462/bin/Release
+Process1/SharmIpcNetCore462/obj
 
-/Process1/SharmIpcNetStandard20/.vs
-/Process1/SharmIpcNetStandard20/bin/Debug
-/Process1/SharmIpcNetStandard20/bin/Release
-/Process1/SharmIpcNetStandard20/obj
+Process1/SharmIpcNetStandard20/.vs
+Process1/SharmIpcNetStandard20/bin/Debug
+Process1/SharmIpcNetStandard20/bin/Release
+Process1/SharmIpcNetStandard20/obj
 
-/Process2/.vs
-/Process2/bin/Debug
-/Process2/bin/Release
-/Process2/obj
+Process2/.vs
+Process2/bin/Debug
+Process2/bin/Release
+Process2/obj
