@@ -85,6 +85,7 @@ namespace MemoryMappedFile
             if (sm == null)
             {
                 sm = new tiesky.com.SharmNpc("MNPC", tiesky.com.SharmNpcInternals.PipeRole.Server, this.RemoteCall, externalProcessing: false);
+
                     //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.RemoteCall, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
                     //sm = new tiesky.com.SharmIpc("MyNewSharmIpc", this.AsyncRemoteCallHandler, protocolVersion: tiesky.com.SharmIpc.eProtocolVersion.V1);
 
@@ -283,8 +284,10 @@ namespace MemoryMappedFile
             //return;
 
 
-            //var uzuz = await sm.RemoteRequestAsync(new byte[1700]);
-            //return;
+            var uzuz = await sm.RemoteRequestAsync(new byte[1700]);            
+            //var uzuz = await sm.RemoteRequestAsync(new byte[] { });
+            //var uzuz = await sm.RemoteRequestAsync(null);
+            return;
 
             t001_TestIntensiveParallel();
             return;

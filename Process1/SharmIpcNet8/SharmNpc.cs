@@ -1020,9 +1020,16 @@ namespace tiesky.com
                     // Use Memory instead of Span so it can safely cross the `await` boundary
                     ReadOnlyMemory<byte> payloadMemory = ReadOnlyMemory<byte>.Empty;
 
+                    bool isNullPayload = false;
+
                     if (payloadLenIndicator == Int32.MaxValue && iCurChunk == 1 && iTotChunk == 1)
                     {
                         // Empty payload
+                    }
+                    else if (payloadLenIndicator == 0 && iCurChunk == 1 && iTotChunk == 1)
+                    {
+                        // explicit null payload
+                        isNullPayload = true;
                     }
                     else if (payloadLenIndicator > 0 && payloadLenIndicator < Int32.MaxValue)
                     {
@@ -1049,7 +1056,16 @@ namespace tiesky.com
                     if (iTotChunk == 1)
                     {
                         // .ToArray() on Memory is safe and does not require a local Span
-                        byte[] finalPayload = payloadMemory.Length > 0 ? payloadMemory.ToArray() : Array.Empty<byte>();
+                        //byte[] finalPayload = payloadMemory.Length > 0 ? payloadMemory.ToArray() : Array.Empty<byte>();
+                        //InternalDataArrived(msgType, trackingId, finalPayload);
+                        byte[] finalPayload;
+                        if (isNullPayload)
+                            finalPayload = null;
+                        else if (payloadMemory.Length > 0)
+                            finalPayload = payloadMemory.ToArray();
+                        else
+                            finalPayload = Array.Empty<byte>();
+
                         InternalDataArrived(msgType, trackingId, finalPayload);
                     }
                     else
