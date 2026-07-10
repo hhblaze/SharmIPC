@@ -549,16 +549,40 @@ namespace tiesky.com
                     {
                         crate.IsRespOk = false;
                         crate.res = null; // Indicate failure due to disconnection
-                        if (crate.callBack != null)
+                        var callback = crate.callBack;
+                        if (callback != null)
                         {
-                            // Execute callback asynchronously
-                            Task.Run(() => crate.callBack((false, null)));
+                            Task.Run(() =>
+                            {
+                                try
+                                {
+                                    callback((false, null));
+                                }
+                                catch (Exception ex)
+                                {
+                                    //LogExceptionInternal("Exception in disconnect callback", ex);
+                                }
+                                finally
+                                {
+                                    crate.Dispose_MRE_AMRE();
+                                }
+                            });
                         }
                         else
                         {
-                            crate.Set_MRE_AMRE(); // Signal waiting threads/tasks
+                            crate.Set_MRE_AMRE();
+                            crate.Dispose_MRE_AMRE();
                         }
-                        crate.Dispose_MRE_AMRE(); // Clean up crate resources
+                        //if (crate.callBack != null)
+                        //{
+                        //    // Execute callback asynchronously
+                        //    Task.Run(() => crate.callBack((false, null)));
+                        //}
+                        //else
+                        //{
+                        //    crate.Set_MRE_AMRE(); // Signal waiting threads/tasks
+                        //}
+                        //crate.Dispose_MRE_AMRE(); // Clean up crate resources
                     }
                     catch (Exception ex)
                     {
