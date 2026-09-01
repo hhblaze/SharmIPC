@@ -121,15 +121,34 @@ namespace tiesky.com
         /// <param name="payloadStream">The stream of data to send over the pipe.</param>
         /// <param name="timeoutMs">Timeout to wait for the complete response.</param>
         /// <returns>A tuple of (Success, Response Data, Optional Response Stream)</returns>
-        public async Task<(bool success, byte[] responseData, Stream responseStream)> RemoteRequestStreamAsync(
-    byte[] args, Stream payloadStream = null, int timeoutMs = 30000) // payloadStream defaults to null now!
+        public Task<(bool success, byte[] responseData, Stream responseStream)> RemoteRequestStreamAsync(
+            byte[] args, Stream payloadStream = null, int timeoutMs = 30000)
         {
+            return RemoteRequestStreamAsync(args, payloadStream, timeoutMs, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Sends an RPC request with an attached stream payload and allows the
+        /// caller to cancel the local request lifetime without waiting for the
+        /// transport timeout.
+        /// </summary>
+        /// <param name="args">Header arguments/metadata for the request.</param>
+        /// <param name="payloadStream">The stream of data to send over the pipe.</param>
+        /// <param name="timeoutMs">Timeout to wait for the complete response.</param>
+        /// <param name="cancellationToken">Cancels this request and its outgoing payload.</param>
+        public async Task<(bool success, byte[] responseData, Stream responseStream)> RemoteRequestStreamAsync(
+            byte[] args, Stream payloadStream, int timeoutMs, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (Interlocked.Read(ref _disposed) == 1 || !IsConnected) return (false, null, null);
 
             ulong msgId = GetNextMessageId();
             var crate = new ResponseCrate();
             crate.TimeoutsMs = timeoutMs;
             crate.Init_AMRE();
+            bool requestCompleted = false;
+            bool responseStreamHandedOff = false;
 
             if (!_pendingRequests.TryAdd(msgId, crate))
             {
@@ -138,40 +157,65 @@ namespace tiesky.com
             }
             Statistic.UpdatePending(_pendingRequests.Count);
 
-            try
+            using (var requestLifetime = CancellationTokenSource.CreateLinkedTokenSource(
+                _connectionCts.Token, cancellationToken))
             {
-                // 1. [streamStart] Send the header framing
-                if (!SendStreamFrameInternal(MsgType_StreamRpcStart, msgId, args))
-                    return (false, null, null);
-
-                // 2. [data] Send the stream chunks OR immediately send End if payloadStream is null
-                if (payloadStream != null)
+                try
                 {
-                    _ = Task.Run(() => ProcessOutgoingStreamAsync(msgId, payloadStream, _connectionCts.Token));
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // 1. [streamStart] Send the header framing
+                    if (!SendStreamFrameInternal(MsgType_StreamRpcStart, msgId, args))
+                        return (false, null, null);
+
+                    // 2. [data] Send the stream chunks OR immediately send End if payloadStream is null
+                    if (payloadStream != null)
+                    {
+                        _ = Task.Run(() => ProcessOutgoingStreamAsync(
+                            msgId, payloadStream, requestLifetime.Token));
+                    }
+                    else
+                    {
+                        SendStreamFrameInternal(MsgType_StreamEnd, msgId, ReadOnlySpan<byte>.Empty);
+                    }
+
+                    // 3. Wait for the response
+                    if (!await crate.WaitOne_AMRE_WithTimeout(
+                        timeoutMs, requestLifetime.Token).ConfigureAwait(false))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        Statistic.Timeout();
+                        return (false, null, null);
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // If the response is also a stream, it will be mapped here
+                    _activeIncomingStreams.TryGetValue(msgId, out var responseStreamObj);
+                    responseStreamHandedOff = responseStreamObj != null;
+                    requestCompleted = true;
+
+                    return (crate.IsRespOk, crate.res, responseStreamObj);
                 }
-                else
+                finally
                 {
-                    SendStreamFrameInternal(MsgType_StreamEnd, msgId, ReadOnlySpan<byte>.Empty);
-                }
+                    if (!requestCompleted)
+                        requestLifetime.Cancel();
 
-                // 3. Wait for the response
-                if (!await crate.WaitOne_AMRE_WithTimeout(timeoutMs, CancellationToken.None).ConfigureAwait(false))
-                {
-                    Statistic.Timeout();
-                    return (false, null, null);
-                }
+                    if (_pendingRequests.TryRemove(msgId, out var removedCrate))
+                    {
+                        Statistic.UpdatePending(_pendingRequests.Count);
+                        removedCrate.Dispose_MRE_AMRE();
+                    }
 
-                // If the response is also a stream, it will be mapped here
-                _activeIncomingStreams.TryGetValue(msgId, out var responseStreamObj);
-
-                return (crate.IsRespOk, crate.res, responseStreamObj);
-            }
-            finally
-            {
-                if (_pendingRequests.TryRemove(msgId, out var removedCrate))
-                {
-                    Statistic.UpdatePending(_pendingRequests.Count);
-                    removedCrate.Dispose_MRE_AMRE();
+                    // A response-start frame may race with cancellation. If the
+                    // stream was not returned to the caller, remove and dispose it
+                    // so later frames for this request are ignored safely.
+                    if (!responseStreamHandedOff
+                        && _activeIncomingStreams.TryRemove(msgId, out var orphanedStream))
+                    {
+                        orphanedStream.Dispose();
+                    }
                 }
             }
         }
@@ -188,48 +232,54 @@ namespace tiesky.com
             switch (msgType)
             {
                 case MsgType_StreamRpcStart:
-                case MsgType_StreamRpcResponseStart:
-                    var receiverStream = new IpcReceiverStream(trackingId, 64);
+                    var receiverStream = new IpcReceiverStream(this, trackingId, 64);
                     _activeIncomingStreams[trackingId] = receiverStream;
 
                     byte[] args = payloadMemory.Length > 0 ? payloadMemory.ToArray() : Array.Empty<byte>();
 
-                    if (msgType == MsgType_StreamRpcStart)
+                    if (AsyncStreamCallHandler != null)
                     {
-                        if (AsyncStreamCallHandler != null)
+                        Task.Run(async () =>
                         {
-                            Task.Run(async () =>
+                            try
                             {
-                                try
+                                var result = await AsyncStreamCallHandler(trackingId, args, receiverStream).ConfigureAwait(false);
+                                if (result.Item3 != null)
                                 {
-                                    var result = await AsyncStreamCallHandler(trackingId, args, receiverStream).ConfigureAwait(false);
-                                    if (result.Item3 != null)
-                                    {
-                                        SendStreamFrameInternal(MsgType_StreamRpcResponseStart, trackingId, result.Item2, trackingId);
-                                        await ProcessOutgoingStreamAsync(trackingId, result.Item3, _connectionCts.Token).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        SendMessageInternal(result.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), result.Item2, trackingId);
-                                    }
+                                    SendStreamFrameInternal(MsgType_StreamRpcResponseStart, trackingId, result.Item2, trackingId);
+                                    await ProcessOutgoingStreamAsync(trackingId, result.Item3, _connectionCts.Token).ConfigureAwait(false);
                                 }
-                                catch (Exception ex)
+                                else
                                 {
-                                    LogExceptionInternal("Exception in AsyncStreamCallHandler", ex);
-                                    SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, trackingId);
+                                    SendMessageInternal(result.Item1 ? eMsgType.RpcResponse : eMsgType.ErrorInRpc, GetNextMessageId(), result.Item2, trackingId);
                                 }
-                            });
-                        }
+                            }
+                            catch (Exception ex)
+                            {
+                                LogExceptionInternal("Exception in AsyncStreamCallHandler", ex);
+                                SendMessageInternal(eMsgType.ErrorInRpc, GetNextMessageId(), null, trackingId);
+                            }
+                        });
                     }
-                    else if (msgType == MsgType_StreamRpcResponseStart)
+
+                    break;
+
+                case MsgType_StreamRpcResponseStart:
+                    // A timeout or cancellation removes the pending request. Do
+                    // not create an unconsumed stream for a late response.
+                    if (_pendingRequests.TryGetValue(trackingId, out var crate))
                     {
-                        if (_pendingRequests.TryGetValue(trackingId, out var crate))
-                        {
-                            crate.IsRespOk = true;
-                            crate.res = args;
-                            crate.Set_MRE_AMRE();
-                        }
+                        var responseStream = new IpcReceiverStream(this, trackingId, 64);
+                        _activeIncomingStreams[trackingId] = responseStream;
+
+                        byte[] responseArgs = payloadMemory.Length > 0
+                            ? payloadMemory.ToArray()
+                            : Array.Empty<byte>();
+                        crate.IsRespOk = true;
+                        crate.res = responseArgs;
+                        crate.Set_MRE_AMRE();
                     }
+
                     break;
 
                 case MsgType_StreamData:
@@ -237,11 +287,25 @@ namespace tiesky.com
                     {
                         byte[] chunk = ArrayPool<byte>.Shared.Rent(payloadMemory.Length);
                         payloadMemory.Span.CopyTo(chunk);
-
-                        // THIS IS THE MAGIC FIX: 
-                        // Await safely. If channel isn't full, ValueTask completes synchronously.
-                        // If it IS full, it releases the thread back to the ThreadPool.
-                        await stream.WriteChunkAsync(new StreamChunk(chunk, payloadMemory.Length)).ConfigureAwait(false);
+                        bool accepted = false;
+                        try
+                        {
+                            // Await safely. If the channel is full, this applies
+                            // backpressure without blocking the receive thread.
+                            await stream.WriteChunkAsync(
+                                new StreamChunk(chunk, payloadMemory.Length)).ConfigureAwait(false);
+                            accepted = true;
+                        }
+                        catch (ChannelClosedException)
+                        {
+                            // The consumer canceled/disposed this stream while a
+                            // frame was arriving. The frame is intentionally ignored.
+                        }
+                        finally
+                        {
+                            if (!accepted)
+                                ArrayPool<byte>.Shared.Return(chunk);
+                        }
                     }
                     break;
 
@@ -356,7 +420,7 @@ namespace tiesky.com
             // Match the 1MB chunk size used in the standard SharmNpc sender for max throughput
             int chunkSize = 1000000;
             byte[] buffer = ArrayPool<byte>.Shared.Rent(chunkSize);
-           
+
             try
             {
                 int bytesRead;
@@ -377,6 +441,10 @@ namespace tiesky.com
 
                 // [streamEnd]
                 SendStreamFrameInternal(MsgType_StreamEnd, trackingId, ReadOnlySpan<byte>.Empty);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // Normal per-request or connection cancellation.
             }
             catch (Exception ex)
             {
@@ -460,13 +528,16 @@ namespace tiesky.com
         /// </summary>
         private class IpcReceiverStream : Stream
         {
+            private readonly SharmNpc _owner;
             private readonly ulong _trackingId;
             private readonly Channel<StreamChunk> _channel;
             private StreamChunk _currentChunk;
             private int _currentChunkPosition;
+            private int _disposed;
 
-            public IpcReceiverStream(ulong trackingId, int maxQueuedChunks)
+            public IpcReceiverStream(SharmNpc owner, ulong trackingId, int maxQueuedChunks)
             {
+                _owner = owner;
                 _trackingId = trackingId;
                 // Bounded channel creates safety constraint against runaway memory allocation
                 _channel = Channel.CreateBounded<StreamChunk>(new BoundedChannelOptions(maxQueuedChunks)
@@ -533,13 +604,20 @@ namespace tiesky.com
 
             protected override void Dispose(bool disposing)
             {
-                if (disposing)
+                if (disposing && Interlocked.Exchange(ref _disposed, 1) == 0)
                 {
+                    _owner?._activeIncomingStreams.TryRemove(_trackingId, out _);
                     Complete();
                     if (_currentChunk.Buffer != null)
                     {
                         ArrayPool<byte>.Shared.Return(_currentChunk.Buffer);
                         _currentChunk = default;
+                    }
+
+                    while (_channel.Reader.TryRead(out var queuedChunk))
+                    {
+                        if (queuedChunk.Buffer != null)
+                            ArrayPool<byte>.Shared.Return(queuedChunk.Buffer);
                     }
                 }
                 base.Dispose(disposing);
